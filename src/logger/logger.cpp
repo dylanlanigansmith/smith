@@ -1,0 +1,62 @@
+#include "logger.hpp"
+#include <stdio.h>
+
+void CLogger::formatName()
+{
+    m_szName.append(" > ");
+}
+
+void CLogger::dbg(const char *fmt, ...)
+{
+    std::string ctxt = m_szName;
+    va_list args;
+    va_start(args, fmt);
+    std::string sfmt = _strf(fmt, args);
+    va_end(args);
+    ctxt.append(sfmt);
+    _log(ctxt);
+}
+
+void CLogger::log(const char *fmt, ...)
+{
+    
+    std::string ctxt = m_szName;
+    va_list args;
+    va_start(args, fmt);
+    std::string sfmt = _strf(fmt, args);
+    va_end(args);
+    ctxt.append(sfmt);
+    
+    _log(ctxt);
+    
+}
+
+void CLogger::log(const std::string &msg)
+{
+    std::string ctxt = m_szName;
+    ctxt.append(msg);
+    _log(ctxt);
+}
+
+std::string CLogger::_strf(const char *fmt, va_list list)
+{
+    char buf[1024];
+    vsnprintf(buf, sizeof(buf), fmt, list);
+    return std::string(buf);
+}
+
+void CLogger::_logf(const char *fmt, ...)
+{
+    char buf[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    std::string s = buf;
+    _log(s);
+}
+
+void CLogger::_log(std::string msg)
+{
+        std::cout << msg << std::endl; 
+}
