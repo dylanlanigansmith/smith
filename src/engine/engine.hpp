@@ -16,7 +16,16 @@ public:
     
     auto window() const { return m_SDLWindow; }
 
-    template <typename T> std::unique_ptr<T> CreateInterface(const std::string& name);
+    template <typename T> std::unique_ptr<T> 
+    CreateInterface(const std::string& name)
+    {
+        if(interfaces.InterfaceExists(name))
+        {
+            return interfaces.CreateInterface<T>(name);
+        }
+        log("create interface not found for %s", name.c_str());
+        return std::unique_ptr<T>(nullptr);
+    }
 protected:
     void InitInterfaces();
     int Shutdown();

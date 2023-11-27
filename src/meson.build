@@ -1,5 +1,6 @@
 
 x_dep = dependency('x11')
+gl_dep = dependency('gl')
 sdl3_dep = dependency('sdl3')
 thread_dep = dependency('threads')
 
@@ -20,7 +21,8 @@ executable('smith', sources, include_directories : inc,
     dependencies : [
         x_dep,
         thread_dep,
-        sdl3_dep
+        sdl3_dep,
+        gl_dep
     ]
 
 )

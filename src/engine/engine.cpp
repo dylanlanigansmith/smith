@@ -22,6 +22,9 @@ void CEngine::Start(const char* title)
 
 int CEngine::Run()
 {
+    static auto IInputSystem = CreateInterface<CInputSystem>("IInputSystem");
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
     while(!shouldStopLoop)
     {
         for(auto& element : interfaces.list())
@@ -32,12 +35,12 @@ int CEngine::Run()
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            switch (event.type)
-            {
-                case SDL_EVENT_QUIT:
-                    shouldStopLoop = SDL_TRUE;
-                    break;
+            if(event.type == SDL_EVENT_QUIT){
+                shouldStopLoop = SDL_TRUE;
+                break;
             }
+            //https://wiki.libsdl.org/SDL3/SDL_GetKeyboardState
+            IInputSystem->OnEvent(&event);
         }
         
         for(auto& element : interfaces.list())
@@ -65,15 +68,8 @@ int CEngine::Shutdown()
 void CEngine::InitInterfaces()
 {
     interfaces.AddInterface<CEngineTime>();
+    interfaces.AddInterface<CInputSystem>();
+}
 
-}
-template <typename T> std::unique_ptr<T> CEngine::CreateInterface(const std::string& name)
-{
-    if(interfaces.InterfaceExists(name))
-    {
-        return interfaces.CreateInterface<T>(name);
-    }
-    log("create interface not found for %s", name.c_str());
-    return std::unique_ptr<T>(nullptr);
-}
+
 

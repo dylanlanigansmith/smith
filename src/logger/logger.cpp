@@ -3,12 +3,12 @@
 
 void CLogger::formatName()
 {
-    m_szName.append(" > ");
+    m_szFmtName.append(" > ");
 }
 
 void CLogger::dbg(const char *fmt, ...)
 {
-    std::string ctxt = m_szName;
+    std::string ctxt = m_szFmtName;
     va_list args;
     va_start(args, fmt);
     std::string sfmt = _strf(fmt, args);
@@ -20,7 +20,7 @@ void CLogger::dbg(const char *fmt, ...)
 void CLogger::log(const char *fmt, ...)
 {
     
-    std::string ctxt = m_szName;
+    std::string ctxt = m_szFmtName;
     va_list args;
     va_start(args, fmt);
     std::string sfmt = _strf(fmt, args);
@@ -33,7 +33,7 @@ void CLogger::log(const char *fmt, ...)
 
 void CLogger::log(const std::string &msg)
 {
-    std::string ctxt = m_szName;
+    std::string ctxt = m_szFmtName;
     ctxt.append(msg);
     _log(ctxt);
 }
