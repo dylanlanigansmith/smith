@@ -1,4 +1,6 @@
 #include "engine.hpp"
+#include <interfaces/interfaces.hpp>
+
 
 CEngine::~CEngine()
 {
@@ -20,9 +22,13 @@ void CEngine::Start(const char* title)
 
 int CEngine::Run()
 {
-
     while(!shouldStopLoop)
     {
+        for(auto& element : interfaces.list())
+            element.second->OnLoopStart();
+        
+
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -33,19 +39,21 @@ int CEngine::Run()
                     break;
             }
         }
+        
+        for(auto& element : interfaces.list())
+            element.second->OnRenderStart();
         render->Loop();
+        for(auto& element : interfaces.list())
+            element.second->OnRenderEnd();
+        for(auto& element : interfaces.list())
+            element.second->OnLoopEnd();
     }
 
     return Shutdown();
 }
 int CEngine::Shutdown()
 {
-    for(auto& entry : interface_list)
-    {
-        auto interface = entry.second;
-        interface->Shutdown();
-        delete interface;
-    }
+    
     delete render;
     SDL_DestroyWindow(m_SDLWindow);
     SDL_Quit();
@@ -56,18 +64,16 @@ int CEngine::Shutdown()
 
 void CEngine::InitInterfaces()
 {
-   
+    interfaces.AddInterface<CEngineTime>();
+
 }
-
-
-
-std::unique_ptr<CBaseInterface> CEngine::CreateInterface(const std::string &name)
+template <typename T> std::unique_ptr<T> CEngine::CreateInterface(const std::string& name)
 {
-    auto search = interface_list.find(name);
-    if(search != interface_list.end())
+    if(interfaces.InterfaceExists(name))
     {
-        return std::unique_ptr<CBaseInterface>(interface_list.at(name));
+        return interfaces.CreateInterface<T>(name);
     }
     log("create interface not found for %s", name.c_str());
-    return std::unique_ptr<CBaseInterface>(nullptr);
+    return std::unique_ptr<T>(nullptr);
 }
+

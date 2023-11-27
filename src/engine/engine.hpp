@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 #include <logger/logger.hpp>
 #include <renderer/renderer.hpp>
-#include <interfaces/CBaseInterface.hpp>
+#include <interfaces/interfaces.hpp>
 
 class CEngine : public CLogger
 {
@@ -15,7 +15,8 @@ public:
     int Run();
     
     auto window() const { return m_SDLWindow; }
-    std::unique_ptr<CBaseInterface> CreateInterface(const std::string& name);
+
+    template <typename T> std::unique_ptr<T> CreateInterface(const std::string& name);
 protected:
     void InitInterfaces();
     int Shutdown();
@@ -24,7 +25,7 @@ protected:
 private:
     SDL_Window* m_SDLWindow;
     CRenderer* render;
-    std::unordered_map<std::string, CBaseInterface*> interface_list;
+    CInterfaceList interfaces;
     SDL_bool shouldStopLoop;
 };
 

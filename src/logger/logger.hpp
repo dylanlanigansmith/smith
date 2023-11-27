@@ -9,6 +9,7 @@ class CLogger
 public:
     CLogger() { m_szName = "Log"; formatName();}
     CLogger(const std::string& name) : m_szName(name){ formatName();} 
+    virtual ~CLogger(){}
     virtual void dbg(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void log(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void log(const std::string& msg);
