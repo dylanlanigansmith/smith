@@ -21,8 +21,11 @@ public:
     virtual void OnRenderEnd() override {}
     virtual void OnEvent(SDL_Event* event );
     virtual WASD_t GetInput();
+    virtual bool IsKeyDown(SDL_Scancode code);
 private:
     virtual void OnKeyDown(SDL_Keycode code);
 private:
     WASD_t m_wasd;
+    const uint8_t* keyboardState;
+    int keyboardSize;
 };

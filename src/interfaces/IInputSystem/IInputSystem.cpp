@@ -6,6 +6,7 @@ CInputSystem::~CInputSystem()
 
 void CInputSystem::OnCreate()
 {
+    keyboardState = SDL_GetKeyboardState(&keyboardSize);
 }
 
 void CInputSystem::OnShutdown()
@@ -15,6 +16,8 @@ void CInputSystem::OnShutdown()
 void CInputSystem::OnLoopStart()
 {
     m_wasd.w = m_wasd.a = m_wasd.s = m_wasd.d = false;
+
+    SDL_PumpEvents();
 }
 
 void CInputSystem::OnLoopEnd()
@@ -35,7 +38,21 @@ void CInputSystem::OnEvent(SDL_Event *event)
 
 WASD_t CInputSystem::GetInput()
 {
+    m_wasd = {
+        .w = IsKeyDown(SDL_SCANCODE_W),
+        .a = IsKeyDown(SDL_SCANCODE_A),
+        .s = IsKeyDown(SDL_SCANCODE_S),
+        .d = IsKeyDown(SDL_SCANCODE_D),
+    };
     return m_wasd;
+}
+
+bool CInputSystem::IsKeyDown(SDL_Scancode code)
+{
+    if(code > keyboardSize - 1)
+        return false;
+
+    return keyboardState[code];
 }
 
 void CInputSystem::OnKeyDown(SDL_Keycode code)

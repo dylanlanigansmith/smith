@@ -50,6 +50,8 @@ int CEngine::Run()
             element.second->OnRenderEnd();
         for(auto& element : interfaces.list())
             element.second->OnLoopEnd();
+
+       // log("%f", 1.0 / IEngineTime->GetLastFrameTime().sec());
     }
 
     return Shutdown();
@@ -69,6 +71,10 @@ void CEngine::InitInterfaces()
 {
     interfaces.AddInterface<CEngineTime>();
     interfaces.AddInterface<CInputSystem>();
+    interfaces.AddInterface<CResourceSystem>();
+    interfaces.AddInterface<CTextureSystem>();
+    interfaces.AddInterface<CEntitySystem>();
+    interfaces.AddInterface<CLevelSystem>();
 }
 
 

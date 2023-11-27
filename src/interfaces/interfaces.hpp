@@ -3,7 +3,10 @@
 #include <interfaces/CBaseInterface.hpp>
 #include "IEngineTime/IEngineTime.hpp"
 #include "IInputSystem/IInputSystem.hpp"
-
+#include "IResourceSystem/IResourceSystem.hpp"
+#include "ITextureSystem/ITextureSystem.hpp"
+#include "IEntitySystem/IEntitySystem.hpp"
+#include "ILevelManager/ILevelManager.hpp"
 
 class CInterfaceList 
 {

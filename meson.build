@@ -5,7 +5,7 @@ project('smith','c','cpp',
 )
 
 
-inc = include_directories('include', 'thirdparty')
+inc = include_directories('include')
 
 
 subdir('src')
