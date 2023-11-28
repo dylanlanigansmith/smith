@@ -38,12 +38,14 @@ public:
     }
 private:
     template <typename T> 
-    void AddEntity()
+    T* AddEntity()
     {
         T* ent = new T(entity_list.size());
         auto base = (CBaseEntity*)(ent);
         base->OnCreate();
         entity_list.push_back(base);
+        log("added entity %s | %lx | #%i", base->GetName().c_str(), base->GetType(), base->GetID());
+        return ent;
     }
     virtual void CreateLocalPlayer();
 private:

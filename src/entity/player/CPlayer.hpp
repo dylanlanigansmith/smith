@@ -19,7 +19,6 @@ class CPlayer : public CBaseRenderable
 public:
     CPlayer(int m_iID);
     virtual ~CPlayer();
-    virtual bool IsRenderable();
     virtual void OnUpdate();
     virtual void OnCreate();
     virtual void OnDestroy();
@@ -28,12 +27,8 @@ public:
     virtual void OnRenderEnd();
     virtual void Render(CRenderer* renderer);
     const CCamera& Camera() { return m_camera; }
-    void SetPosition(double x, double y){
-        m_vecPosition.x = x;
-         m_vecPosition.y = y;
-    }
-private:
    
+private:
     CCamera m_camera;
 };
 

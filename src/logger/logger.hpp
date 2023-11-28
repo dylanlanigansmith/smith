@@ -2,7 +2,12 @@
 #include <common.hpp>
 #include <iostream>
 
+//apologies about this 
+//len('/home/dylan/code/smith/') == 23
+#define SOURCE_PATH_SIZE 23
+#define __FILENAME__ (__FILE__ + SOURCE_PATH_SIZE)
 
+#define Error(str, ...) error(__FILENAME__, __LINE__, str, __VA_ARGS__) 
 
 class CLogger
 {
@@ -13,7 +18,7 @@ public:
     virtual void dbg(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void log(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void log(const std::string& msg);
-    
+    virtual void error(const char* file, int line, const char* fmt, ...) __attribute__((format(printf, 4, 5)));
 private:
     static std::string _strf(const char* fmt, va_list list);
     static void _logf(const char* fmt, ...) __attribute__((format(printf, 1, 2))); 

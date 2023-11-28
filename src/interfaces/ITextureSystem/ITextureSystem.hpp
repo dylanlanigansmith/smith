@@ -20,6 +20,9 @@ public:
     virtual void OnRenderEnd() override {}
     virtual hTexture LoadTexture(const std::string& name);
     virtual SDL_Surface* GetTexture(hTexture handle);
+    virtual hTexture ErrorTexture() { return 0; }
+    virtual bool IsHandleValid(hTexture handle);
+    virtual void GetTextureSize(int* w, int* h);
     //FindOrCreateTexture
 private:
     std::string TextureNameToFile(const std::string& name);

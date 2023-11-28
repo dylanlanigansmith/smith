@@ -38,6 +38,22 @@ void CLogger::log(const std::string &msg)
     _log(ctxt);
 }
 
+void CLogger::error(const char* file, int line, const char* fmt, ...) 
+{
+     std::string ctxt = m_szFmtName;
+    va_list args;
+    va_start(args, fmt);
+    std::string sfmt = _strf(fmt, args);
+    va_end(args);
+    char buf[512];
+    sprintf(buf, " %s @ (%i) !> ", file, line);
+    ctxt.append(buf);
+    ctxt.append(sfmt);
+    
+    _log(ctxt);
+}
+
+
 std::string CLogger::_strf(const char *fmt, va_list list)
 {
     char buf[1024];

@@ -26,7 +26,10 @@ executable('smith', sources, include_directories : inc,
         sdl3_dep,
         gl_dep,
         sdl3_img_dep,
-        libimgui_dep
+        libimgui_dep,
+        nlohmann_json_dep
+    ],
+    cpp_args : [
     ]
 
 )
