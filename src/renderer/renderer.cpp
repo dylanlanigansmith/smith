@@ -7,20 +7,39 @@
 #include <GL/gl.h>
 #include <interfaces/interfaces.hpp>
 #include <interfaces/IEngineTime/IEngineTime.hpp>
+#include <imgui.h>
+#include <imgui_impl_sdlrenderer3.h>
+#include <imgui_impl_sdl3.h>
+#include "render_helpers.hpp"
+
+void CRenderer::Shutdown()
+{
+  ImGui_ImplSDLRenderer3_Shutdown();
+  ImGui_ImplSDL3_Shutdown();
+  ImGui::DestroyContext();
+  
+  SDL_DestroyRenderer(m_renderer);
+  log("Destroyed Renderer");
+}
+
 CRenderer::~CRenderer()
 {
-  if (m_renderer != nullptr)
-    SDL_DestroyRenderer(m_renderer);
-  log("Destroyed Renderer");
+ 
 }
 
 bool CRenderer::Create()
 {
+  bool ret = false;
 #ifdef __linux__
-  return CreateRendererLinuxGL();
+   ret = CreateRendererLinuxGL();
 #endif
+   ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
 
-  return false;
+     ImGui_ImplSDL3_InitForSDLRenderer(m_SDLWindow, get());
+    ImGui_ImplSDLRenderer3_Init(get());
+  return ret;
 }
 
 bool CRenderer::CreateRendererLinuxGL()
@@ -52,57 +71,45 @@ bool CRenderer::CreateRendererLinuxGL()
 #define screenWidth 1024
 #define screenHeight 720
 
-int worldMap[mapWidth][mapHeight] =
-    {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
-
 void CRenderer::Loop()
 {
+
+
+
+
+
   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
   static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-  static hTexture test = ITextureSystem->LoadTexture("redbrick.png");
+  static hTexture hTextureBrick = ITextureSystem->LoadTexture("redbrick.png");
+  static hTexture hBlueStone = ITextureSystem->LoadTexture("bluestone.png");
+  static hTexture hColorStone = ITextureSystem->LoadTexture("bluestone.png");
+  static hTexture hPurpleStone = ITextureSystem->LoadTexture("purplestone.png");
+  auto textureBrick = ITextureSystem->GetTexture(hTextureBrick);
+  auto textureBlueStone = ITextureSystem->GetTexture(hBlueStone);
+  auto textureColorStone = ITextureSystem->GetTexture(hColorStone);
+  auto texturePurpleStone = ITextureSystem->GetTexture(hPurpleStone);
+  int textH = textureBrick->h;
+  int textW = textureBrick->w;
+  static auto renderText = SDL_CreateTexture(get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, screenWidth, screenHeight);
 
-  auto testSurf = ITextureSystem->GetTexture(test);
-   int textH = testSurf->h;
-    int textW = testSurf->w;
-  static auto renderText = SDL_CreateTexture(get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, screenWidth, screenHeight);
+  static auto surf = SDL_CreateSurface(screenWidth, screenHeight, SDL_PIXELFORMAT_RGBA8888);
+  SDL_SetRenderTarget(get(), NULL);
+  SDL_LockSurface(surf);
+  uint32_t *pixels = (uint32_t *)surf->pixels;
+
+  int pitch = surf->pitch;
 
   auto player = IEntitySystem->GetLocalPlayer();
   Vector2 playerPos = {
       player->GetPosition().x,
       player->GetPosition().y,
   };
-  SDL_SetRenderDrawColor(get(), 155, 155, 155, 255);
-  SDL_RenderClear(get());
 
-  SDL_SetRenderTarget(get(), renderText);
-  SDL_SetRenderDrawColor(get(), 155, 155, 155, 155);
-  SDL_RenderClear(get());
-  // SDL_RenderGeometry(get(), NULL, hello, 3, NULL, 3);
+  for (int i = 0; i < 1280 * 720; ++i)
+  {
+    pixels[i] = (255 << 24u) | (0 << 16u) || (0 << 8u) | 255;
+  }
   int w = screenWidth;
   int h = screenHeight;
   IVector2 screen(w, h);
@@ -113,7 +120,7 @@ void CRenderer::Loop()
 
     // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
     float rayDirX0 = player->Camera().m_vecDir.x - player->Camera().m_vecPlane.x;
-    float rayDirY0 = player->Camera().m_vecDir.y- player->Camera().m_vecPlane.y;
+    float rayDirY0 = player->Camera().m_vecDir.y - player->Camera().m_vecPlane.y;
     float rayDirX1 = player->Camera().m_vecDir.x + player->Camera().m_vecPlane.x;
     float rayDirY1 = player->Camera().m_vecDir.y + player->Camera().m_vecPlane.y;
 
@@ -168,41 +175,25 @@ void CRenderer::Loop()
 
       // choose texture and draw the pixel
       int checkerBoardPattern = (int(cellX + cellY)) & 1;
-      int floorTexture;
-      if (checkerBoardPattern == 0)
-        floorTexture = 3;
-      else
-        floorTexture = 4;
-      int ceilingTexture = 6;
-      SDL_Color color;
-      // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-     
-      unsigned char *pixels = (unsigned char *)testSurf->pixels;
+      auto texture = textureColorStone;
+      if (checkerBoardPattern == 0 && is_floor)
+        texture = textureBlueStone;
+      else if(is_floor)
+        texture = texturePurpleStone;        
 
-      color.b = pixels[textH * tex.y + tex.x + 0];
-      color.g = pixels[textH * tex.y + tex.x + 1];
-      color.r = pixels[textH * tex.y + tex.x + 2];
-      color.a = pixels[textH * tex.y + tex.x + 3];
-
-      // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
      
       
+      uint32_t *pixelsT = (uint32_t *)texture->pixels;
+      uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x ] ;       //ABGR
+
+      SDL_Color color = Render::TextureToSDLColor(uColor);
+      
       if (is_floor)
-      {
-        // floor
-        color.r = color.r / 2;
-        color.g = color.g / 2;
-        color.b = color.b / 2;
-       
-      }
-      else
-      {
-       color.r = color.r / 1.5;
-        color.g = color.g / 1.5;
-        color.b = color.b / 1.5;
-      }
-      SDL_SetRenderDrawColor(get(), color.r, color.b, color.g, color.a);
-      SDL_RenderPoint(get(), x, y);
+        Render::DarkenSDLColor(color, 2.f);
+      else Render::DarkenSDLColor(color, 1.25f);
+
+     int index = (y * surf->pitch / 4) + x;
+      pixels[index] = Render::SDLColorToWorldColor(color);
     }
   }
 
@@ -236,7 +227,6 @@ void CRenderer::Loop()
     int side;    // was a NS or a EW wall hit?
     if (rayDir.x < 0)
     {
-
       step.x = -1;
       sideDist.x = (playerPos.x - mapPos.x) * deltaDist.x;
     }
@@ -299,30 +289,8 @@ void CRenderer::Loop()
     if (drawEnd >= h)
       drawEnd = h - 1;
 
-    // choose wall color
-    SDL_Color color;
-    switch (worldMap[mapPos.x][mapPos.y])
-    {
-    case 1:
-      color = SDL_Color(255, 0, 0, 255);
-      break; // red
-    case 2:
-      color = SDL_Color(0, 255, 0, 255);
-      break; // green
-    case 3:
-      color = SDL_Color(55, 0, 255, 255);
-      break; // blue
-    case 4:
-      color = SDL_Color(255, 255, 255, 255);
-      break; // white
-    default:
-      color = SDL_Color(255, 255, 0, 255);
-      break; // yellow
-    }
-   
-    //  color =  testSurf->pixels[]
-    // give x and y sides different brightness
-    // if(side == 1) {color.r = color.r / 2; color.g = color.g / 2; color.b = color.b / 2;}
+    
+
 
     // calculate value of wallX
     double wallX; // where exactly the wall was hit
@@ -338,9 +306,6 @@ void CRenderer::Loop()
       tex.x = textW - tex.x - 1;
     if (side == 1 && rayDir.y < 0)
       tex.x = textW - tex.x - 1;
-    // draw the pixels of the stripe as a vertical line
-    SDL_SetRenderDrawColor(get(), color.r, color.b, color.g, color.a);
-    SDL_RenderLine(get(), x, drawStart, x, drawEnd);
 
     double stepTex = 1.0 * textH / lineHeight;
     double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
@@ -349,26 +314,31 @@ void CRenderer::Loop()
       // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
       tex.y = (int)texPos & (textH - 1);
       texPos += stepTex;
-      unsigned char *pixels = (unsigned char *)testSurf->pixels;
+   
+      uint32_t *pixelsT = (uint32_t *)textureBrick->pixels;
+      uint32_t uColor = pixelsT[(textureBrick->pitch / 4 * tex.y) + tex.x ] ;       //ABGR
 
-      color.b = pixels[textH * tex.y + tex.x + 0];
-      color.g = pixels[textH * tex.y + tex.x + 1];
-      color.r = pixels[textH * tex.y + tex.x + 2];
-      color.a = pixels[textH * tex.y + tex.x + 3];
-
-      // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
+      SDL_Color color = Render::TextureToSDLColor(uColor);
+      // make color darker for y-sides
       if (side == 1)
-      {
-        color.r = color.r / 2;
-        color.g = color.g / 2;
-        color.b = color.b / 2;
-      }
-      SDL_SetRenderDrawColor(get(), color.r, color.b, color.g, color.a);
-      SDL_RenderPoint(get(), x, y);
+        Render::DarkenSDLColor(color, 2.f);
+      int index = (y * surf->pitch / 4) + x;
+      pixels[index] = Render::SDLColorToWorldColor(color);
+     
     }
   }
-  SDL_SetRenderTarget(get(), NULL);
-  SDL_RenderTexture(get(), renderText, NULL, NULL);
+  SDL_UnlockSurface(surf);
+  SDL_UpdateTexture(renderText, NULL, surf->pixels, surf->pitch);
 
+  SDL_RenderTexture(get(), renderText, NULL, NULL);
+ 
+  ImGui_ImplSDLRenderer3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+  //bool open = true;
+  //ImGui::ShowDemoWindow(&open);
+
+  ImGui::Render();
+  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
   SDL_RenderPresent(get());
 }

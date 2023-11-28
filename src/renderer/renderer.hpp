@@ -16,6 +16,7 @@ class CRenderer : public CLogger
         [[nodiscard]]  auto get() const { return m_renderer; }
 
         virtual void Loop();
+        virtual void Shutdown();
     private:
         bool CreateRendererLinuxGL();
 

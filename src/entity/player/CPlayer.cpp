@@ -50,7 +50,7 @@ void CPlayer::OnRenderEnd()
     static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    double frameTime = IEngineTime->GetLastFrameTime().sec() / 400.f;
+    double frameTime = IEngineTime->GetLastFrameTime().sec() / 200.f; //ticks bro u need ticks
     double moveSpeed = frameTime * 5.0; //the constant value is in squares/second
     double rotSpeed = frameTime * 3.0; //the constant value is in radians/second
     double pitchSpeed = frameTime * 3.0; //the constant value is in radians/second

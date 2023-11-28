@@ -35,7 +35,11 @@ hTexture CTextureSystem::LoadTexture(const std::string &name)
     if(load == NULL){
         log("failed loading texture %s !", name.c_str()); return HTEXTURE_INVALID;
     }
-    texture_db.push_back(load);
+    SDL_Surface* optimized;
+    SDL_DestroySurface(optimized);
+    optimized = SDL_ConvertSurfaceFormat(load, SDL_PIXELFORMAT_RGBA8888);
+    texture_db.push_back(optimized);
+    SDL_DestroySurface(load);
     hTexture handle = texture_db.size() - 1;
     log("added %s to database @ %u", name.c_str(), handle);
 

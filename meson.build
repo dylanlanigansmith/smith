@@ -5,7 +5,7 @@ project('smith','c','cpp',
 )
 
 
-inc = include_directories('include')
+inc = include_directories('include', 'thirdparty/imgui')
 
-
+subdir('thirdparty/imgui')
 subdir('src')

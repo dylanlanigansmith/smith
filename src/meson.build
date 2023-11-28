@@ -6,6 +6,7 @@ sdl3_img_dep = dependency('SDL3_image')
 thread_dep = dependency('threads')
 
 
+
 c = run_command('find.sh', check: true)
 
 
@@ -24,7 +25,8 @@ executable('smith', sources, include_directories : inc,
         thread_dep,
         sdl3_dep,
         gl_dep,
-        sdl3_img_dep
+        sdl3_img_dep,
+        libimgui_dep
     ]
 
 )

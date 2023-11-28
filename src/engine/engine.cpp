@@ -1,6 +1,6 @@
 #include "engine.hpp"
 #include <interfaces/interfaces.hpp>
-
+#include <imgui_impl_sdl3.h>
 
 CEngine::~CEngine()
 {
@@ -35,11 +35,11 @@ int CEngine::Run()
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            ImGui_ImplSDL3_ProcessEvent(&event);
             if(event.type == SDL_EVENT_QUIT){
                 shouldStopLoop = SDL_TRUE;
                 break;
             }
-            //https://wiki.libsdl.org/SDL3/SDL_GetKeyboardState
             IInputSystem->OnEvent(&event);
         }
         
@@ -51,15 +51,15 @@ int CEngine::Run()
         for(auto& element : interfaces.list())
             element.second->OnLoopEnd();
 
-       // log("%f", 1.0 / IEngineTime->GetLastFrameTime().sec());
+       // log("%f", 1.0 / IEngineTime->GetLastFrameTime().sec());//this is broken
     }
 
     return Shutdown();
 }
 int CEngine::Shutdown()
 {
-    
-    delete render;
+    render->Shutdown();
+
     SDL_DestroyWindow(m_SDLWindow);
     SDL_Quit();
 
