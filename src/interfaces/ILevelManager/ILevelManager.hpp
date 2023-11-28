@@ -30,7 +30,7 @@ private:
     hTexture FindTextureForMapObject(int obj);
     hTexture FindTextureForPlane(bool is_floor, bool alt = false);
 private:
-    std::shared_ptr<CTextureSystem> m_TextureSystem;
+    CTextureSystem* m_TextureSystem;
     std::unordered_map<int, hTexture> level_textures; //for geometry
 
     int map[MAP_SIZE][MAP_SIZE]= {

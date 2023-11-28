@@ -1,12 +1,15 @@
 #include "ILevelManager.hpp"
 #include <engine/engine.hpp>
-
+#include <entity/prop/objects/CBarrel.hpp>
 void CLevelSystem::OnCreate()
 {
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
     LoadAndFindTexturesForMap();
+    auto barrel = IEntitySystem->AddEntity<CBarrel>();
+    barrel->SetPosition(12, 22);
+ 
 }
 void CLevelSystem::LoadAndFindTexturesForMap()
 {

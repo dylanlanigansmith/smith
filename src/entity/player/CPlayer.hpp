@@ -3,19 +3,14 @@
 #include <common.hpp>
 #include <entity/CBaseRenderable.hpp>
 #include <entity/CBaseEntity.hpp>
+#include "CCamera.hpp"
 
 
 
-class CCamera
-{
-public:
-    Vector2 m_vecDir;
-    Vector2 m_vecPlane;
-    double m_flPitch;
-};
 
 class CPlayer : public CBaseRenderable
 {
+    friend class CRenderer;
 public:
     CPlayer(int m_iID);
     virtual ~CPlayer();
@@ -26,6 +21,7 @@ public:
     virtual void OnRenderStart();
     virtual void OnRenderEnd();
     virtual void Render(CRenderer* renderer);
+    virtual bool IsLocalPlayer() { return true;}
     const CCamera& Camera() { return m_camera; }
    
 private:

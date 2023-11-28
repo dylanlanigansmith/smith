@@ -16,7 +16,7 @@
 class CEntitySystem : public CBaseInterface
 {
 public:
-    CEntitySystem() : CBaseInterface("IEntitySystem") { }
+    CEntitySystem() : CBaseInterface("IEntitySystem") {  m_iRenderableEntities = 0;}
     ~CEntitySystem() override;
     virtual void OnCreate() override;
     virtual void OnShutdown() override;
@@ -24,7 +24,7 @@ public:
     virtual void OnLoopEnd() override;
     virtual void OnRenderStart() override;
     virtual void OnRenderEnd() override;
-    
+    virtual int NumRenderables() const { return m_iRenderableEntities; }
 
     virtual CPlayer* GetLocalPlayer();
 
@@ -36,7 +36,7 @@ public:
     
        return static_cast<T*>(entity_list.at(h));
     }
-private:
+
     template <typename T> 
     T* AddEntity()
     {
@@ -45,9 +45,14 @@ private:
         base->OnCreate();
         entity_list.push_back(base);
         log("added entity %s | %lx | #%i", base->GetName().c_str(), base->GetType(), base->GetID());
+        if(base->IsRenderable() && !base->IsLocalPlayer())
+            m_iRenderableEntities++;
         return ent;
     }
+    const auto& iterableList() { return entity_list; }
+private:
     virtual void CreateLocalPlayer();
 private:
+    int m_iRenderableEntities;
     std::vector<CBaseEntity*> entity_list;
 };

@@ -10,7 +10,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer3.h>
 #include <imgui_impl_sdl3.h>
-#include "render_helpers.hpp"
+
 
 void CRenderer::Shutdown()
 {
@@ -23,6 +23,8 @@ void CRenderer::Shutdown()
   SDL_DestroyRenderer(m_renderer);
   log("Destroyed Renderer");
 }
+
+
 
 CRenderer::~CRenderer()
 {
@@ -97,9 +99,10 @@ void CRenderer::Loop()
 
   SDL_SetRenderTarget(get(), NULL);
   SDL_LockSurface(m_surface);
-  uint32_t *pixels = (uint32_t *)m_surface->pixels;
+  pixels = (uint32_t *)m_surface->pixels;
 
   auto player = IEntitySystem->GetLocalPlayer();
+  m_Camera = &player->m_camera;
   Vector2 playerPos = {
       player->GetPosition().x,
       player->GetPosition().y,
@@ -316,6 +319,31 @@ void CRenderer::Loop()
       int index = (y * m_surface->pitch / 4) + x;
       pixels[index] = Render::SDLColorToWorldColor(color);
     }
+    ZBuffer[x] = perpWallDist;
+  }
+  //draw renderable entities
+  int numSprites = IEntitySystem->NumRenderables();
+  std::vector<std::pair<double, uint32_t>> render_list;
+  
+  auto player_pos = player->GetPosition();
+  for(auto ent  : IEntitySystem->iterableList() )
+  {
+    if(ent->IsRenderable() && !ent->IsLocalPlayer()){
+      auto entPos = ent->GetPosition();
+      double distanceSqr = Vector(player_pos - entPos).LengthSqr();
+      render_list.push_back({distanceSqr, ent->GetID()});
+    }
+  }
+  assert(numSprites == render_list.size());
+  std::sort(render_list.begin(), render_list.end(), 
+        [](const std::pair<double, uint32_t> &a, const std::pair<double, uint32_t> &b) {
+            return a.first > b.first; // Sorting in descending order based on the double value
+        }
+  );
+  for(const auto& entry : render_list){
+    auto ent = IEntitySystem->GetEntity<CBaseRenderable>(entry.second);
+    if(!ent) continue;
+    ent->Render(this);
   }
 
 
@@ -342,4 +370,16 @@ void CRenderer::RunImGui()
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
 
+}
+
+void CRenderer::SetPixel(int x, int y, SDL_Color color)
+{
+  int index = (y * m_surface->pitch / 4) + x;
+  pixels[index] = Render::SDLColorToWorldColor(color);
+}
+
+void CRenderer::SetPixel(int x, int y, uint32_t color)
+{
+  SDL_Color scolor = Render::TextureToSDLColor(color);
+  SetPixel(x,y, scolor);
 }

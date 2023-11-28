@@ -16,7 +16,7 @@ public:
     
     auto window() const { return m_SDLWindow; }
 
-    template <typename T> std::unique_ptr<T> 
+    template <typename T> T*
     CreateInterface(const std::string& name)
     {
         if(interfaces.InterfaceExists(name))
@@ -24,14 +24,18 @@ public:
             return interfaces.CreateInterface<T>(name);
         }
         log("create interface not found for %s", name.c_str());
-        return std::unique_ptr<T>(nullptr);
+        return (nullptr);
     }
+
+    auto TextureSystem() { return ITextureSystem; }
+
 protected:
     void InitInterfaces();
     int Shutdown();
 
 
 private:
+    CTextureSystem* ITextureSystem;
     SDL_Window* m_SDLWindow;
     CRenderer* render;
     CInterfaceList interfaces;

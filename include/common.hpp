@@ -9,7 +9,9 @@
 #include <memory>
 #include <cxxabi.h>
 #include <typeinfo>
-
+#include <algorithm>
+#include <functional>
+#include <cassert>
 
 
 

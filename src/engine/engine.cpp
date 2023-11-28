@@ -74,7 +74,7 @@ void CEngine::InitInterfaces()
 
     //Resource
     interfaces.AddInterface<CResourceSystem>();
-    interfaces.AddInterface<CTextureSystem>();
+    ITextureSystem = interfaces.AddInterface<CTextureSystem>();
 
     //GameSystems
     interfaces.AddInterface<CEntitySystem>();

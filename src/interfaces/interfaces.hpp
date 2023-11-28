@@ -12,7 +12,7 @@ class CInterfaceList
 {
 public:
     template <typename T>
-    void AddInterface(){
+    T* AddInterface(){
         T* interface = new T();
         auto base = static_cast<CBaseInterface*>(interface);
         base->OnCreate();
@@ -22,9 +22,10 @@ public:
             base->log("failure adding to InterfaceList");
             for(auto i : interface_list){
                 base->log(i.first);
-            } return;
+            } return (nullptr);
         }
         base->log("added To Interfacelist");
+        return (interface);
     }
     [[nodiscard]] bool InterfaceExists(const std::string& name){
         auto find = interface_list.find(name);
@@ -41,11 +42,11 @@ public:
         }
     }
     template <typename T>
-    std::unique_ptr<T> CreateInterface(const std::string& name){
+    T* CreateInterface(const std::string& name){
         //this should not be used without checking it exists so lets just not
 
-        return std::unique_ptr<T>(
-            static_cast<T*>(interface_list.at(name)));
+        return static_cast<T*>(interface_list.at(name));
+            
     }
 
     const auto& list() { return interface_list; }

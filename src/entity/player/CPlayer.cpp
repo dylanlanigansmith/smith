@@ -35,6 +35,7 @@ void CPlayer::CreateRenderable()
 
 void CPlayer::OnRenderStart()
 {
+  m_camera.m_vecPosition = m_vecPosition;
 }
 
 void CPlayer::OnRenderEnd()
@@ -42,12 +43,17 @@ void CPlayer::OnRenderEnd()
   static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
   static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-  double frameTime = IEngineTime->GetLastFrameTime().sec() / 200.f; // ticks bro u need ticks
+  double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
   double moveSpeed = frameTime * 5.0;                               // the constant value is in squares/second
   double rotSpeed = frameTime * 3.0;                                // the constant value is in radians/second
   double pitchSpeed = frameTime * 3.0;                              // the constant value is in radians/second
 
   WASD_t m_move = IInputSystem->GetInput();
+  if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
+  {
+    // crouch
+    moveSpeed *= 1.5;
+  }
   if (m_move.w)
   {
     if (ILevelSystem->GetMapAt(m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, int(m_vecPosition.y)) == false)
@@ -100,15 +106,15 @@ void CPlayer::OnRenderEnd()
     if (m_camera.m_flPitch < -200)
       m_camera.m_flPitch = -200;
   }
-  if (IInputSystem->IsKeyDown(SDL_SCANCODE_SPACE))
-  {
-    // jump
-    m_vecPosition.z = 200;
-  }
-  if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
+  if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
   {
     // crouch
     m_vecPosition.z = -200;
+  }
+  if (IInputSystem->IsKeyDown(SDL_SCANCODE_SPACE))
+  {
+    // jump
+   // m_vecPosition.z = 200;
   }
   if (m_camera.m_flPitch > 0)
     m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * moveSpeed);

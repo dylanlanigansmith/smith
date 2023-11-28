@@ -22,10 +22,11 @@ public:
     virtual ~CBaseEntity(){}
     const auto GetID() { return m_iID; }
     const auto GetPosition() { return m_vecPosition; }
-    virtual void SetPosition(double x, double y){ m_vecPosition.x = x;m_vecPosition.y = y;}
+    virtual void SetPosition(double x, double y, double z = 0.0){ m_vecPosition = { x,y,z}; }
     virtual const std::string GetName() {return m_szName;}
     virtual const std::string GetSubclass() {return m_szSubclass;}
     virtual const uint64_t GetType() { return m_nType; }
+    virtual bool IsLocalPlayer() { return false;}
     virtual bool IsRenderable() = 0;
     virtual void OnUpdate() = 0;
     virtual void OnCreate() = 0;
