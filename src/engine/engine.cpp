@@ -29,7 +29,7 @@ int CEngine::Run()
         for(auto& element : interfaces.list())
             element.second->OnLoopStart();
         
-
+        
 
         SDL_Event event;
         while (SDL_PollEvent(&event))

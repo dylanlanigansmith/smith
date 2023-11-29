@@ -46,4 +46,7 @@ struct Timer_t
     Time_t Elapsed() {
         return cur_time - start_time;
     }
+    void Reset(Time_t cur){
+        start_time = cur_time = cur;
+    }
 };

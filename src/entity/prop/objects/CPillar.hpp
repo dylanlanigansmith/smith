@@ -3,11 +3,11 @@
 #include "../CStaticProp.hpp"
 
 
-class CBarrel : public CStaticProp
+class CPillar : public CStaticProp
 {
 public:
-    CBarrel(int m_iID) : CStaticProp(m_iID) {}
-    virtual ~CBarrel() {}
+    CPillar(int m_iID) : CStaticProp(m_iID) {}
+    virtual ~CPillar() {}
     virtual void OnCreate();
     virtual void OnDestroy();
     virtual void CreateRenderable();
@@ -15,23 +15,23 @@ public:
 
 private:
 };
-void CBarrel::OnCreate()
+void CPillar::OnCreate()
 {
     SET_ENT_SUBNAME();
 
    CreateRenderable();
 }
 
-void CBarrel::OnDestroy()
+void CPillar::OnDestroy()
 {
 }
 
-void CBarrel::CreateRenderable()
+void CPillar::CreateRenderable()
 {
-    SetupTexture("barrel.png");
+    SetupTexture("pillar.png");
 }
 
-void CBarrel::Render(CRenderer *renderer)
+void CPillar::Render(CRenderer *renderer)
 {
    DrawProp(renderer);
 }

@@ -26,6 +26,7 @@ class CRenderer : public CLogger
     private:
         bool CreateRendererLinuxGL();
         void RunImGui();
+        void LoopWolf();
     private:
         double ZBuffer[SCREEN_WIDTH];
         uint32_t* pixels;

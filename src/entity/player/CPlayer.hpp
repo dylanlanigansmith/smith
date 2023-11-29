@@ -23,7 +23,8 @@ public:
     virtual void Render(CRenderer* renderer);
     virtual bool IsLocalPlayer() { return true;}
     const CCamera& Camera() { return m_camera; }
-   
+private:
+    virtual void CreateMove();
 private:
     CCamera m_camera;
 };

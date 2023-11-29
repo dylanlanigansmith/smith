@@ -9,6 +9,7 @@ void CEngineTime::OnCreate()
 {
    m_loopticks = 0;
    m_loopStart = GetCurTime();
+   m_updateTimer.start_time = GetCurTime();
 }
 
 void CEngineTime::OnShutdown()
@@ -18,12 +19,14 @@ void CEngineTime::OnShutdown()
 void CEngineTime::OnLoopStart()
 {
     m_loopTimer.start_time = GetCurTime();
+    m_updateTimer.cur_time = GetCurTime();
 }
 
 void CEngineTime::OnLoopEnd()
 {
    m_loopticks++;
    m_loopTimer.cur_time = GetCurTime();
+   m_updateTimer.cur_time = GetCurTime();
    m_lastFrameTime = m_loopTimer.Elapsed();
 }
 

@@ -1,6 +1,8 @@
 #include "ILevelManager.hpp"
 #include <engine/engine.hpp>
 #include <entity/prop/objects/CBarrel.hpp>
+#include <entity/prop/objects/CGreenLight.hpp>
+#include <entity/prop/objects/CPillar.hpp>
 void CLevelSystem::OnCreate()
 {
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
@@ -9,7 +11,10 @@ void CLevelSystem::OnCreate()
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(12, 22);
- 
+    auto light = IEntitySystem->AddEntity<CGreenLight>();
+    light->SetPosition(10, 12);
+     auto pillar = IEntitySystem->AddEntity<CPillar>();
+    pillar->SetPosition(3, 12);
 }
 void CLevelSystem::LoadAndFindTexturesForMap()
 {

@@ -40,19 +40,29 @@ void CPlayer::OnRenderStart()
 
 void CPlayer::OnRenderEnd()
 {
+  CreateMove();
+}
+
+void CPlayer::Render(CRenderer *renderer)
+{
+}
+
+void CPlayer::CreateMove()
+{
   static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
-  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+  //  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-  double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
-  double moveSpeed = frameTime * 5.0;                               // the constant value is in squares/second
-  double rotSpeed = frameTime * 3.0;                                // the constant value is in radians/second
-  double pitchSpeed = frameTime * 3.0;                              // the constant value is in radians/second
+  // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
+  double frameTime = 0.02;
+  double moveSpeed = frameTime * 5.0;  // the constant value is in squares/second
+  double rotSpeed = frameTime * 3.0;   // the constant value is in radians/second
+  double pitchSpeed = frameTime * 3.0; // the constant value is in radians/second
 
   WASD_t m_move = IInputSystem->GetInput();
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
   {
-    // crouch
-    moveSpeed *= 1.5;
+    // sprint
+    moveSpeed *= 1.75f;
   }
   if (m_move.w)
   {
@@ -69,63 +79,85 @@ void CPlayer::OnRenderEnd()
     if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y - Camera().m_vecDir.y * moveSpeed)) == false)
       m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
   }
-  // rotate to the right
   if (m_move.d)
   {
-    // both camera direction and camera plane must be rotated
-    double oldplayerDirX = m_camera.m_vecDir.x;
+    float rightX = Camera().m_vecDir.y;
+    float rightY = -Camera().m_vecDir.x;
 
-    m_camera.m_vecDir.x = m_camera.m_vecDir.x * cos(-rotSpeed) - m_camera.m_vecDir.y * sin(-rotSpeed);
-    m_camera.m_vecDir.y = oldplayerDirX * sin(-rotSpeed) + m_camera.m_vecDir.y * cos(-rotSpeed);
-    double oldplaneX = m_camera.m_vecPlane.x;
-    m_camera.m_vecPlane.x = m_camera.m_vecPlane.x * cos(-rotSpeed) - m_camera.m_vecPlane.y * sin(-rotSpeed);
-    m_camera.m_vecPlane.y = oldplaneX * sin(-rotSpeed) + m_camera.m_vecPlane.y * cos(-rotSpeed);
+    if (ILevelSystem->GetMapAt(m_vecPosition.x + rightX * moveSpeed, int(m_vecPosition.y)) == false)
+      m_vecPosition.x += rightX * moveSpeed;
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + rightY * moveSpeed) == false)
+      m_vecPosition.y += rightY * moveSpeed;
   }
-  // rotate to the left
+
+  // move left
   if (m_move.a)
   {
-    // both camera direction and camera plane must be rotated
-    double oldplayerDirX = m_camera.m_vecDir.x;
-    m_camera.m_vecDir.x = m_camera.m_vecDir.x * cos(rotSpeed) - m_camera.m_vecDir.y * sin(rotSpeed);
-    m_camera.m_vecDir.y = oldplayerDirX * sin(rotSpeed) + m_camera.m_vecDir.y * cos(rotSpeed);
-    double oldplaneX = m_camera.m_vecPlane.x;
-    m_camera.m_vecPlane.x = m_camera.m_vecPlane.x * cos(rotSpeed) - m_camera.m_vecPlane.y * sin(rotSpeed);
-    m_camera.m_vecPlane.y = oldplaneX * sin(rotSpeed) + m_camera.m_vecPlane.y * cos(rotSpeed);
+    float leftX = -Camera().m_vecDir.y;
+    float leftY = Camera().m_vecDir.x;
+
+    if (ILevelSystem->GetMapAt(m_vecPosition.x + leftX * moveSpeed, int(m_vecPosition.y)) == false)
+      m_vecPosition.x += leftX * moveSpeed;
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + leftY * moveSpeed) == false)
+      m_vecPosition.y += leftY * moveSpeed;
   }
-  if (IInputSystem->IsKeyDown(SDL_SCANCODE_UP))
+
+  if (!IInputSystem->UseMouseMovement())
   {
-    // look up
-    m_camera.m_flPitch += 400 * pitchSpeed;
+    bool canPitch = IInputSystem->AllowPitch();
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_UP) && canPitch)
+    {
+      // look up
+      m_camera.m_flPitch += 400 * pitchSpeed;
+      if (m_camera.m_flPitch > 200)
+        m_camera.m_flPitch = 200;
+    }
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_DOWN) && canPitch)
+    {
+      // look down
+      m_camera.m_flPitch -= 400 * pitchSpeed;
+      if (m_camera.m_flPitch < -200)
+        m_camera.m_flPitch = -200;
+    }
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_LEFT))
+      m_camera.Rotate(rotSpeed);
+
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_RIGHT))
+      m_camera.Rotate(-rotSpeed);
+  }
+  else
+  {
+    auto mouseMove = IInputSystem->GetLastMouseMove();
+
+    m_camera.Rotate(mouseMove.x * moveSpeed);
+
+    if (IInputSystem->AllowPitch())
+      m_camera.m_flPitch += mouseMove.y * pitchSpeed * 500;
+
     if (m_camera.m_flPitch > 200)
       m_camera.m_flPitch = 200;
-  }
-  if (IInputSystem->IsKeyDown(SDL_SCANCODE_DOWN))
-  {
-    // look down
-    m_camera.m_flPitch -= 400 * pitchSpeed;
     if (m_camera.m_flPitch < -200)
       m_camera.m_flPitch = -200;
   }
+
+  bool isCrouching = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
   {
     // crouch
+    isCrouching = true;
     m_vecPosition.z = -200;
   }
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_SPACE))
   {
     // jump
-   // m_vecPosition.z = 200;
+    // m_vecPosition.z = 200;
   }
   if (m_camera.m_flPitch > 0)
-    m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * moveSpeed);
+    m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
   if (m_camera.m_flPitch < 0)
-    m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * moveSpeed);
+    m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * pitchSpeed);
   if (m_vecPosition.z > 0)
     m_vecPosition.z = std::max<double>(0, m_vecPosition.z - 100 * moveSpeed);
-  if (m_vecPosition.z < 0)
+  if (m_vecPosition.z < 0 && !isCrouching)
     m_vecPosition.z = std::min<double>(0, m_vecPosition.z + 100 * moveSpeed);
-}
-
-void CPlayer::Render(CRenderer *renderer)
-{
 }

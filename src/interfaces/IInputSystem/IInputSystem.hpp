@@ -2,6 +2,7 @@
 #include <common.hpp>
 #include <interfaces/CBaseInterface.hpp>
 #include <SDL3/SDL.h>
+#include <types/Vector.hpp>
 
 struct WASD_t
 {
@@ -20,11 +21,21 @@ public:
     virtual void OnRenderStart() override{}
     virtual void OnRenderEnd() override {}
     virtual void OnEvent(SDL_Event* event );
-    virtual WASD_t GetInput();
+
+
+    [[nodiscard]] virtual WASD_t GetInput();
     virtual bool IsKeyDown(SDL_Scancode code);
+    [[nodiscard]] virtual bool UseMouseMovement() const { return m_bMouseLook; }
+    virtual Vector2 GetLastMouseMove() const { return m_vecMouseMove; }
+    const auto AllowPitch() { return m_bPitch; }
 private:
+    virtual void OnMouseMotion(SDL_Event* event);
     virtual void OnKeyDown(SDL_Keycode code);
 private:
+    Vector2 m_vecMouseMove;
+    double m_flSensitivity;
+    bool m_bMouseLook;
+    bool m_bPitch;
     WASD_t m_wasd;
     const uint8_t* keyboardState;
     int keyboardSize;

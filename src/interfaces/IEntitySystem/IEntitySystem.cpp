@@ -1,5 +1,5 @@
 #include "IEntitySystem.hpp"
-
+#include <engine/engine.hpp>
 
 CEntitySystem::~CEntitySystem()
 {
@@ -22,6 +22,13 @@ void CEntitySystem::OnLoopStart()
 
 void CEntitySystem::OnLoopEnd()
 {
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    auto update = IEngineTime->GetUpdateTimer();
+    if(update.Elapsed().ms() <= 1000/32)
+        return;
+    
+    update.Reset(IEngineTime->GetCurTime());
+
     for(auto& ent : entity_list){
         ent->OnUpdate();
     }
