@@ -1,0 +1,79 @@
+{
+    "barrel.png": [
+        "barrel.png",
+        3717324194,
+        0,
+        1.0,
+        0
+    ],
+    "bluestone.png": [
+        "bluestone.png",
+        3925249395,
+        0,
+        1.0,
+        0
+    ],
+    "colorstone.png": [
+        "colorstone.png",
+        3516659258,
+        0,
+        1.0,
+        0
+    ],
+    "error.png": [
+        "error.png",
+        2057408216,
+        0,
+        1.0,
+        0
+    ],
+    "greenlight.png": [
+        "greenlight.png",
+        575007017,
+        0,
+        1.0,
+        0
+    ],
+    "greystone.png": [
+        "greystone.png",
+        422298146,
+        0,
+        1.0,
+        0
+    ],
+    "mossy.png": [
+        "mossy.png",
+        1332300455,
+        0,
+        1.0,
+        0
+    ],
+    "pillar.png": [
+        "pillar.png",
+        290831178,
+        0,
+        1.0,
+        0
+    ],
+    "purplestone.png": [
+        "purplestone.png",
+        213972753,
+        0,
+        1.0,
+        0
+    ],
+    "redbrick.png": [
+        "redbrick.png",
+        1315001158,
+        0,
+        1.0,
+        0
+    ],
+    "wood.png": [
+        "wood.png",
+        2103827293,
+        0,
+        1.0,
+        0
+    ]
+}

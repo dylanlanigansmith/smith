@@ -6,7 +6,7 @@
 #include "IResourceSystem/IResourceSystem.hpp"
 #include "ITextureSystem/ITextureSystem.hpp"
 #include "IEntitySystem/IEntitySystem.hpp"
-#include "ILevelManager/ILevelManager.hpp"
+#include "ILevelSystem/ILevelSystem.hpp"
 
 class CInterfaceList 
 {

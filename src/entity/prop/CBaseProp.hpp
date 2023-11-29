@@ -115,7 +115,7 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
 void CBaseProp::SetupTexture(const std::string& name)
 {
     auto ITextureSystem = engine->TextureSystem(); // inconsistent
-    this->m_hTexture = ITextureSystem->LoadTexture(name);
-    auto text = ITextureSystem->GetTexture(m_hTexture);
-    this->m_vecTextureSize = {text->w, text->h};
+    this->m_hTexture = ITextureSystem->FindTexture(name);
+    this->m_Texture = ITextureSystem->GetTextureData(m_hTexture);
+    this->m_vecTextureSize = this->m_Texture.m_size;
 }

@@ -17,13 +17,18 @@ void CEngine::Start(const char* title)
     shouldStopLoop = SDL_FALSE;
 
     InitInterfaces();
+    for(auto& element : interfaces.list())
+            element.second->OnResourceLoadStart();
+    for(auto& element : interfaces.list())
+            element.second->OnResourceLoadEnd();
+    for(auto& element : interfaces.list())
+            element.second->OnEngineInitFinish();
 }
 
 int CEngine::Run()
 {
     static auto IInputSystem = CreateInterface<CInputSystem>("IInputSystem");
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-
     while(!shouldStopLoop)
     {
         for(auto& element : interfaces.list())

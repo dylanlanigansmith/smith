@@ -13,7 +13,7 @@ void CRenderer::LoopWolf()
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
   static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-
+  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   // level system should handle these
  
 
@@ -95,6 +95,7 @@ void CRenderer::LoopWolf()
       floorY += floorStepY;
 
       // choose texture and draw the pixel
+   
       auto handle = ILevelSystem->GetTexturePlane(is_floor, cellX, cellY);
      
       auto texture = ITextureSystem->GetTexture(handle);
@@ -183,66 +184,68 @@ void CRenderer::LoopWolf()
       if (ILevelSystem->GetMapAt(mapPos.x, mapPos.y) > 0)
         hit = 1;
     }
-    // Calculate distance projected on camera direction. This is the shortest distance from the point where the wall is
-    // hit to the camera plane. Euclidean to center camera point would give fisheye effect!
-    // This can be computed as (mapX - player->GetPosition().x + (1 - stepX) / 2) / rayplayerDir.x for side == 0, or same formula with Y
-    // for size == 1, but can be simplified to the code below thanks to how sideDist and deltaDist are computed:
-    // because they were left scaled to |rayDir|. sideDist is the entire length of the ray above after the multiple
-    // steps, but we subtract deltaDist once because one step more into the wall was taken above.
-    if (side == 0)
-      perpWallDist = (sideDist.x - deltaDist.x);
-    else
-      perpWallDist = (sideDist.y - deltaDist.y);
+      // Calculate distance projected on camera direction. This is the shortest distance from the point where the wall is
+      // hit to the camera plane. Euclidean to center camera point would give fisheye effect!
+      // This can be computed as (mapX - player->GetPosition().x + (1 - stepX) / 2) / rayplayerDir.x for side == 0, or same formula with Y
+      // for size == 1, but can be simplified to the code below thanks to how sideDist and deltaDist are computed:
+      // because they were left scaled to |rayDir|. sideDist is the entire length of the ray above after the multiple
+      // steps, but we subtract deltaDist once because one step more into the wall was taken above.
+      if (side == 0)
+        perpWallDist = (sideDist.x - deltaDist.x);
+      else
+        perpWallDist = (sideDist.y - deltaDist.y);
 
-    // Calculate height of line to draw on screen
-    int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
+      // Calculate height of line to draw on screen
+      int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
 
-    int pitch = player->Camera().m_flPitch;
+      int pitch = player->Camera().m_flPitch;
 
-    // calculate lowest and highest pixel to fill in current stripe
-    int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
-    if (drawStart < 0)
-      drawStart = 0;
-    int drawEnd = lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
-    if (drawEnd >= h)
-      drawEnd = h - 1;
+      // calculate lowest and highest pixel to fill in current stripe
+      int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+      if (drawStart < 0)
+        drawStart = 0;
+      int drawEnd = lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+      if (drawEnd >= h)
+        drawEnd = h - 1;
 
-    // calculate value of wallX
-    double wallX; // where exactly the wall was hit
-    if (side == 0)
-      wallX = player->GetPosition().y + perpWallDist * rayDir.y;
-    else
-      wallX = player->GetPosition().x + perpWallDist * rayDir.x;
-    wallX -= floor((wallX));
+      // calculate value of wallX
+      double wallX; // where exactly the wall was hit
+      if (side == 0)
+        wallX = player->GetPosition().y + perpWallDist * rayDir.y;
+      else
+        wallX = player->GetPosition().x + perpWallDist * rayDir.x;
+      wallX -= floor((wallX));
 
-    IVector2 tex;
-    tex.x = int(wallX * double(textW));
-    if (side == 0 && rayDir.x > 0)
-      tex.x = textW - tex.x - 1;
-    if (side == 1 && rayDir.y < 0)
-      tex.x = textW - tex.x - 1;
+      IVector2 tex;
+      tex.x = int(wallX * double(textW));
+      if (side == 0 && rayDir.x > 0)
+        tex.x = textW - tex.x - 1;
+      if (side == 1 && rayDir.y < 0)
+        tex.x = textW - tex.x - 1;
 
-    double stepTex = 1.0 * textH / lineHeight;
-    double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
-    auto handle = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y);
-    auto texture = ITextureSystem->GetTexture(handle);
-    for (int y = drawStart; y < drawEnd; y++)
-    {
-      // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-      tex.y = (int)texPos & (textH - 1);
-      texPos += stepTex;
+      double stepTex = 1.0 * textH / lineHeight;
+      double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
+      auto handle = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y);
+      auto texture = ITextureSystem->GetTexture(handle);
+      for (int y = drawStart; y < drawEnd; y++)
+      {
+        // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+        tex.y = (int)texPos & (textH - 1);
+        texPos += stepTex;
 
-      uint32_t *pixelsT = (uint32_t *)texture->pixels;
-      uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
+        uint32_t *pixelsT = (uint32_t *)texture->pixels;
+        uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
 
-      SDL_Color color = Render::TextureToSDLColor(uColor);
-      // make color darker for y-sides
-      if (side == 1)
-        Render::DarkenSDLColor(color, 2.f);
-      int index = (y * m_surface->pitch / 4) + x;
-      pixels[index] = Render::SDLColorToWorldColor(color);
-    }
-    ZBuffer[x] = perpWallDist;
+        SDL_Color color = Render::TextureToSDLColor(uColor);
+        // make color darker for y-sides
+        if (side == 1)
+          Render::DarkenSDLColor(color, 2.f);
+        int index = (y * m_surface->pitch / 4) + x;
+        pixels[index] = Render::SDLColorToWorldColor(color);
+      }
+      ZBuffer[x] = perpWallDist;
+    
+
   }
   //draw renderable entities
   int numSprites = IEntitySystem->NumRenderables();

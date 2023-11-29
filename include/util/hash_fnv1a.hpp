@@ -5,7 +5,7 @@ namespace Util
 {
     namespace fnv1a {
        
-        constexpr uint64_t val_64_const = 14695981039346656037;
+        constexpr uint64_t val_64_const = 14695981039346656037ULL;
         constexpr uint64_t prime_64_const = 1099511628211;
 
 

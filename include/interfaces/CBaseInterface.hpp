@@ -14,7 +14,9 @@ public:
     virtual void OnLoopEnd() = 0;
     virtual void OnRenderStart() = 0;
     virtual void OnRenderEnd() = 0;
-    
+    virtual void OnEngineInitFinish() {}
+    virtual void OnResourceLoadStart() {}
+    virtual void OnResourceLoadEnd() {}
 private:
     std::string m_szName;
 

@@ -10,7 +10,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer3.h>
 #include <imgui_impl_sdl3.h>
-
+#include <editor/editor.hpp>
 
 void CRenderer::Shutdown()
 {
@@ -106,7 +106,7 @@ void CRenderer::RunImGui()
   ImGui::NewFrame();
     // bool open = true;
   // ImGui::ShowDemoWindow(&open);
-
+  CEditor::instance().render();
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
 

@@ -8,6 +8,25 @@ public:
 
     double x,y;
 
+
+  static inline Vector2 intersect_segs(Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1) { ///yikes
+    const double d =
+        ((a0.x - a1.x) * (b0.y - b1.y))
+            - ((a0.y - a1.y) * (b0.x - b1.x));
+
+    if (fabsf(d) < 0.000001f) { return (Vector2) { NAN, NAN }; }
+
+    const double
+        t = (((a0.x - b0.x) * (b0.y - b1.y))
+                - ((a0.y - b0.y) * (b0.x - b1.x))) / d,
+        u = (((a0.x - b0.x) * (a0.y - a1.y))
+                - ((a0.y - b0.y) * (a0.x - a1.x))) / d;
+    return (t >= 0 && t <= 1 && u >= 0 && u <= 1) ?
+        ((Vector2) {
+            a0.x + (t * (a1.x - a0.x)),
+            a0.y + (t * (a1.y - a0.y)) })
+        : ((Vector2) { NAN, NAN });
+}
 };
 
 class IVector2 
