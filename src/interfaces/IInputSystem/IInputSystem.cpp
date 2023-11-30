@@ -69,7 +69,7 @@ void CInputSystem::OnMouseMotion(SDL_Event* event)
     auto mode = SDL_GetRelativeMouseMode();
     if(mode == SDL_FALSE) return;
 
-    const double flScaleFactor = 0.2;
+    const double flScaleFactor = 0.4;
     if(abs(event->motion.xrel) < 1 && abs(event->motion.yrel) < 1)
         return;
     m_vecMouseMove = {

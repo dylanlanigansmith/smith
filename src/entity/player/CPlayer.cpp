@@ -55,8 +55,8 @@ void CPlayer::CreateMove()
   // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
   double frameTime = 0.02;
   double moveSpeed = frameTime * 5.0;  // the constant value is in squares/second
-  double rotSpeed = frameTime * 3.0;   // the constant value is in radians/second
-  double pitchSpeed = frameTime * 3.0; // the constant value is in radians/second
+  double rotSpeed = frameTime * 2.5;   // the constant value is in radians/second
+  double pitchSpeed = frameTime * 3.5; // the constant value is in radians/second
 
   WASD_t m_move = IInputSystem->GetInput();
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
@@ -129,7 +129,7 @@ void CPlayer::CreateMove()
   {
     auto mouseMove = IInputSystem->GetLastMouseMove();
 
-    m_camera.Rotate(mouseMove.x * moveSpeed);
+    m_camera.Rotate(mouseMove.x * rotSpeed);
 
     if (IInputSystem->AllowPitch())
       m_camera.m_flPitch += mouseMove.y * pitchSpeed * 500;

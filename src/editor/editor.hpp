@@ -24,7 +24,12 @@ private:
     void drawMapView();
     void drawEntityView();
     void drawResourceView();
+    void drawMaterialView();
     void Init();
+private:
+    void TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview);
+
+
 private:
     bool m_bIsOpen = false;
 

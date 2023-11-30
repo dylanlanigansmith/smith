@@ -5,7 +5,17 @@
 #include <SDL3/SDL.h>
 #include "CBaseSerializable.hpp"
 #include <util/hash_fnv1a.hpp>
+#include <data/level/level_types.hpp>
 //https://lodev.org/cgtutor/raycasting4.html
+
+enum Tile_Texture : uint8_t
+{
+    TileTexture_Primary = 0,
+    TileTexture_Ceiling = 1,
+    TileTexture_Floor = 2,
+    TileTexture_SIZE,
+};
+
 
 struct tile_state //local tile storage for future use
 {
@@ -28,12 +38,12 @@ struct tile_t
     uint32_t id{};
    
     IVector2 m_vecPosition;
-    hTexture m_hTexture;
-    hTexture m_hTextureCeiling;
-    hTexture m_hTextureFloor;
-    texture_t* m_pTexture = nullptr;
-    texture_t* m_pTextureCeiling = nullptr;
-    texture_t* m_pTextureFloor = nullptr;
+    hTexture m_hTexture;//READONLY
+    hTexture m_hTextureCeiling;//READONLY
+    hTexture m_hTextureFloor;//READONLY
+    texture_t* m_pTexture = nullptr; //READONLY
+    texture_t* m_pTextureCeiling = nullptr;//READONLY
+    texture_t* m_pTextureFloor = nullptr;//READONLY
     tile_state* m_pState  = nullptr;
     float m_flLight = 1.f;
     uint8_t m_nDecals{};
@@ -41,6 +51,26 @@ struct tile_t
     float m_flCeiling = 0.f;
     float m_flFloor = 0.f;
     uint8_t m_nType{};
+
+    void UpdateTexture(texture_t* newTexture, Tile_Texture which = TileTexture_Primary)
+    {
+        switch(which){
+            case TileTexture_Primary:
+                m_pTexture = newTexture;
+                m_hTexture = newTexture->m_handle;
+                break;
+            case TileTexture_Floor:
+                m_pTextureFloor = newTexture;
+                m_hTextureFloor = newTexture->m_handle;
+                break;
+            case TileTexture_Ceiling:
+                m_pTextureCeiling = newTexture;
+                m_hTextureCeiling = newTexture->m_handle;
+                break;
+            default:
+                return;
+        }
+    }
 };
 
 /*

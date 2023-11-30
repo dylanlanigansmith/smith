@@ -117,10 +117,12 @@ texture_t* CLevelSystem::GetTextureAt(int x, int y,  uint8_t type)
     auto tile = GetTileAt(x,y);
     if(!type)
         return tile->m_pTexture;
-    if(type == 1)
-        return tile->m_pTextureFloor;
-    else 
+    if(tile->m_nType != Level::Tile_Empty && type > 0)
+        return tile->m_pTexture;
+    if(type == TileTexture_Ceiling)
         return tile->m_pTextureCeiling;
+    else 
+        return tile->m_pTextureFloor;
 
 }
 
@@ -129,10 +131,10 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
     x = std::clamp(x, 0, MAP_SIZE - 1); 
     y = std::clamp(y, 0, MAP_SIZE - 1); 
     if(!is_floor)
-        return GetTextureAt(x,y, 2);
+        return GetTextureAt(x,y, TileTexture_Ceiling);
     
    //  bool checkerBoardPattern = (int(x + y)) & 1;
-    return GetTextureAt(x,y, 1);
+    return GetTextureAt(x,y, TileTexture_Floor);
 }
 
 

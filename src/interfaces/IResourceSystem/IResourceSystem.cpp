@@ -40,7 +40,38 @@ std::string CResourceSystem::GetResourceSubDir(const std::string &folder)
     log("resource subdir %s not found [%s]", folder.c_str(), full_path.c_str());
     return std::string();
 }
-
+std::vector<std::pair<std::string, std::string>> CResourceSystem::GetDirectoryStructure(const std::string& subdir)
+{
+      namespace fs = std::filesystem;
+    auto path = GetResourceSubDir(subdir);
+    std::vector<std::pair<std::string, std::string>> dir_structure;
+    for (auto const &dir_entry : fs::recursive_directory_iterator(path))
+    {
+        if(dir_entry.is_directory()) continue;
+        std::string file = FindSubdirFromPath(StripResourcePath(dir_entry.path()));
+        std::string name = dir_entry.path().filename();
+       std::pair<std::string, std::string> to_add = {name, file};
+ 
+        dir_structure.push_back(to_add);
+    }
+    std::sort(dir_structure.begin(), dir_structure.end(), [](const std::pair<std::string, std::string>& a, const std::pair<std::string, std::string>& b) {
+        return a.second < b.second; // This will sort by subdirectory
+    });
+    return dir_structure;
+}
+std::string CResourceSystem::FindSubdirFromPath(const std::string& path)
+{
+    if(path.find_first_of("/") == std::string::npos) //might not be in a subdir
+        return std::string();
+    auto rootandsub =  path.substr(0, path.find_last_of("/")) ; //this stage is ex. "/material/nature"
+    return rootandsub.substr(rootandsub.find_last_of("/") + 1); // this is "nature"
+  
+}
+std::string CResourceSystem::StripResourcePath(const std::string& path)
+{
+    int len = m_szResourcePath.length();
+    return path.substr(len);
+}
 std::string CResourceSystem::FindResourceFromPath(const std::string &path, const std::string &name)
 {
     namespace fs = std::filesystem;
@@ -217,6 +248,11 @@ bool CResourceSystem::SaveLevel()
     auto j = level->ToJSON();
     auto dir = GetResourceSubDir(LEVEL_SUBDIR);
     auto path = MergePathAndFileName(dir, AddExtension(level->getName()));
-    return WriteJSONToFile(j, path);
+
+    if( WriteJSONToFile(j, path)){
+        log("wrote level %s to file", level->getName().c_str()); return true;
+    }
+
+    log("error writing %s", path.c_str()); return false;
 
 }

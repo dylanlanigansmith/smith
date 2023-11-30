@@ -29,7 +29,11 @@ public:
 
     virtual std::string FindResourceFromPath(const std::string& path, const std::string& name); //path = to subdir, returns empty string on failure
     virtual std::string FindResource(const std::string& subdir_path, const std::string& name);
+
+    virtual std::vector<std::pair<std::string, std::string>> GetDirectoryStructure(const std::string& subdir);
 private:
+    std::string FindSubdirFromPath(const std::string& path);
+    std::string StripResourcePath(const std::string& path);
     bool WriteJSONToFile(const json& data, const std::string& path);
     json ReadJSONFromFile(const std::string& path);
     inline std::string MergePathAndFileName(const std::string& path, const std::string& name);

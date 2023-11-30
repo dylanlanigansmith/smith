@@ -6,8 +6,9 @@ project('smith','c','cpp',
 )
 
 
-inc = include_directories('include', 'thirdparty/imgui', 'thirdparty/json/include')
+inc = include_directories('include', 'thirdparty/imgui', 'thirdparty/json/include', 'thirdparty/magic_enum/include')
 
 subdir('thirdparty/imgui')
 subdir('thirdparty/json')
+subdir('thirdparty/magic_enum')
 subdir('src')
