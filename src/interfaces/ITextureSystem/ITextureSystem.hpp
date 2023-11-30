@@ -10,6 +10,7 @@ class CTextureSystem : public CBaseInterface
 {
 public:
 friend class CResourceSystem;
+friend class CEditor;
     CTextureSystem() : CBaseInterface("ITextureSystem") { }
     ~CTextureSystem() override;
     virtual void OnCreate() override;
@@ -25,7 +26,7 @@ friend class CResourceSystem;
     virtual hTexture LoadTexture(const std::string& name);
     virtual bool LoadFromDefinition(const CTexture& def);
     virtual hTexture FindTexture(const std::string& name);
-    virtual SDL_Surface* GetTexture(hTexture handle); //need to phase this out
+    virtual texture_t* GetTexture(hTexture handle); //need to phase this out
     virtual texture_t* GetTextureData(hTexture handle);
     virtual hTexture ErrorTextureHandle();
     virtual texture_t* ErrorTexture();

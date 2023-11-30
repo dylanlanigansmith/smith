@@ -21,14 +21,24 @@
 
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
+#include <SDL3/SDL.h>
+
 #ifndef IMGUI_DISABLE
 
 struct SDL_Renderer;
+// SDL_Renderer data
+struct ImGui_ImplSDLRenderer3_Data
+{
+    SDL_Renderer*   SDLRenderer;
+    SDL_Texture*    FontTexture;
+    ImGui_ImplSDLRenderer3_Data() { memset((void*)this, 0, sizeof(*this)); }
+};
 
 IMGUI_IMPL_API bool     ImGui_ImplSDLRenderer3_Init(SDL_Renderer* renderer);
 IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_Shutdown();
 IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_NewFrame();
 IMGUI_IMPL_API void     ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data);
+IMGUI_IMPL_API ImGui_ImplSDLRenderer3_Data* ImGui_ImplSDLRenderer3_GetBackendData();
 
 // Called by Init/NewFrame/Shutdown
 IMGUI_IMPL_API bool     ImGui_ImplSDLRenderer3_CreateFontsTexture();

@@ -81,7 +81,7 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
         drawEndX = SCREEN_WIDTH - 1;
 
     auto ITextureSystem = engine->TextureSystem(); // inconsistent
-    auto texture = ITextureSystem->GetTexture(m_hTexture);
+    auto texture = ITextureSystem->GetTexture(m_hTexture)->m_texture;
     uint32_t *pixelsT = (uint32_t *)texture->pixels;
     for (int stripe = drawStartX; stripe < drawEndX; stripe++)
     {

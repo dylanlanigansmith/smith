@@ -8,6 +8,7 @@
 class CLevelSystem : public CBaseInterface
 {
     friend class CResourceSystem;
+    friend class CEditor;
 public:
 
     CLevelSystem() : CBaseInterface("ILevelSystem") { }
@@ -26,8 +27,8 @@ public:
         return m_Level->GetTileAt(x,y);
     }
 
-    virtual hTexture GetTextureAt(int x, int y, uint8_t type = 0); //main0, floor1, ceiling2
-    virtual hTexture GetTexturePlane(bool is_floor, int x, int y);
+    virtual texture_t* GetTextureAt(int x, int y, uint8_t type = 0); //main0, floor1, ceiling2
+    virtual texture_t* GetTexturePlane(bool is_floor, int x, int y);
     
 private:
     void LoadAndFindTexturesForMap();

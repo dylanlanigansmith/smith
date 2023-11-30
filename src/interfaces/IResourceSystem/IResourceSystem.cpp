@@ -99,7 +99,6 @@ void CResourceSystem::OnEngineInitFinish()
 void CResourceSystem::OnResourceLoadStart()
 {
     LoadTextureDefinition();
-    SaveLevel();
 }
 
 bool CResourceSystem::LoadTextureDefinition()
@@ -211,13 +210,13 @@ bool CResourceSystem::LoadLevel(const std::string &name)
 
 bool CResourceSystem::SaveLevel()
 {
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    CLevel level({24,24});
-    level.MakeEmptyLevel(ITextureSystem->FindTexture("redbrick.png"));
-    level.SetMetadata("lvldev");
-    auto j = level.ToJSON();
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    if(ILevelSystem->m_Level ==  nullptr) return false;
+  
+    auto& level = ILevelSystem->m_Level;
+    auto j = level->ToJSON();
     auto dir = GetResourceSubDir(LEVEL_SUBDIR);
-    auto path = MergePathAndFileName(dir, AddExtension(level.getName()));
+    auto path = MergePathAndFileName(dir, AddExtension(level->getName()));
     return WriteJSONToFile(j, path);
 
 }

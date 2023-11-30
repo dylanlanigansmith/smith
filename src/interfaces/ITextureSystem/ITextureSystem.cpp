@@ -161,25 +161,10 @@ hTexture CTextureSystem::FindTexture(const std::string& name)
     return it->first;
 }
 
-SDL_Surface *CTextureSystem::GetTexture(hTexture handle)
+texture_t *CTextureSystem::GetTexture(hTexture handle)
 {
    
-    if (!IsHandleValid(handle))
-    {
-        return NULL; //GetTexture(ErrorTexture());
-    }
-    SDL_Surface *gotTexture =  NULL;
-    try
-    {
-        gotTexture = texture_db.at(handle)->m_texture;
-    }
-    catch(const std::exception& e) //std::outofrange
-    {
-        std::cerr << e.what() << '\n';
-        Error("error with texture %x / %s", handle, FilenameFromHandle(handle).c_str());
-    }
-       
-    return (gotTexture == NULL) ? NULL : gotTexture;
+    return GetTextureData(handle);
  
 }
 
@@ -232,16 +217,16 @@ bool CTextureSystem::IsHandleValid(hTexture handle)
 
 void CTextureSystem::GetTextureSize(int *w, int *h)
 {
-    auto text = ErrorTexture()->m_texture;
-    *w = text->w;
-    *h = text->h;
+    auto& size = ErrorTexture()->m_size;
+     *w = size.x;
+    *h = size.y;
 }
 
 void CTextureSystem::GetTextureSize(hTexture handle, int* w, int* h)
 {
-     auto text = GetTexture(handle);
-    *w = text->w;
-    *h = text->h;
+     auto& size = GetTexture(handle)->m_size;
+    *w = size.x;
+    *h = size.y;
 }
 
 const std::string CTextureSystem::FilenameFromHandle(hTexture handle)

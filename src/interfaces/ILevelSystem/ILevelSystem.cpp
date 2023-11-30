@@ -112,19 +112,19 @@ void CLevelSystem::AddMapTexture(int id, const std::string& name)
 
 
 
-hTexture CLevelSystem::GetTextureAt(int x, int y,  uint8_t type) 
+texture_t* CLevelSystem::GetTextureAt(int x, int y,  uint8_t type) 
 {
     auto tile = GetTileAt(x,y);
     if(!type)
-        return tile->m_hTexture;
+        return tile->m_pTexture;
     if(type == 1)
-        return tile->m_hTextureFloor;
+        return tile->m_pTextureFloor;
     else 
-        return tile->m_hTextureCeiling;
+        return tile->m_pTextureCeiling;
 
 }
 
-hTexture CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
+texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
 {
     x = std::clamp(x, 0, MAP_SIZE - 1); 
     y = std::clamp(y, 0, MAP_SIZE - 1); 

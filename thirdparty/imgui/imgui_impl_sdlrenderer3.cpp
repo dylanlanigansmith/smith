@@ -39,17 +39,11 @@
 #error This backend requires SDL 3.0.0+
 #endif
 
-// SDL_Renderer data
-struct ImGui_ImplSDLRenderer3_Data
-{
-    SDL_Renderer*   SDLRenderer;
-    SDL_Texture*    FontTexture;
-    ImGui_ImplSDLRenderer3_Data() { memset((void*)this, 0, sizeof(*this)); }
-};
+
 
 // Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
 // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
-static ImGui_ImplSDLRenderer3_Data* ImGui_ImplSDLRenderer3_GetBackendData()
+ImGui_ImplSDLRenderer3_Data* ImGui_ImplSDLRenderer3_GetBackendData()
 {
     return ImGui::GetCurrentContext() ? (ImGui_ImplSDLRenderer3_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
 }

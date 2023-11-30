@@ -62,6 +62,7 @@ class CLevel : public CBaseSerializable //i sortof hate this whole implementatio
 {
 public:
     friend class CLevelSystem;
+    friend class CEditor;
     CLevel(IVector2 bounds = IVector2(0,0)) : CBaseSerializable(Util::getClassName(this)), m_vecBounds(bounds) {
       m_flCeilingHeight = m_flFloorHeight = 0.0;
       m_szLevelName = "default";

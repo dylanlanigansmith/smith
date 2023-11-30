@@ -96,10 +96,9 @@ void CRenderer::LoopWolf()
 
       // choose texture and draw the pixel
    
-      auto handle = ILevelSystem->GetTexturePlane(is_floor, cellX, cellY);
+      auto texture = ILevelSystem->GetTexturePlane(is_floor, cellX, cellY)->m_texture;
      
-      auto texture = ITextureSystem->GetTexture(handle);
-     
+
 
       uint32_t *pixelsT = (uint32_t *)texture->pixels;
       uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
@@ -225,8 +224,8 @@ void CRenderer::LoopWolf()
 
       double stepTex = 1.0 * textH / lineHeight;
       double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
-      auto handle = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y);
-      auto texture = ITextureSystem->GetTexture(handle);
+      auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
+     
       for (int y = drawStart; y < drawEnd; y++)
       {
         // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
