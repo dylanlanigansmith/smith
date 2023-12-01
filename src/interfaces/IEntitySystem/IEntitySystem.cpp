@@ -63,5 +63,5 @@ void CEntitySystem::CreateLocalPlayer()
 
 CPlayer* CEntitySystem::GetLocalPlayer()
 {
-    return GetEntity<CPlayer>(0);
+    return GetEntity<CPlayer>((hEntity)0);
 }

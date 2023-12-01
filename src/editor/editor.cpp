@@ -15,9 +15,16 @@ void CEditor::Init()
     
     auto bd = ImGui_ImplSDLRenderer3_GetBackendData();
     m_renderer = bd->SDLRenderer; 
+    InitTextureInfo();
+   
+    MENULOG("Editor Init %li", texture_info.size());
+}
 
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+void CEditor::InitTextureInfo()
+{
+     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
     
+    texture_info.clear(); //GIANT MEMORY LEAK!!
     for(const auto& entry : ITextureSystem->texture_lookup)
     {
         auto texture = ITextureSystem->GetTextureData(entry.first);
@@ -30,7 +37,6 @@ void CEditor::Init()
         texture_info.emplace(entry.second, to_add);
 
     }
-    MENULOG("Editor Init %li", texture_info.size());
 }
 
 
@@ -125,13 +131,16 @@ void CEditor::drawMapView()
     static std::string primary_texture_preview = "--";
     static std::string ceiling_texture_preview = "--";
     static std::string floor_texture_preview = "--";
+    static std::string paint_texture_preview = "--";
     static const char* type_preview = "--";
+    static texture_t* paintTexture = nullptr;
     static texture_t* selectedTexture = nullptr;
     static texture_t* selectedTextureFloor = nullptr;
     static texture_t* selectedTextureCeiling = nullptr;
+    static SDL_Texture* paintpreviewTexture = NULL;
     static SDL_Texture* previewTexture = NULL;
     static SDL_Texture* previewTexture2 = NULL;
-
+    static ImGuiTextFilter textureFilter;
     ImGui::Columns(2, "###mapedit");
     ImVec2 tileSize(20,20);
     for(auto& row : world){
@@ -150,6 +159,8 @@ void CEditor::drawMapView()
                 color = ImVec4(color.x / 6.f, color.y /6.f, color.z / 6.f, 1.f); //better way
             ImGui::PushStyleColor(ImGuiCol_Button, color);
             if(ImGui::Button(std::to_string(tile.m_nType).c_str(), tileSize)){
+                if(selectedTexture != nullptr)
+                    m_texLastSelected = selectedTexture;
                 selectedTile = &tile;
                 selectedTexture = tile.m_pTexture;
                 selectedTextureCeiling = tile.m_pTextureCeiling;
@@ -177,6 +188,7 @@ void CEditor::drawMapView()
         ImGui::Columns();
         return;
     }
+  
     ImGui::Text("Selected Tile: {%i, %i}", selectedTile->m_vecPosition.x, selectedTile->m_vecPosition.y);
   
     if(ImGui::BeginCombo("Type", type_preview, 0))
@@ -196,15 +208,15 @@ void CEditor::drawMapView()
 
     if(selectedTile->m_nType == Level::Tile_Empty)
     {
-        TexturePicker("Ceiling", selectedTextureCeiling, previewTexture, ceiling_texture_preview);
-        TexturePicker("Floor", selectedTextureFloor, previewTexture2, floor_texture_preview);
+        TexturePicker("Ceiling", selectedTextureCeiling, previewTexture, ceiling_texture_preview, &textureFilter);
+        TexturePicker("Floor", selectedTextureFloor, previewTexture2, floor_texture_preview, &textureFilter);
         if(selectedTextureCeiling != nullptr && previewTexture != NULL)
         {
             auto strCeil = ITextureSystem->FilenameFromHandle(selectedTextureCeiling->m_handle);
 
             previewTexture = texture_info.at(strCeil).texture_preview;
             ImGui::Image(previewTexture, ImVec2(64, 64));
-            selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
+           // selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
         }
         if(selectedTextureFloor != nullptr && previewTexture2 != NULL)
         {
@@ -214,18 +226,19 @@ void CEditor::drawMapView()
             if(selectedTextureCeiling != nullptr && previewTexture != NULL)
                 ImGui::SameLine();
             ImGui::Image(previewTexture2, ImVec2(64, 64));
-            selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
+          //  selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
         }
     }
     else
     {
-        TexturePicker("Wall", selectedTexture, previewTexture, primary_texture_preview);
+        TexturePicker("Wall", selectedTexture, previewTexture, primary_texture_preview, &textureFilter);
         if(selectedTexture != nullptr && previewTexture != NULL)
         {
             ImGui::Image(previewTexture, ImVec2(64, 64));
-            selectedTile->UpdateTexture(selectedTexture);
+          //  selectedTile->UpdateTexture(selectedTexture);
         }
     }
+    textureFilter.Draw("Filter ##text");
     ImGui::SeparatorText("Tools");
     static bool all_floor = false;
     static bool all_ceiling = false;
@@ -256,7 +269,16 @@ void CEditor::drawMapView()
         }
 
     }
-    
+    //do a different tab for paint mode
+    TexturePicker("Paint", paintTexture, paintpreviewTexture, paint_texture_preview, &textureFilter);
+    if(paintTexture != nullptr && paintpreviewTexture != NULL)
+    {
+            ImGui::Image(paintpreviewTexture, ImVec2(64, 64));   
+              if(ImGui::IsKeyDown(ImGuiKey_Space) ){
+                    selectedTile->m_nType = Level::Tile_Wall;
+                    selectedTile->UpdateTexture(paintTexture);
+                }     
+    }
     
 
 
@@ -275,7 +297,7 @@ void CEditor::drawEntityView()
 void CEditor::drawResourceView()
 {
     //add files to manifest etc
-   
+    ImGui::SeparatorText("Very unfinished memory leak galore");
     static std::string type_preview = "--";
     static bool view_textures = false;
     static bool view_other = false;
@@ -325,11 +347,23 @@ void CEditor::drawMaterialView()
     with [] = thumbnail
     
     */
+    ImGui::SameLine();
+    if(ImGui::Button("Reload")){
+        InitTextureInfo(); //MEMORY LEAK MEMORY LEAK
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("Save")){
+        IResourceSystem->SaveTextureDefinition();
+    }
     ImGui::Columns(2, "##matviewcols");
+    static ImGuiTextFilter matFilter;
+    matFilter.Draw("Filter Subdir: ##filter");
+
     if(ImGui::BeginListBox("/material/", ImVec2(250, 600)))
     {
         for(auto& pair : material_dir)
         {
+            if(!matFilter.PassFilter(pair.second.c_str())) continue;
             ImGui::PushID(&pair);
             if(ImGui::Selectable(pair.first.c_str(), &pair == selectedFile)){
                 selectedFile = &pair;
@@ -350,18 +384,49 @@ void CEditor::drawMaterialView()
 
     ImGui::Text(selectedFile->first.c_str());
     ImGui::Text(selectedFile->second.c_str());
+    ImGui::SeparatorText("Add To Texture Definition");
+    if(ImGui::Button("This")){
+        std::string path = ITextureSystem->TextureNameToFile(selectedFile->first);
+        if(!path.empty()){
+            ITextureSystem->LoadTexture(selectedFile->first);
+        }
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("Filtered")){
+        for(auto& pair : material_dir)
+        {
+            if(!matFilter.PassFilter(pair.second.c_str())) continue;
+            std::string path = ITextureSystem->TextureNameToFile(pair.first);
+            if(!path.empty()){
+                ITextureSystem->LoadTexture(pair.first);
+            }
+        }
+    }  ImGui::SameLine();
+    if(ImGui::Button("Subdir")){
+        for(auto& pair : material_dir)
+        {
+            if(pair.second.compare(selectedFile->second)) continue;
+            std::string path = ITextureSystem->TextureNameToFile(pair.first);
+            if(!path.empty()){
+                ITextureSystem->LoadTexture(pair.first);
+            }
+        }
+    }
+
     ImGui::Columns();
 
 }
 
 
-void CEditor::TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview)
+void CEditor::TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview, ImGuiTextFilter* filter)
 {
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    if(ImGui::BeginCombo(title, preview.c_str(), 0))
+
+    if(ImGui::BeginCombo(title, preview.c_str(), ImGuiComboFlags_HeightLarge))
     {
         for(const auto& entry : texture_info)
         {
+            if(!filter->PassFilter(entry.first.c_str())) continue;
             ImGui::PushID(&entry);
             std::string name = entry.first;
             if(ImGui::Selectable(name.c_str(), selectedTexture == entry.second.texture))
@@ -369,6 +434,7 @@ void CEditor::TexturePicker(const char* title, texture_t*& selectedTexture, SDL_
                 selectedTexture = entry.second.texture;
                 preview = ITextureSystem->FilenameFromHandle(selectedTexture->m_handle);
                 previewTexture = entry.second.texture_preview;
+               // m_texLastSelected = selectedTexture;
             }
             ImGui::SameLine();
             ImGui::Image(entry.second.texture_preview, ImVec2(32, 32));

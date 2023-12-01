@@ -27,10 +27,12 @@ private:
     void drawMaterialView();
     void Init();
 private:
-    void TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview);
+    void InitTextureInfo();
+    void TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview, ImGuiTextFilter* filter);
 
 
 private:
+    texture_t* m_texLastSelected = nullptr;
     bool m_bIsOpen = false;
 
     bool m_bHasInit = false;

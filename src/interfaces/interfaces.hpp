@@ -15,7 +15,7 @@ public:
     T* AddInterface(){
         T* interface = new T();
         auto base = static_cast<CBaseInterface*>(interface);
-        base->OnCreate();
+        
 
         auto result = interface_list.emplace(base->name(), interface);
         if(!result.second){
@@ -24,6 +24,7 @@ public:
                 base->log(i.first);
             } return (nullptr);
         }
+        base->OnCreate();
         base->log("added To Interfacelist");
         return (interface);
     }

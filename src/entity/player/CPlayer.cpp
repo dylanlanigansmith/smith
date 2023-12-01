@@ -12,6 +12,9 @@ CPlayer::~CPlayer()
 
 void CPlayer::OnUpdate()
 {
+  for(auto& item : m_inventory){
+    item->OnUpdate();
+  }
 }
 
 void CPlayer::OnCreate()
@@ -23,14 +26,28 @@ void CPlayer::OnCreate()
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
+
+  auto Pistol = new CWeaponPistol();
+
+  m_inventory.push_back(Pistol);
+  for(auto& item : m_inventory){
+    item->SetOwnerEntity(m_iID);
+    item->OnCreate();
+  }
+    
 }
 
 void CPlayer::OnDestroy()
 {
+  for(auto& item : m_inventory){
+    delete item;
+  }
 }
 
 void CPlayer::CreateRenderable()
 {
+  
+
 }
 
 void CPlayer::OnRenderStart()
@@ -45,6 +62,7 @@ void CPlayer::OnRenderEnd()
 
 void CPlayer::Render(CRenderer *renderer)
 {
+    GetActiveWeapon()->Render(renderer);
 }
 
 void CPlayer::CreateMove()
@@ -151,6 +169,7 @@ void CPlayer::CreateMove()
   {
     // jump
     // m_vecPosition.z = 200;
+    GetActiveWeapon()->Shoot();
   }
   if (m_camera.m_flPitch > 0)
     m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);

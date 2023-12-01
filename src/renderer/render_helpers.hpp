@@ -33,4 +33,12 @@ namespace Render
         color.b = color.b / val;
     }
 
+    static void SetPixel(uint32_t* pixels, int x, int y, int pitch, SDL_Color color){
+        int index = (y * pitch / 4) + x;
+        pixels[index] = SDLColorToWorldColor(color);
+    }
+
+    static inline bool ColorEqualRGB(const SDL_Color& c1, const SDL_Color& c2){
+        return (c1.r == c2.r) && (c1.g == c2.g) && (c1.b == c2.b);
+    }
 }

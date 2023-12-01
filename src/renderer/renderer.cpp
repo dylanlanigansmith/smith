@@ -88,7 +88,7 @@ void CRenderer::Loop()
 {
 
   LoopWolf();
-  SDL_UpdateTexture(m_renderTexture, NULL, m_surface->pixels, m_surface->pitch);
+  SDL_UpdateTexture(m_renderTexture, NULL, m_surface->pixels, m_surface->pitch); //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
 
   SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);
 

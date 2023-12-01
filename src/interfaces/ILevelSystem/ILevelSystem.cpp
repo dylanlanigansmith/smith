@@ -65,7 +65,7 @@ void CLevelSystem::OnEngineInitFinish()
     auto light = IEntitySystem->AddEntity<CGreenLight>();
     light->SetPosition(10, 12);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
-    pillar->SetPosition(3, 12);
+    pillar->SetPosition(1, 12);
 }
 
 

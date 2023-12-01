@@ -29,7 +29,7 @@ public:
     virtual CPlayer* GetLocalPlayer();
 
     template <typename T> 
-    T* GetEntity(uint32_t h) //use shared ptr
+    T* GetEntity(hEntity h) //use shared ptr
     {
       if(h > entity_list.size() - 1)
         return nullptr;
@@ -42,8 +42,9 @@ public:
     {
         T* ent = new T(entity_list.size());
         auto base = (CBaseEntity*)(ent);
-        base->OnCreate();
+       
         entity_list.push_back(base);
+         base->OnCreate();
         log("added entity %s | %lx | #%i", base->GetName().c_str(), base->GetType(), base->GetID());
         if(base->IsRenderable() && !base->IsLocalPlayer())
             m_iRenderableEntities++;

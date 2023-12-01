@@ -12,7 +12,7 @@
 #define SET_ENT_TYPE() this->m_nType = Util::fnv1a::Hash64(this->m_szName.c_str())
 #define ENT_SETUP() SET_ENT_NAME(); SET_ENT_TYPE();
 
-
+typedef uint32_t hEntity;
 
 class CBaseEntity
 {
@@ -37,5 +37,5 @@ protected:
     std::string m_szName;
     std::string m_szSubclass;
     Vector m_vecPosition;
-    uint32_t m_iID;
+    hEntity m_iID;
 };

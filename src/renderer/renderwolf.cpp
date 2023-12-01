@@ -259,7 +259,7 @@ void CRenderer::LoopWolf()
       render_list.push_back({distanceSqr, ent->GetID()});
     }
   }
-  assert(numSprites == render_list.size());
+  assert(numSprites == render_list.size()); //no longer needed
   std::sort(render_list.begin(), render_list.end(), 
         [](const std::pair<double, uint32_t> &a, const std::pair<double, uint32_t> &b) {
             return a.first > b.first; // Sorting in descending order based on the double value
@@ -270,7 +270,22 @@ void CRenderer::LoopWolf()
     if(!ent) continue;
     ent->Render(this);
   }
+  //render localplayer stuff
+  player->Render(this);
 
+
+  //draw crosshair
+
+  int crosshair_x = SCREEN_WIDTH / 2;
+  int crosshair_y = SCREEN_HEIGHT / 2;
+  SDL_Color crosshair_color = { 255, 255, 255, 225};
+  Render::SetPixel(pixels, crosshair_x, crosshair_y, m_surface->pitch, crosshair_color);
+  for(int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
+    for(int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)
+      Render::SetPixel(pixels, x, y, m_surface->pitch, crosshair_color);
+  for(int y = crosshair_y - 4; y <= crosshair_y + 4; ++y)
+    for(int x = crosshair_x - 1; x <= crosshair_x + 1; ++x)
+      Render::SetPixel(pixels, x, y, m_surface->pitch, crosshair_color);
 
   SDL_UnlockSurface(m_surface);
 }

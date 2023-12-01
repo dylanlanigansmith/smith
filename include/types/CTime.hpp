@@ -19,7 +19,7 @@ public:
     [[nodiscard]] time_ms_t ms(){ return _ns / 1000000; }
     [[nodiscard]] time_s_t sec() { return (time_s_t)( ms()) / 1000.f; }
     void set(time_ns_t set) { _ns = set; }
-
+    void set_ms(time_ms_t set) { _ns = set * 1000000; }
     Time_t operator-(const Time_t& rhs) const{
         return Time_t(_ns - rhs._ns);
     }
@@ -32,6 +32,16 @@ public:
     bool operator<(const Time_t& rhs) const{
         return (_ns < rhs._ns);
     }
+    bool operator>=(const Time_t& rhs) const{
+        return (_ns >= rhs._ns);
+    }
+    bool operator<=(const Time_t& rhs) const{
+        return (_ns <= rhs._ns);
+    }
+    bool operator==(const Time_t& rhs) const{
+        return (_ns == rhs._ns); //this will never ever happen?
+    }
+
 
 private:
     time_ns_t _ns;

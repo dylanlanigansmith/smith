@@ -5,7 +5,7 @@
 #include <entity/CBaseEntity.hpp>
 #include "CCamera.hpp"
 
-
+#include <entity/weapon/pistol/CWeaponPistol.hpp>
 
 
 class CPlayer : public CBaseRenderable
@@ -25,7 +25,11 @@ public:
     const CCamera& Camera() { return m_camera; }
 private:
     virtual void CreateMove();
+
+    CBaseWeapon* GetActiveWeapon() { return m_inventory.at(m_nActiveWeapon); }
 private:
+    uint8_t m_nActiveWeapon = 0;
+    std::vector<CBaseWeapon*> m_inventory;
     CCamera m_camera;
 };
 
