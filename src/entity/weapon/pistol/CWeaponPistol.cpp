@@ -6,75 +6,13 @@
 
 void CWeaponPistol::Render(CRenderer *renderer)
 {
-    /*
-    [ default 80x80] [ shoot1 80x80]  [ shoot2 80x80]
-    [ reload0 80x96] [ reload1 80x96] [ reload2 80xa lot]
-    [ reload3 80x96] [ reload4 80x96] [ reload5 80x96]
-
-    287x285
-    */
-    auto surf = m_texture->m_texture;
-
-    const int frame_width = 80;
-    const int frame_height = 80;
-    int start_x = SCREEN_WIDTH / 2 - frame_width / 2;
-    int start_y = SCREEN_HEIGHT - frame_height;
-
-    SDL_Rect default_frame(0, 0, 80, 80);
-    // greasy
-    texture_t t;
-    t.m_texture = m_surface;
-
-    const SDL_Color mask = {65, 176, 70, 255};
-
-    for (int y = 0; y < m_surface->h; ++y)
-        for (int x = 0; x < m_surface->w; ++x)
-        {
-            auto color = t.getColorAtPoint({x, y});
-            if (!color)
-                continue;
-            if (Render::ColorEqualRGB(Render::TextureToSDLColor(color), mask))
-                continue;
-            renderer->SetPixel(start_x + x, start_y + y, color);
-        }
+    m_anim->DrawFrame(renderer);
 }
 
 void CWeaponPistol::OnUpdate()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-    const time_ms_t animTime = 25;
-    if (m_nextAnimTime.ms() != 0)
-    {
-        auto curTime = IEngineTime->GetCurTime();
-        if (curTime >= m_nextAnimTime)
-        {
-            // CSequence::NextSequence
-            if (m_animState == Pistol_AnimStates::Anim_Default)
-            {
-                m_animState = Pistol_AnimStates::Anim_Shoot1;
-                m_nextAnimTime = Time_t(curTime.ms() + animTime);
-                SDL_Rect frame(0, 0, 80, 80);
-                SDL_BlitSurface(m_texture->m_texture, &frame, m_surface, NULL);
-                return;
-            }
-            if (m_animState == Pistol_AnimStates::Anim_Shoot1)
-            {
-                m_animState = Pistol_AnimStates::Anim_Shoot2;
-                m_nextAnimTime = Time_t(curTime.ms() + animTime);
-                SDL_Rect frame(80, 0, 80, 80);
-                SDL_BlitSurface(m_texture->m_texture, &frame, m_surface, NULL);
-                return;
-            }
-            if (m_animState == Pistol_AnimStates::Anim_Shoot2)
-            {
-                m_animState = Pistol_AnimStates::Anim_Default;
-                m_nextAnimTime = Time_t(0);
-                SDL_Rect frame(160, 0, 80, 80);
-                SDL_BlitSurface(m_texture->m_texture, &frame, m_surface, NULL);
-                return;
-            }
-        }
-    }
+    m_anim->OnUpdate();
+   
 }
 
 void CWeaponPistol::Shoot()
@@ -86,6 +24,8 @@ void CWeaponPistol::Shoot()
     auto curTime = IEngineTime->GetCurTime();
     m_nextAnimTime = Time_t(curTime.ms() + animTime);
 
+    static constexpr auto hShoot = Anim::GetSequenceHandle("shoot0");
+    m_anim->PlaySequence(hShoot);
     auto cam = owner->Camera();
     auto pos = owner->GetPosition();
 
@@ -189,14 +129,21 @@ void CWeaponPistol::Shoot()
 }
 void CWeaponPistol::OnCreate()
 {
-    auto ITextureSystem = engine->TextureSystem();
-    auto handleTexture = ITextureSystem->LoadTexture("pistol.png");
-    m_texture = ITextureSystem->GetTexture(handleTexture);
-    m_surface = SDL_CreateSurface(256, 256, SMITH_PIXELFMT);
+    /*
+    [ default 80x80] [ shoot1 80x80]  [ shoot2 80x80]
+    [ reload0 80x96] [ reload1 80x96] [ reload2 80xa lot]
+    [ reload3 80x96] [ reload4 80x96] [ reload5 80x96]
 
-    SDL_Rect default_frame(0, 0, 80, 80);
-    SDL_BlitSurface(m_texture->m_texture, &default_frame, m_surface, NULL);
-    m_animState = Pistol_AnimStates::Anim_Default;
+    287x285
+    */
+    m_anim = new CAnimController("pistol.png", {"pistol",{256,256}, {65, 176, 70, 255} },
+    CAnimSequence("shoot0", 3, 
+    std::vector<sequence_frame>{
+        sequence_frame({0,0,80,80}, 0),  sequence_frame({80,0,80,80}, 1), 
+         sequence_frame({160,0,80,80}, 2),  sequence_frame({80,0,80,80}, 3), 
+          sequence_frame({0,0,80,80}, 4)
+    })   
+    );
 
     if (m_pOwner == nullptr)
     {

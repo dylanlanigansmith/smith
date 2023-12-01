@@ -150,7 +150,7 @@ bool CResourceSystem::LoadTextureDefinition()
                 amt++;
         }
     }
-    log("loaded definitions for %i textures", amt);
+    log("loaded %i texture definitions for a db size of  %i ", amt, ITextureSystem->texture_db.size());
     return (amt > 0);
 }
 

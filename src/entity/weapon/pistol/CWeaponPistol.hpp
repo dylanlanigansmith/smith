@@ -1,5 +1,5 @@
 #pragma once
-#include "../CBaseWeapon.hpp"
+#include  <entity/weapon/CBaseWeapon.hpp>
 #include <util/rtti.hpp>
 #include <types/CTime.hpp>
 enum class Pistol_AnimStates : uint8_t
@@ -13,7 +13,7 @@ enum class Pistol_AnimStates : uint8_t
 class CWeaponPistol : public CBaseWeapon
 {
 public:
-    CWeaponPistol() : CBaseWeapon(Util::getClassName(this)){}
+    CWeaponPistol() : CBaseWeapon(Util::getClassName(this)) {}
     virtual ~CWeaponPistol(){}
     virtual void OnCreate();
     virtual void Render(CRenderer* renderer);

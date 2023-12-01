@@ -91,7 +91,7 @@ SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path)
     return NULL;
 }
 
-bool CTextureSystem::AddTexture(const std::string& name, texture_t* text)
+bool CTextureSystem::AddTexture(const std::string& name, texture_t* text, bool log_add)
 {
     
     
@@ -101,7 +101,10 @@ bool CTextureSystem::AddTexture(const std::string& name, texture_t* text)
         Error("failed to add %s [%ix%i] to database @ %x", name.c_str(),text->m_size.x, text->m_size.y, text->m_handle);
     }
 
-    log("added %s [%ix%i] to database @ %x", name.c_str(),text->m_size.x, text->m_size.y, text->m_handle);
+    if(log_add)
+        log("added %s [%ix%i] to database @ %x", name.c_str(),text->m_size.x, text->m_size.y, text->m_handle);
+    else
+        info("added %s [%ix%i] to database @ %x", name.c_str(),text->m_size.x, text->m_size.y, text->m_handle);
     return true;
 }
 
@@ -138,7 +141,8 @@ bool CTextureSystem::LoadFromDefinition(const CTexture& def)
 
     texture_t* new_texture = new texture_t(def.Data());
     new_texture->m_texture = optimized;
-    if(!AddTexture(def.m_szName, new_texture)) return false;
+    if(!AddTexture(def.m_szName, new_texture, false)) return false;
+
 
     return true;
 
@@ -161,6 +165,18 @@ hTexture CTextureSystem::FindTexture(const std::string& name)
     return it->first;
 }
 
+texture_t* CTextureSystem::FindOrCreatetexture(const std::string& name)
+{
+    auto search = FindTexture(name);
+    if(search != ErrorTextureHandle())
+        return GetTexture(search);
+    
+    auto hAdded = LoadTexture(name);
+    if(!IsHandleValid(hAdded))
+        Error("could not findorcreate texture %s", name.c_str());
+    return GetTexture(hAdded);
+}
+
 texture_t *CTextureSystem::GetTexture(hTexture handle)
 {
    
@@ -172,7 +188,7 @@ texture_t* CTextureSystem::GetTextureData(hTexture handle)
 {
      if (!IsHandleValid(handle))
     {
-        return nullptr; //GetTexture(ErrorTexture());
+        return ErrorTexture(); //GetTexture(ErrorTexture());
     }
     texture_t* gotTexture =  nullptr;
     try
@@ -185,7 +201,7 @@ texture_t* CTextureSystem::GetTextureData(hTexture handle)
         Error("error with texture %x / %s", handle, FilenameFromHandle(handle).c_str());
     }
        
-    return (gotTexture == nullptr) ? nullptr : gotTexture;
+    return (gotTexture == nullptr) ? ErrorTexture() : gotTexture;
 }
 
 

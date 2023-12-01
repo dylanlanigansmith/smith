@@ -21,7 +21,7 @@ bool CTexture::FromJSON(const json& j)
     m_clrKey = j.at(2);
     m_flShade = j.at(3);
     m_nMode = j.at(4);
-    engine->dbg("%s %x %i %f", m_szName.c_str(), m_handle, m_clrKey, m_flShade);
+   // engine->dbg("%s %x %i %f", m_szName.c_str(), m_handle, m_clrKey, m_flShade);
     return true;
 }
 

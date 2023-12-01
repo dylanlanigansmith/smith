@@ -1,0 +1,138 @@
+#include "CAnimationController.hpp"
+#include <engine/engine.hpp>
+
+
+void CAnimController::DrawFrame(CRenderer *renderer)
+{
+     auto animd = &(this->m_draw);
+
+    const int frame_width = animd->m_curRect.w; //80
+    const int frame_height = animd->m_curRect.h; //80
+
+    int start_x = SCREEN_WIDTH / 2 - frame_width / 2;
+    int start_y = SCREEN_HEIGHT - frame_height;
+
+    // greasy
+    texture_t t;
+    t.m_texture = animd->m_surface;
+
+    const SDL_Color mask = animd->m_clrKey;
+
+    for (int y = 0; y < frame_height; ++y)
+        for (int x = 0; x < frame_width; ++x)
+        {
+            auto color = t.getColorAtPoint({x, y});
+            if (!color)
+                continue;
+            if (Render::ColorEqualRGB(Render::TextureToSDLColor(color), mask))
+                continue;
+            renderer->SetPixel(start_x + x, start_y + y, color);
+            
+        }
+}
+
+
+void CAnimController::NextFrame()
+{
+    if(m_pCurSequence == nullptr){
+        Error("no current sequence! %x", m_curSequence); return;
+    }
+
+    m_pCurSequence->startframe();
+    //SDL_BlitSurface(m_draw.m_sourceTexture->m_texture, &(m_pCurSequence->cur()->rect), m_draw.m_surface, &m_draw.m_curRect);
+    SwitchFrames(m_pCurSequence);
+
+    if(m_pCurSequence->last()){
+        log("last");
+        m_nextUpdate = 0;
+        m_curSequence = m_defaultSequence;
+        m_pCurSequence->reset();
+        m_pCurSequence = nullptr; 
+        return;
+    }
+
+   
+    m_nextUpdate = m_curUpdate + m_pCurSequence->m_frameTime;
+    m_pCurSequence->endframe();
+}
+
+void CAnimController::OnUpdate()
+{
+    m_curUpdate++;
+  //  if(m_curSequence == m_defaultSequence && m_pCurSequence == nullptr) // no ptr for when it is default
+   //     return;
+    if(m_nextUpdate == 0) return;
+
+    if(m_nextUpdate > m_curUpdate ) return;
+
+    NextFrame();
+    
+}
+void CAnimController::OnDestroy()
+{
+    SDL_DestroySurface(m_draw.m_surface);
+    m_sequences.clear();
+}
+
+
+bool CAnimController::SwitchFrames(CAnimSequence *seq)
+{
+    auto* cur = seq->cur();
+    // SDL_Rect result = {cur->pos.x,cur->pos.y,0,0};
+   //  SDL_Rect* destRect = &result;
+   // if(cur->pos.x == -1 && cur->pos.y == -1)
+    //    destRect = NULL;
+
+   // auto& sr = seq->cur()->rect;
+   // dbg("src rect {%i %i %i %i}",sr.x,sr.y,sr.w,sr.h );
+    int code = SDL_BlitSurface(m_draw.m_sourceTexture->m_texture, &(cur->rect), m_draw.m_surface, NULL); //mess here is for future position moving
+     // auto& dr = *result;
+   //  dbg("blit rect {%i %i %i %i}",dr.x,dr.y,dr.w,dr.h );
+    m_draw.m_curRect = cur->rect; // (destRect == NULL) ? SDL_Rect(0,0,m_draw.m_surface->w, m_draw.m_surface->h) :  *destRect;
+    if(code  == 0)
+        return true;
+    auto err = SDL_GetError();
+   
+   
+    Error("switchframe/blit failed: %s %i",err, code );
+    return false;
+}
+
+void CAnimController::SetupTexture(const std::string& m_szTextureName)
+{
+    m_draw.m_sourceTexture = engine->TextureSystem()->FindOrCreatetexture(m_szTextureName);
+    dbg("texture found %s %i", m_szTextureName.c_str(), m_draw.m_sourceTexture->m_texture != nullptr);
+
+    m_draw.m_surface = SDL_CreateSurface(m_params.m_surfaceSize.w(),m_params.m_surfaceSize.h(), SMITH_PIXELFMT);
+    if(m_draw.m_surface == NULL){
+        auto err =  SDL_GetError();
+        Error(" setuptexture: %s", err);
+    }
+    SwitchFrames(m_pDefaultSequence);
+}
+
+bool CAnimController::AddSequence(const CAnimSequence& seq, bool is_default)
+{
+    const std::string seq_name = seq.name();
+    auto success = m_sequences.emplace(seq.handle(), seq);
+    if(is_default){
+        m_defaultSequence =  seq.handle();
+        m_pDefaultSequence = (success.second) ? &(success.first->second) : nullptr;
+        m_draw.m_defaultRect = m_pDefaultSequence->at(0)->rect;
+        auto& dr = m_draw.m_defaultRect;
+        dbg("setting default seq to %s {%i %i %i %i}", seq_name.c_str(),dr.x,dr.y,dr.w,dr.h );
+    }
+    
+    if(!success.second)
+        Error("failed to add sequence %s %i", seq_name.c_str(), (int)is_default);
+    else
+        log("added sequence %s,  frames {%li} start{%i}", seq_name.c_str(), seq.m_frames.size(), seq.m_curFrame);
+    return success.second;
+}
+
+void CAnimController::PlaySequence(hSequence request_seq)
+{
+    m_curSequence = request_seq;
+    m_pCurSequence = &m_sequences.at(request_seq);
+    m_nextUpdate = m_curUpdate + m_pCurSequence->m_frameTime;
+}

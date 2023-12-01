@@ -26,6 +26,7 @@ friend class CEditor;
     virtual hTexture LoadTexture(const std::string& name);
     virtual bool LoadFromDefinition(const CTexture& def);
     virtual hTexture FindTexture(const std::string& name);
+    virtual texture_t* FindOrCreatetexture(const std::string& name);
     virtual texture_t* GetTexture(hTexture handle); //need to phase this out
     virtual texture_t* GetTextureData(hTexture handle);
     virtual hTexture ErrorTextureHandle();
@@ -39,7 +40,7 @@ private:
     std::string TextureNameToFile(const std::string& name);
     hTexture GenerateHandle(const std::string& name);
     SDL_Surface* LoadAndOptimizeSurface(const std::string& path);
-    bool AddTexture(const std::string& name, texture_t* text);
+    bool AddTexture(const std::string& name, texture_t* text, bool log_add = true);
 private:
     hTexture m_hTextureError;
     texture_t* m_textureError;
