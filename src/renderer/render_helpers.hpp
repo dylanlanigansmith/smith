@@ -41,4 +41,27 @@ namespace Render
     static inline bool ColorEqualRGB(const SDL_Color& c1, const SDL_Color& c2){
         return (c1.r == c2.r) && (c1.g == c2.g) && (c1.b == c2.b);
     }
+
+    static SDL_Color MergeColors(SDL_Color f, SDL_Color b)
+    {
+        float alpha = (f.a / 255.f);
+
+        SDL_Color ret = {
+            std::clamp((uint8_t)(  alpha * (float)f.r + (float)b.r * (1.f - alpha) ), (uint8_t)0, (uint8_t)255),
+            std::clamp((uint8_t)(  alpha * (float)f.g + (float)b.g * (1.f - alpha) ), (uint8_t)0, (uint8_t)255),
+            std::clamp((uint8_t)(  alpha * (float)f.b + (float)b.b * (1.f - alpha) ), (uint8_t)0, (uint8_t)255),
+            255
+        };
+
+        return ret;
+    }
+
+    static inline uint32_t MergeColorsFast(const SDL_Color& f, const SDL_Color& b)
+    {
+        const float alpha = (f.a / 255.f);
+        const float oalpha = 1.f - alpha;
+
+         uint32_t ret = (uint8_t(alpha * f.r + b.r * oalpha) << 24) | (uint8_t(alpha * f.g + b.g * oalpha) << 16) | (uint8_t(alpha * f.b + b.b * oalpha) << 8) | 255;
+        return ret;     
+    }
 }

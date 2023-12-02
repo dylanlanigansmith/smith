@@ -123,3 +123,9 @@ void CRenderer::SetPixel(int x, int y, uint32_t color)
   SDL_Color scolor = Render::TextureToSDLColor(color);
   SetPixel(x,y, scolor);
 }
+
+SDL_Color CRenderer::GetPixel(int x, int y)
+{
+   int index = (y * m_surface->pitch / 4) + x;
+  return Render::TextureToSDLColor( pixels[index]);
+}

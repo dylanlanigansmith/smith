@@ -8,6 +8,7 @@
 class CEngineTime : public CBaseInterface
 {
 public:
+    friend class CEntitySystem;
     CEngineTime() : CBaseInterface("IEngineTime") { }
     ~CEngineTime() override;
     virtual void OnCreate() override;

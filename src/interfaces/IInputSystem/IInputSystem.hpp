@@ -25,6 +25,7 @@ public:
 
     [[nodiscard]] virtual WASD_t GetInput();
     virtual bool IsKeyDown(SDL_Scancode code);
+    virtual bool IsMouseButtonDown(uint8_t button );
     [[nodiscard]] virtual bool UseMouseMovement() const { return m_bMouseLook; }
     virtual Vector2 GetLastMouseMove() const { return m_vecMouseMove; }
     const auto AllowPitch() { return m_bPitch; }

@@ -6,13 +6,14 @@
 
 void CWeaponPistol::Render(CRenderer *renderer)
 {
-    m_anim->DrawFrame(renderer);
+    m_flash->DrawFrame(renderer, {75, -200}, 190);
+    m_anim->DrawFrame(renderer, {215, 0});
 }
 
 void CWeaponPistol::OnUpdate()
 {
     m_anim->OnUpdate();
-   
+    m_flash->OnUpdate();
 }
 
 void CWeaponPistol::Shoot()
@@ -20,12 +21,14 @@ void CWeaponPistol::Shoot()
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem"); // real collisions just use 2d top down sdl rect
     static auto owner = static_cast<CPlayer *>(m_pOwner);
-    const time_ms_t animTime = 25;
-    auto curTime = IEngineTime->GetCurTime();
-    m_nextAnimTime = Time_t(curTime.ms() + animTime);
+   auto curTick = IEngineTime->GetCurLoopTick();
+    if(m_nNextShot > curTick) return;
 
+    m_nNextShot = curTick + m_nFireRate;
     static constexpr auto hShoot = Anim::GetSequenceHandle("shoot0");
     m_anim->PlaySequence(hShoot);
+    static constexpr auto hFlash = Anim::GetSequenceHandle("flash0");
+    m_flash->PlaySequence(hFlash);
     auto cam = owner->Camera();
     auto pos = owner->GetPosition();
 
@@ -129,6 +132,11 @@ void CWeaponPistol::Shoot()
 }
 void CWeaponPistol::OnCreate()
 {
+    //setup data
+    this->m_nNextShot = 0;
+    this->m_nFireRate =  16;
+
+
     /*
     [ default 80x80] [ shoot1 80x80]  [ shoot2 80x80]
     [ reload0 80x96] [ reload1 80x96] [ reload2 80xa lot]
@@ -136,15 +144,25 @@ void CWeaponPistol::OnCreate()
 
     287x285
     */
-    m_anim = new CAnimController("pistol.png", {"pistol",{256,256}, {65, 176, 70, 255} },
-    CAnimSequence("shoot0", 3, 
+    m_anim = new CAnimController("pistol.png", {"pistol",{360,360}, {65, 176, 70, 255},{65, 176, 70, 255} },
+    CAnimSequence("shoot0", 2, 
     std::vector<sequence_frame>{
         sequence_frame({0,0,80,80}, 0),  sequence_frame({80,0,80,80}, 1), 
          sequence_frame({160,0,80,80}, 2),  sequence_frame({80,0,80,80}, 3), 
           sequence_frame({0,0,80,80}, 4)
     })   
     );
-
+    m_flash = new CAnimController("flash.png", {"flash",{256,256}, {0, 255, 255, 255}, {0, 0, 0, 255} },
+        CAnimSequence("default", 1, 
+    std::vector<sequence_frame>{
+        sequence_frame({0,0,1,1}, 0),
+    })   
+    );
+    m_flash->AddSequence(CAnimSequence("flash0", 1, 
+    std::vector<sequence_frame>{
+        sequence_frame({0,0,1,1}, 0), sequence_frame({0,0,1,1}, 1), sequence_frame({0,0,71,86}, 2),  sequence_frame({71,0,70,86}, 3), 
+         sequence_frame({143,0,70,85}, 4), 
+    }));
     if (m_pOwner == nullptr)
     {
         engine->log("yo im a gun and im having some fuckin issues finding out who i belong to");

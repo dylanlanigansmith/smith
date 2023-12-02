@@ -32,6 +32,7 @@ void CEntitySystem::OnLoopEnd()
     for(auto& ent : entity_list){
         ent->OnUpdate();
     }
+    IEngineTime -> m_loopticks++;
 }
 
 void CEntitySystem::OnRenderStart()

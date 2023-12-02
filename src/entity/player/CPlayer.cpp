@@ -169,8 +169,14 @@ void CPlayer::CreateMove()
   {
     // jump
     // m_vecPosition.z = 200;
-    GetActiveWeapon()->Shoot();
+    
   }
+  if(IInputSystem->IsMouseButtonDown(0))
+  {
+      GetActiveWeapon()->Shoot();
+  }
+
+
   if (m_camera.m_flPitch > 0)
     m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
   if (m_camera.m_flPitch < 0)

@@ -8,6 +8,12 @@
 //https://forum.zdoom.org/viewtopic.php?t=71476
 //https://forum.zdoom.org/viewtopic.php?t=70605
 
+struct weapon_data_t{
+    double flRange;
+    float flDamage;
+    uint32_t iMaxAmmo;
+    uint8_t nAmmoType;
+};
 
 class CBaseWeapon 
 {
@@ -25,7 +31,10 @@ private:
     void OnSetOwnerEntity();
 protected:
     texture_t* m_texture;
-    
+    uint64_t m_nFireRate;
+    uint64_t m_nNextShot = 0;
+    uint32_t m_iShotsFired;
+    weapon_data_t m_data;
     hEntity m_iOwnerID;
     CBaseRenderable* m_pOwner = nullptr;
     

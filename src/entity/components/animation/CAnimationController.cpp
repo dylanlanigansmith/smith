@@ -2,31 +2,44 @@
 #include <engine/engine.hpp>
 
 
-void CAnimController::DrawFrame(CRenderer *renderer)
+void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t alpha ) //provide a callback function for pixel manip as an arg!!!!
 {
      auto animd = &(this->m_draw);
 
     const int frame_width = animd->m_curRect.w; //80
     const int frame_height = animd->m_curRect.h; //80
 
-    int start_x = SCREEN_WIDTH / 2 - frame_width / 2;
-    int start_y = SCREEN_HEIGHT - frame_height;
+    int start_x = SCREEN_WIDTH / 2 - frame_width / 2 + offset.x;
+    int start_y = SCREEN_HEIGHT - frame_height + offset.y;
 
     // greasy
     texture_t t;
     t.m_texture = animd->m_surface;
 
     const SDL_Color mask = animd->m_clrKey;
-
+    const SDL_Color mask2 = animd->m_clrKey2; //blk
     for (int y = 0; y < frame_height; ++y)
         for (int x = 0; x < frame_width; ++x)
         {
             auto color = t.getColorAtPoint({x, y});
+            SDL_Color clr = Render::TextureToSDLColor(color);
             if (!color)
                 continue;
-            if (Render::ColorEqualRGB(Render::TextureToSDLColor(color), mask))
+            if (Render::ColorEqualRGB(clr, mask))
                 continue;
-            renderer->SetPixel(start_x + x, start_y + y, color);
+            if (Render::ColorEqualRGB(clr, mask2))
+                continue;
+            if(clr.g > 160 && clr.r < 78 && clr.b < 78 )
+                continue;
+            if(alpha == 255)
+                renderer->SetPixel(start_x + x, start_y + y, color);
+            else{
+                auto fixed  = clr; fixed.a = alpha;
+                auto behind = renderer->GetPixel(start_x + x, start_y + y);
+               // log("%i %i %i", behind.r, behind.g, behind.g);
+
+                 renderer->SetPixel(start_x + x, start_y + y, Render::MergeColorsFast(fixed, behind)); //i have to do this manually...
+            }
             
         }
 }
@@ -45,7 +58,7 @@ void CAnimController::NextFrame()
     if(m_pCurSequence->last()){
         log("last");
         m_nextUpdate = 0;
-        m_curSequence = m_defaultSequence;
+        m_curSequence = -1;
         m_pCurSequence->reset();
         m_pCurSequence = nullptr; 
         return;
@@ -61,7 +74,14 @@ void CAnimController::OnUpdate()
     m_curUpdate++;
   //  if(m_curSequence == m_defaultSequence && m_pCurSequence == nullptr) // no ptr for when it is default
    //     return;
-    if(m_nextUpdate == 0) return;
+    if(m_nextUpdate == 0) {
+        if(m_curSequence == HSEQUENCE_INVALID && m_pCurSequence == nullptr){
+            m_curSequence = m_defaultSequence;
+            m_pCurSequence = m_pDefaultSequence;
+            SwitchFrames(m_pDefaultSequence);
+        }
+        return;
+    }
 
     if(m_nextUpdate > m_curUpdate ) return;
 
@@ -85,10 +105,11 @@ bool CAnimController::SwitchFrames(CAnimSequence *seq)
 
    // auto& sr = seq->cur()->rect;
    // dbg("src rect {%i %i %i %i}",sr.x,sr.y,sr.w,sr.h );
-    int code = SDL_BlitSurface(m_draw.m_sourceTexture->m_texture, &(cur->rect), m_draw.m_surface, NULL); //mess here is for future position moving
+    int code = SDL_BlitSurfaceScaled(m_draw.m_sourceTexture->m_texture, &(cur->rect), m_draw.m_surface, NULL); //mess here is for future position moving
      // auto& dr = *result;
    //  dbg("blit rect {%i %i %i %i}",dr.x,dr.y,dr.w,dr.h );
-    m_draw.m_curRect = cur->rect; // (destRect == NULL) ? SDL_Rect(0,0,m_draw.m_surface->w, m_draw.m_surface->h) :  *destRect;
+   m_draw.m_curRect =  SDL_Rect(0,0,m_draw.m_surface->w, m_draw.m_surface->h);
+   // m_draw.m_curRect = cur->rect; // (destRect == NULL) ? SDL_Rect(0,0,m_draw.m_surface->w, m_draw.m_surface->h) :  *destRect;
     if(code  == 0)
         return true;
     auto err = SDL_GetError();
@@ -134,5 +155,6 @@ void CAnimController::PlaySequence(hSequence request_seq)
 {
     m_curSequence = request_seq;
     m_pCurSequence = &m_sequences.at(request_seq);
-    m_nextUpdate = m_curUpdate + m_pCurSequence->m_frameTime;
+    m_nextUpdate = m_curUpdate; // + m_pCurSequence->m_frameTime;
+
 }

@@ -24,7 +24,7 @@ void CEngineTime::OnLoopStart()
 
 void CEngineTime::OnLoopEnd()
 {
-   m_loopticks++;
+   
    m_loopTimer.cur_time = GetCurTime();
    m_updateTimer.cur_time = GetCurTime();
    m_lastFrameTime = m_loopTimer.Elapsed();

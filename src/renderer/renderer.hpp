@@ -23,6 +23,7 @@ class CRenderer : public CLogger
         double ZBufferAt(int w) { assert(w < SCREEN_WIDTH); return ZBuffer[w]; }
         void SetPixel(int x, int y, SDL_Color color);
         void SetPixel(int x, int y, uint32_t color);
+        SDL_Color GetPixel(int x, int y);
     private:
         bool CreateRendererLinuxGL();
         void RunImGui();

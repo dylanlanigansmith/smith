@@ -62,6 +62,22 @@ bool CInputSystem::IsKeyDown(SDL_Scancode code)
     return keyboardState[code];
 }
 
+bool CInputSystem::IsMouseButtonDown(uint8_t button)
+{
+  
+    uint32_t buttons;
+    buttons = SDL_GetMouseState(NULL, NULL);
+
+    switch(button)
+    {
+        case 1:
+            return ((buttons & SDL_BUTTON_RMASK) != 0);
+        case 0:
+        default:
+            return ((buttons & SDL_BUTTON_LMASK) != 0);
+    }
+}
+
 
 
 void CInputSystem::OnMouseMotion(SDL_Event* event)
