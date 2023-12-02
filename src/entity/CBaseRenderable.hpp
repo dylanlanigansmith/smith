@@ -19,6 +19,6 @@ public:
     virtual hTexture GetTextureHandle() { return m_hTexture; }
 protected:
     hTexture m_hTexture;
-    texture_t m_Texture;
+    texture_t* m_Texture;
     IVector2 m_vecTextureSize;
 };

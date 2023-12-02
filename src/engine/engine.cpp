@@ -86,6 +86,9 @@ void CEngine::InitInterfaces()
 
     //Users of GameSystems
     interfaces.AddInterface<CLevelSystem>();
+
+    
+    interfaces.AddInterface<CLightingSystem>();
 }
 
 

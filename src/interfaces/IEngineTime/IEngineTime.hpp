@@ -17,6 +17,8 @@ public:
     virtual void OnLoopEnd() override;
     virtual void OnRenderStart() override{}
     virtual void OnRenderEnd() override {}
+    virtual float GetFPS();
+    virtual float GetFPSAvg();
     virtual Time_t GetCurTime();
     virtual Time_t GetLastFrameTime();
     virtual looptick_t GetCurLoopTick();

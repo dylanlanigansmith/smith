@@ -30,6 +30,40 @@ void CEngineTime::OnLoopEnd()
    m_lastFrameTime = m_loopTimer.Elapsed();
 }
 
+float CEngineTime::GetFPS()
+{
+   auto sec = GetLastFrameTime().sec();
+
+   return 1.0 / sec;
+}
+
+float CEngineTime::GetFPSAvg()
+{
+
+   static const int sampleCount = 60; // Number of frames to average over
+   static float frameTimes[sampleCount] = {0.0f};
+   static int frameIndex = 0;
+
+   // Store the current frame time
+   frameTimes[frameIndex] = GetLastFrameTime().sec();
+   frameIndex = (frameIndex + 1) % sampleCount;
+
+   // Calculate average frame time
+   float sum = 0.0f;
+   for (int i = 0; i < sampleCount; ++i) {
+      sum += frameTimes[i];
+   }
+   float avgFrameTime = sum / sampleCount;
+
+   
+   if (avgFrameTime == 0.0f) {
+      return 0.0f; 
+   }
+
+   return 1.0 / avgFrameTime;
+
+}
+
 Time_t CEngineTime::GetCurTime()
 {
    return Time_t((time_ns_t)SDL_GetTicksNS());

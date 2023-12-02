@@ -23,13 +23,14 @@ public:
     virtual int GetMapAt(int x, int y){ //type
         return m_Level->GetTileAt(x,y)->m_nType;
     }
+    virtual tile_t* GetTileAt(const IVector2& w) { return GetTileAt(w.x, w.y); }
     virtual tile_t* GetTileAt(int x, int y){
         return m_Level->GetTileAt(x,y);
     }
 
     virtual texture_t* GetTextureAt(int x, int y, uint8_t type = 0); //main0, floor1, ceiling2
     virtual texture_t* GetTexturePlane(bool is_floor, int x, int y);
-    
+    virtual void AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius = 10.f);
 private:
     void LoadAndFindTexturesForMap();
     void AddMapTexture(int id, const std::string& name);

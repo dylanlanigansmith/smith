@@ -226,6 +226,12 @@ void CRenderer::LoopWolf()
       double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
       auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
      
+      auto tile = ILevelSystem->GetTileAt(mapPos);
+      bool hasBulletHole = (tile->m_nDecals > 0);
+      const float hole_alpha = (175 / 255.f);
+      const float oalpha = 1.f - hole_alpha;
+      const SDL_Color hole_color = {0,0,0, 175};
+    // if(hasBulletHole) log("%i %i", mapPos.x, mapPos.y);
       for (int y = drawStart; y < drawEnd; y++)
       {
         // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
@@ -236,11 +242,42 @@ void CRenderer::LoopWolf()
         uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
 
         SDL_Color color = Render::TextureToSDLColor(uColor);
-        // make color darker for y-sides
-        if (side == 1)
-          Render::DarkenSDLColor(color, 2.f);
+        
+        if(hasBulletHole && 22 < tex.y && tex.y < 42)
+        {
+          bool setPixel = false;
+          auto pDecals = tile->m_pDecals;
+          int i  = 0;
+          while(1){
+            int hole_side = pDecals->side;
+            uint8_t hole_x = pDecals->dir[0];
+            uint8_t hole_y = pDecals->dir[1];
+            if(side == hole_side &&  (  (side == 0 && (step.x > 0) == hole_x)  || (side == 1 && (step.y > 0) == hole_y ) ) ){
+                int radius = pDecals->radius;
+                IVector2& hole = pDecals->texturePosition;
+                auto delta = hole - tex;
+                if( radius*radius >= delta.x*delta.x + delta.y*delta.y + 0.25f  ){
+                 // SetPixel(x,y,  Render::MergeColorsFixed( hole_color, color, hole_alpha, oalpha));
+                 SetPixel(x,y,  Render::MergeColorsLazy( hole_color, color));  
+                  setPixel = true; break;
+                }
+            }
+            i++;
+            if(pDecals->m_pNextDecal == nullptr) break;
+            pDecals = pDecals->m_pNextDecal;
+          }
+          if(setPixel) continue;
+        }
+        if (side == 1) // make color darker for y-sides
+            Render::DarkenSDLColor(color, 2.f);
         int index = (y * m_surface->pitch / 4) + x;
         pixels[index] = Render::SDLColorToWorldColor(color);
+      
+       /*
+       so turns out transparency is as easy as bullet holes with mergecolorsfast 
+       
+       */
+        
       }
       ZBuffer[x] = perpWallDist;
     

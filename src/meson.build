@@ -30,7 +30,7 @@ executable('smith', sources, include_directories : inc,
         nlohmann_json_dep,
         magic_enum_dep
     ],
-    cpp_args : [
+    cpp_args : [ '-Og'
     ]
 
 )

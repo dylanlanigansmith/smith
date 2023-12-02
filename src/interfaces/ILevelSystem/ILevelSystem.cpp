@@ -3,7 +3,7 @@
 #include <entity/prop/objects/CBarrel.hpp>
 #include <entity/prop/objects/CGreenLight.hpp>
 #include <entity/prop/objects/CPillar.hpp>
-
+#include <entity/dynamic/CBaseEnemy.hpp>
 #include <data/level.hpp>
 
 /*
@@ -65,7 +65,16 @@ void CLevelSystem::OnEngineInitFinish()
     auto light = IEntitySystem->AddEntity<CGreenLight>();
     light->SetPosition(10, 12);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
-    pillar->SetPosition(1, 12);
+    pillar->SetPosition(2, 12);
+
+    auto enemy = IEntitySystem->AddEntity<CBaseEnemy>();
+    enemy->SetPosition(9, 2);
+
+    auto enemy2 = IEntitySystem->AddEntity<CBaseEnemy>();
+    enemy2->SetPosition(20, 12);
+
+     auto enemy3 = IEntitySystem->AddEntity<CBaseEnemy>();
+    enemy3->SetPosition(12, 22);
 }
 
 
@@ -135,6 +144,53 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
     
    //  bool checkerBoardPattern = (int(x + y)) & 1;
     return GetTextureAt(x,y, TileTexture_Floor);
+}
+
+void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius)
+{
+    #define MAX_DECALS 3
+
+    if(tile->m_nDecals > MAX_DECALS){
+        int index = (tile->m_nDecals - 1) % MAX_DECALS;
+        auto pDecals = tile->m_pDecals;
+        for (int i = 0; i < index; ++i) {
+            pDecals = pDecals->m_pNextDecal;
+        }
+        if(pDecals == nullptr) return; //always nullptr!!
+
+        pDecals->radius = radius;
+       // pDecals->m_pNextDecal = nullptr;
+        pDecals->texturePosition = pos;
+        pDecals->side = side[2];
+        pDecals->dir[0] = side[0];
+        pDecals->dir[1] = side[1];
+         tile->m_nDecals++;
+        return;
+    }
+
+    auto hole = new decal_t;
+    hole->radius = radius;
+    hole->m_pNextDecal = nullptr;
+    hole->texturePosition = pos;
+    hole->side = side[2];
+    hole->dir[0] = side[0];
+    hole->dir[1] = side[1];
+
+    if(tile->m_nDecals <= 0){
+           tile->m_nDecals = 1;
+           tile->m_pDecals = hole;
+           return;
+    }
+    auto pDecals = tile->m_pDecals;
+    tile->m_nDecals++;
+    int d = 0;
+    while(pDecals->m_pNextDecal != nullptr)
+    {
+        pDecals = pDecals->m_pNextDecal;
+        d++;
+    }
+    log("%i %i", tile->m_nDecals, d);
+    pDecals->m_pNextDecal = hole;
 }
 
 

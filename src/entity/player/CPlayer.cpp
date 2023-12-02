@@ -15,6 +15,8 @@ void CPlayer::OnUpdate()
   for(auto& item : m_inventory){
     item->OnUpdate();
   }
+  CreateMove();
+
 }
 
 void CPlayer::OnCreate()
@@ -22,7 +24,7 @@ void CPlayer::OnCreate()
   SET_ENT_NAME();
   SET_ENT_TYPE();
 
-  m_vecPosition = Vector(22, 12, 0);
+  m_vecPosition = {4,10,0};//Vector(22, 12, 0);
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
@@ -57,7 +59,7 @@ void CPlayer::OnRenderStart()
 
 void CPlayer::OnRenderEnd()
 {
-  CreateMove();
+
 }
 
 void CPlayer::Render(CRenderer *renderer)
@@ -71,7 +73,7 @@ void CPlayer::CreateMove()
   //  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
   // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
-  double frameTime = 0.02;
+  double frameTime = 0.008;
   double moveSpeed = frameTime * 5.0;  // the constant value is in squares/second
   double rotSpeed = frameTime * 2.5;   // the constant value is in radians/second
   double pitchSpeed = frameTime * 3.5; // the constant value is in radians/second

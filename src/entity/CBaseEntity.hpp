@@ -18,11 +18,11 @@ class CBaseEntity
 {
 public:
     CBaseEntity() {}
-    CBaseEntity(int m_iID) : m_iID(m_iID) { m_szName="CBaseEntity"; m_szSubclass="";}
+    CBaseEntity(int m_iID) : m_iID(m_iID) { m_szName="CBaseEntity"; m_szSubclass=""; }
     virtual ~CBaseEntity(){}
     const auto GetID() { return m_iID; }
     const auto GetPosition() { return m_vecPosition; }
-    virtual void SetPosition(double x, double y, double z = 0.0){ m_vecPosition = { x,y,z}; }
+    virtual void SetPosition(double x, double y, double z = 0.0);
     virtual const std::string GetName() {return m_szName;}
     virtual const std::string GetSubclass() {return m_szSubclass;}
     virtual const uint64_t GetType() { return m_nType; }
@@ -33,9 +33,10 @@ public:
     virtual void OnDestroy() = 0;
    
 protected:
-    uint64_t m_nType; 
+    uint64_t m_nType; //fnv64 of name
     std::string m_szName;
     std::string m_szSubclass;
     Vector m_vecPosition;
     hEntity m_iID;
 };
+

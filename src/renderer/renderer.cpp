@@ -86,9 +86,10 @@ bool CRenderer::CreateRendererLinuxGL()
 
 void CRenderer::Loop()
 {
-
+  SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
   LoopWolf();
-  SDL_UpdateTexture(m_renderTexture, NULL, m_surface->pixels, m_surface->pitch); //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
+  SDL_UnlockTexture(m_renderTexture);
+ // SDL_UpdateTexture(m_renderTexture, NULL, m_surface->pixels, m_surface->pitch); //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
 
   SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);
 

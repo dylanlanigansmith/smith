@@ -1,5 +1,6 @@
 #include <common.hpp>
 #include <stdio.h>
+#include <types/Vector.hpp>
 namespace Util
 {
     static const std::string stringf(const char *fmt, ...)
@@ -11,4 +12,11 @@ namespace Util
         va_end(args);
         return std::string(buf);
     }
+
+    static inline int SemiRandRange(int min, int max){
+        return min + ( std::rand() % ( max - min + 1 ) );
+    }
+
+
+    
 }

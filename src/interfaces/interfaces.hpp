@@ -7,7 +7,7 @@
 #include "ITextureSystem/ITextureSystem.hpp"
 #include "IEntitySystem/IEntitySystem.hpp"
 #include "ILevelSystem/ILevelSystem.hpp"
-
+#include "ILightingSystem/ILightingSystem.hpp"
 class CInterfaceList 
 {
 public:

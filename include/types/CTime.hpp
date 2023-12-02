@@ -5,7 +5,7 @@ typedef uint64_t time_ns_t;
 typedef uint64_t time_us_t;
 typedef uint32_t time_ms_t;
 typedef uint64_t looptick_t;
-typedef float time_s_t;
+typedef double time_s_t;
 
 
 
@@ -13,11 +13,14 @@ class Time_t //rounding error city
 {
 public:
     Time_t() {_ns = 0;};
+    Time_t(time_ns_t ns) : _ns(ns) {}
     Time_t(time_ms_t ms) { _ns = ms * 1000000; }
     [[nodiscard]] time_ns_t ns(){ return _ns; }
     [[nodiscard]] time_us_t us() { return _ns / 1000; };
     [[nodiscard]] time_ms_t ms(){ return _ns / 1000000; }
-    [[nodiscard]] time_s_t sec() { return (time_s_t)( ms()) / 1000.f; }
+    [[nodiscard]] time_s_t sec() { return _ns / 1000000000.0f; }
+    
+
     void set(time_ns_t set) { _ns = set; }
     void set_ms(time_ms_t set) { _ns = set * 1000000; }
     Time_t operator-(const Time_t& rhs) const{

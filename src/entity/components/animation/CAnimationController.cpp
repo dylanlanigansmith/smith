@@ -56,7 +56,7 @@ void CAnimController::NextFrame()
     SwitchFrames(m_pCurSequence);
 
     if(m_pCurSequence->last()){
-        log("last");
+        //log("last");
         m_nextUpdate = 0;
         m_curSequence = -1;
         m_pCurSequence->reset();

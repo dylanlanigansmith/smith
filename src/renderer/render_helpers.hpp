@@ -44,16 +44,14 @@ namespace Render
 
     static SDL_Color MergeColors(SDL_Color f, SDL_Color b)
     {
-        float alpha = (f.a / 255.f);
-
-        SDL_Color ret = {
-            std::clamp((uint8_t)(  alpha * (float)f.r + (float)b.r * (1.f - alpha) ), (uint8_t)0, (uint8_t)255),
-            std::clamp((uint8_t)(  alpha * (float)f.g + (float)b.g * (1.f - alpha) ), (uint8_t)0, (uint8_t)255),
-            std::clamp((uint8_t)(  alpha * (float)f.b + (float)b.b * (1.f - alpha) ), (uint8_t)0, (uint8_t)255),
+        const float alpha = (f.a / 255.f);
+        const float oalpha = 1.f - alpha;
+        return {
+            uint8_t(alpha * f.r + b.r * oalpha),
+            uint8_t(alpha * f.g + b.g * oalpha),
+            uint8_t(alpha * f.b + b.b * oalpha),
             255
         };
-
-        return ret;
     }
 
     static inline uint32_t MergeColorsFast(const SDL_Color& f, const SDL_Color& b)
@@ -64,4 +62,37 @@ namespace Render
          uint32_t ret = (uint8_t(alpha * f.r + b.r * oalpha) << 24) | (uint8_t(alpha * f.g + b.g * oalpha) << 16) | (uint8_t(alpha * f.b + b.b * oalpha) << 8) | 255;
         return ret;     
     }
+    static inline uint32_t MergeColorsLazy(const SDL_Color& f, const SDL_Color& b) {
+        const uint32_t alpha = f.a;  // Assuming f.a is already an integer in the range 0-255
+        const uint32_t oalpha = 255 - alpha;
+
+        uint32_t ret = ((alpha * f.r + b.r * oalpha) / 255) << 24 |
+                    ((alpha * f.g + b.g * oalpha) / 255) << 16 |
+                    ((alpha * f.b + b.b * oalpha) / 255) << 8 |
+                    255;
+        return ret;     
+    }
+    static inline uint32_t MergeColorsFixed(const SDL_Color& f, const SDL_Color& b, const float alpha, const float oalpha)
+    {
+         uint32_t ret = (uint8_t(alpha * f.r + b.r * oalpha) << 24) | (uint8_t(alpha * f.g + b.g * oalpha) << 16) | (uint8_t(alpha * f.b + b.b * oalpha) << 8) | 255;
+        return ret;     
+    }
+    template <typename T>
+    static bool IsInBounds(const T& value, const T& low, const T& high) {
+            return !(value < low) && (value < high);
+    }
+
+
+    static float InvSqrt(float x){ //homage
+        float xhalf = 0.5f * x;
+        int i = *(int*)&x;            // store floating-point bits in integer
+        i = 0x5f3759df - (i >> 1);    // initial guess for Newton's method
+        x = *(float*)&i;              // convert new bits into float
+        x = x*(1.5f - xhalf*x*x);     // One round of Newton's method
+        return x;
+    }
+    static float Sqrt(const float x){
+        return 1.f / InvSqrt(x);
+    }
+   
 }

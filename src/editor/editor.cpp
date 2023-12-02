@@ -54,14 +54,37 @@ void CEditor::render()
     else changedLastFrame = false;
 
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     auto player = IEntitySystem->GetLocalPlayer();
     if(auto draw = ImGui::GetBackgroundDrawList(); draw) //just for scope really
     {
+        static constexpr auto text_color = IM_COL32(255,255,255,255);
         auto p = player->GetPosition();
         std::string str_playerpos = Util::stringf("(%.1f, %.1f, %.1f)", p.x, p.y, p.z);
         auto textSize = ImGui::CalcTextSize(str_playerpos.c_str());
-        ImVec2 position(SCREEN_WIDTH - 10,  SCREEN_HEIGHT - 10);
-        draw->AddText(position - textSize, IM_COL32(255,255,255,255), str_playerpos.c_str());
+        static const ImVec2 position(SCREEN_WIDTH - 10,  SCREEN_HEIGHT - 10);
+        draw->AddText(position - textSize, text_color, str_playerpos.c_str());
+
+        if(false)
+        {
+             auto c = player->Camera().m_vecPlane;
+            auto d = player->Camera().m_vecDir;
+            std::string str_camplane = Util::stringf("(%.1f, %.1f) | (%.1f, %.1f)", c.x, c.y, d.x,d.y);
+            auto camtextSize = ImGui::CalcTextSize(str_camplane.c_str());
+            static const ImVec2 camposition(SCREEN_WIDTH - 10,  SCREEN_HEIGHT - 25);
+            draw->AddText(camposition - camtextSize, text_color, str_camplane.c_str());
+        }
+        static float fps_min = 10000.f;
+        static float fps_max = 0.f;
+        float fps =  IEngineTime->GetFPS(); 
+        float fps_avg = IEngineTime->GetFPSAvg();
+        if(fps < fps_min) fps_min = fps;
+        if(fps > fps_max) fps_max = fps;
+        if(fps_max > 10000) fps_max = 0;
+        std::string fps_str = Util::stringf("%.2f | (%.1f, %.1f)",fps_avg, fps_min, fps_max);
+        auto textSize_fps = ImGui::CalcTextSize(fps_str.c_str()) / 2; //textSize_fps.x =- 1.f;
+         draw->AddText(textSize_fps, text_color, fps_str.c_str());
+       
     }
 
     if(!isOpen())
@@ -69,8 +92,7 @@ void CEditor::render()
     SDL_SetRelativeMouseMode(SDL_FALSE);
     
     if(!m_bHasInit)
-        Init();
-
+        Init();     
      ImVec2 windowSize(1100,700);
     ImVec2 windowPos(0,0);
     ImGui::SetNextWindowPos(windowPos);

@@ -8,6 +8,8 @@
 //https://forum.zdoom.org/viewtopic.php?t=71476
 //https://forum.zdoom.org/viewtopic.php?t=70605
 
+//https://www.doomworld.com/forum/post/2310367 really fuckin sick 
+//https://rekkimaru.itch.io/fps-gun-sprites
 struct weapon_data_t{
     double flRange;
     float flDamage;

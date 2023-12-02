@@ -1,36 +1,87 @@
-#pragma once
-
-#include <common.hpp>
-#include <entity/CBaseRenderable.hpp>
-#include <entity/CBaseEntity.hpp>
+#include "CBaseEnemy.hpp"
 #include <engine/engine.hpp>
-
-
-//uisng old texture system
-
-class CBaseProp : public CBaseRenderable
-{
-public:
-    CBaseProp(int m_iID);
-    virtual ~CBaseProp() {}
-    virtual void OnUpdate() {}
-    virtual void OnCreate() = 0;
-    virtual void OnDestroy() = 0;
-    virtual void CreateRenderable() = 0;
-    virtual void OnRenderStart() {} 
-    virtual void OnRenderEnd() {}
-    virtual void Render(CRenderer* renderer) = 0;
-protected:
-    virtual void SetupTexture(const std::string& name);
-    virtual void DrawProp(CRenderer* renderer, double wScale = 1.0, double vScale = 1.0, int vOffset = 0.0);
-};
-
-CBaseProp::CBaseProp(int m_iID) : CBaseRenderable(m_iID)
+#include <util/misc.hpp>
+void CBaseEnemy::OnCreate()
 {
     ENT_SETUP();
+    CreateRenderable();
+    m_vecBounds = { 73.f, 240.f};
+    m_iMaxHealth = m_iHealth = 100;
+    m_flMoveSpeed = 0.006;
 }
 
-void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int vOffset) 
+
+void CBaseEnemy::CreateRenderable()
+{
+    SetupTexture("dylan_devred.png");
+    SetUpAnimation();
+}
+
+void CBaseEnemy::SetupTexture(const std::string& name)
+{
+    m_Texture = engine->TextureSystem()->FindOrCreatetexture(name);
+    m_hTexture = m_Texture->m_handle;
+    m_vecTextureSize = m_Texture->m_size;
+}
+void CBaseEnemy::SetUpAnimation(){}
+
+void CBaseEnemy::OnDestroy() {}
+
+void CBaseEnemy::OnHit(int damage, int position)
+{
+    m_iHealth -= damage;
+    
+}
+
+void CBaseEnemy::OnUpdate()
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    if(m_iHealth <= 0){
+        int x = Util::SemiRandRange(1, 23);
+        int y = Util::SemiRandRange(1, 23);
+        SetPosition(x,y);
+        log("I am dead.");
+        if(x % 2 == 0 && y % 2 == 0){
+             auto dup = IEntitySystem->AddEntity<CBaseEnemy>();
+            x = Util::SemiRandRange(1, 23);
+            y = Util::SemiRandRange(1, 23);
+            dup->SetPosition(x,y);
+        }
+       
+        m_iHealth = m_iMaxHealth;
+    }
+    
+
+    auto localplayer = IEntitySystem->GetLocalPlayer();
+
+    auto local_pos = localplayer->GetPosition();
+
+    auto delta = local_pos - m_vecPosition;
+
+    double speedMod = (m_iHealth <= 20) ? 1.5 : 1.0;
+    delta =  delta * m_flMoveSpeed * speedMod;
+
+    auto new_pos = m_vecPosition + delta;
+    SetPosition(new_pos.x, new_pos.y, 0);
+
+}
+
+void CBaseEnemy::CreateMove(IVector2 dir)
+{
+
+}
+
+
+
+void CBaseEnemy::Render(CRenderer *renderer)
+{
+    DrawEnemy(renderer);
+}
+void CBaseEnemy::OnRenderStart(){}
+void CBaseEnemy::OnRenderEnd(){}
+
+void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, int vOffset)
 {
      auto camera = renderer->GetActiveCamera();
     Vector2 relPos = {
@@ -80,7 +131,6 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
     if (drawEndX >= SCREEN_WIDTH)
         drawEndX = SCREEN_WIDTH - 1;
 
-  
     auto texture = m_Texture->m_texture;
     uint32_t *pixelsT = (uint32_t *)texture->pixels;
     for (int stripe = drawStartX; stripe < drawEndX; stripe++)
@@ -100,22 +150,17 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
                 tex.y = ((d * m_vecTextureSize.y) / renderHeight) / 256;
 
                 uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
+                if(!uColor) continue;
                 SDL_Color color = Render::TextureToSDLColor(uColor);
-                if ( (color.r != 0) && (color.g != 0) && (color.b != 0))
-                {
-                    renderer->SetPixel(stripe, y, color);
+                if(Render::ColorEqualRGB(color, {0, 255, 255, 255})) continue;
+                if(color.a < 45 && color.g > 244 && color.b > 244) continue;
+                if(m_iHealth < 80) Render::DarkenSDLColor(color, 1.2f);
+                else if(m_iHealth < 50) Render::DarkenSDLColor(color, 2.f);
+                else if(m_iHealth < 20) Render::DarkenSDLColor(color, 3.f);
+                renderer->SetPixel(stripe, y, color);
 
-                    // paint pixel if it isn't black, black is the invisible color
-                }
             }
         }
     }
 }
 
-void CBaseProp::SetupTexture(const std::string& name)
-{
-    auto ITextureSystem = engine->TextureSystem(); // inconsistent
-    this->m_hTexture = ITextureSystem->FindTexture(name);
-    this->m_Texture = ITextureSystem->GetTextureData(m_hTexture);
-    this->m_vecTextureSize = this->m_Texture->m_size;
-}

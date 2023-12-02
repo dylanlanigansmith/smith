@@ -36,6 +36,14 @@ public:
     
        return static_cast<T*>(entity_list.at(h));
     }
+    CBaseEntity* GetEntity(hEntity h) //use shared ptr
+    {
+      if(h > entity_list.size() - 1)
+        return nullptr;
+    
+       return (entity_list.at(h));
+    }
+
 
     template <typename T> 
     T* AddEntity()

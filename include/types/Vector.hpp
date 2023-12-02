@@ -7,7 +7,18 @@ public:
     Vector2( double x, double y) : x(x), y(y) {}
 
     double x,y;
-
+    Vector2 const operator-(const Vector2& rhs){
+      return {x - rhs.x, y - rhs.y};
+    }
+    Vector2 const operator+(const Vector2& rhs){
+      return {x + rhs.x, y + rhs.y};
+    }
+    Vector2 const operator*(const double& rhs){
+      return {x * rhs, y * rhs};
+    }
+    Vector2 const operator/(const double& rhs){
+      return {x / rhs, y / rhs};
+    }
 
   static inline Vector2 intersect_segs(Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1) { ///yikes
     const double d =
@@ -40,7 +51,12 @@ public:
 
     int h() { return y; }
     int w() { return x ;}
-
+     IVector2 const operator-(const IVector2& rhs){
+      return {x - rhs.x, y - rhs.y};
+    }
+    IVector2 const operator+(const IVector2& rhs){
+      return {x + rhs.x, y + rhs.y};
+    }
 };
 
 class Vector{ 

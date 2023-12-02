@@ -1,5 +1,6 @@
 #pragma once
 #include <common.hpp>
+#include <entity/CBaseEntity.hpp>
 #include <types/Vector.hpp>
 #include "Texture.hpp"
 #include <SDL3/SDL.h>
@@ -27,10 +28,11 @@ struct tile_state //local tile storage for future use
 struct decal_t
 {
     IVector2 texturePosition;
-    uint16_t location; //placement and face
-
-    texture_t* texture;
-   
+    uint8_t dir[2]; //side x y signs > 0
+    uint8_t side;
+    float radius;
+    decal_t* m_pNextDecal = nullptr;
+    //texture_t* texture;
 };
 
 struct tile_t
@@ -51,6 +53,7 @@ struct tile_t
     float m_flCeiling = 0.f;
     float m_flFloor = 0.f;
     uint8_t m_nType{};
+    std::vector<hEntity> m_occupants;
 
     void UpdateTexture(texture_t* newTexture, Tile_Texture which = TileTexture_Primary)
     {
@@ -69,6 +72,16 @@ struct tile_t
                 break;
             default:
                 return;
+        }
+    }
+    ~tile_t(){
+        if(m_nDecals != 0){
+            decal_t* current = this->m_pDecals;
+            while (current != nullptr) {
+                decal_t* next = current->m_pNextDecal;
+                delete current;
+                current = next;
+            }
         }
     }
 };
@@ -97,6 +110,8 @@ public:
       m_flCeilingHeight = m_flFloorHeight = 0.0;
       m_szLevelName = "default";
     }
+    virtual ~CLevel(){
+    }
 
     void MakeEmptyLevel(hTexture def)
     {
@@ -122,12 +137,12 @@ public:
                 ).c_str()); 
     }
 
-    tile_t* GetTileAt(int x, int y){
+    virtual tile_t* GetTileAt(int x, int y){
      //   log("%i %i", x, y);
         assert(x >= 0  && y >= 0 && (x < m_vecBounds.x) && (y < m_vecBounds.y));
         return &(world.at(y).at(x));
     }
-    void AddTile(const tile_t& tile){
+    virtual void AddTile(const tile_t& tile){
         world.at(tile.m_vecPosition.y).at(tile.m_vecPosition.x)
         = tile;
 
@@ -183,8 +198,8 @@ public:
         m_flFloorHeight = floor;
     }
     const auto getName() { return m_szLevelName; }
-private:
-    json TileToJson(const tile_t& tile)
+protected:
+    virtual json TileToJson(const tile_t& tile)
     {
          auto t = json::array();
          t = { tile.id, tile.m_vecPosition.x, tile.m_vecPosition.y, tile.m_hTexture, tile.m_hTextureCeiling, tile.m_hTextureFloor,
@@ -192,7 +207,7 @@ private:
                 
         return t;
     }
-    tile_t JsonToTile(const json& j){
+    virtual tile_t JsonToTile(const json& j){
 
         return tile_t{
             .id = j.at(0),
