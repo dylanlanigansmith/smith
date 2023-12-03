@@ -267,7 +267,7 @@ void CEditor::drawMapView()
 
             previewTexture = texture_info.at(strCeil).texture_preview;
             ImGui::Image(previewTexture, ImVec2(64, 64));
-            // selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
+             selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
         }
         if (selectedTextureFloor != nullptr && previewTexture2 != NULL)
         {
@@ -277,7 +277,7 @@ void CEditor::drawMapView()
             if (selectedTextureCeiling != nullptr && previewTexture != NULL)
                 ImGui::SameLine();
             ImGui::Image(previewTexture2, ImVec2(64, 64));
-            //  selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
+              selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
         }
     }
     else
@@ -286,7 +286,7 @@ void CEditor::drawMapView()
         if (selectedTexture != nullptr && previewTexture != NULL)
         {
             ImGui::Image(previewTexture, ImVec2(64, 64));
-            //  selectedTile->UpdateTexture(selectedTexture);
+              selectedTile->UpdateTexture(selectedTexture);
         }
     }
     textureFilter.Draw("Filter ##text");
@@ -428,7 +428,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
                         const float GRID_STEP = 32.f;
                         float offset_x = GRID_STEP * (float)(node.x + 0.5) + offset.x;
                         float offset_y = GRID_STEP * (float)(node.y + 0.5) + offset.y;
-                        engine->log("%i %i", node.x, node.y);
+                       
                         auto col = IM_COL32(0, 240, 255, 165);
                         if (i > idx)
                             col = IM_COL32(255, 100, 0, 165);
@@ -600,11 +600,14 @@ void CEditor::drawEntityView()
 
     // draw_list->PopClipRect();
     static bool pOpen = false;
-    ImGui::Checkbox("Property Editor", &pOpen);
 
     ImGui::EndChild();
     ImGui::SetNextWindowSize(ImVec2(UI_W / 3.5, UI_H - 150), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(SCREEN_WIDTH_FULL * 0.7, SCREEN_HEIGHT_FULL * 0.2));
+    static bool once = false;
+    if(!once){
+        ImGui::SetNextWindowPos(ImVec2(SCREEN_WIDTH_FULL * 0.7, SCREEN_HEIGHT_FULL * 0.05)); once = true;
+    }
+        
     if (!ImGui::Begin("Example: Property editor", &pOpen))
     {
         ImGui::End();

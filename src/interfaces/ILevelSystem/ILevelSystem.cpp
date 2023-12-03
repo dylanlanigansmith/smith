@@ -145,8 +145,9 @@ texture_t* CLevelSystem::GetTextureAt(int x, int y,  uint8_t type)
     auto tile = GetTileAt(x,y);
     if(!type)
         return tile->m_pTexture;
-    if(tile->m_nType != Level::Tile_Empty && type > 0)
+    if(tile->m_nType != Level::Tile_Empty && type == Level::Tile_Wall)
         return tile->m_pTexture;
+    
     if(type == TileTexture_Ceiling)
         return tile->m_pTextureCeiling;
     else 
@@ -158,6 +159,9 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
 {
     x = std::clamp(x, 0, MAP_SIZE - 1); 
     y = std::clamp(y, 0, MAP_SIZE - 1); 
+    auto tile = GetTileAt(x,y);
+    if(tile->m_nType == Level::Tile_Door)
+        return (is_floor) ? GetTextureAt(x,y, TileTexture_Floor) : GetTextureAt(x,y, TileTexture_Ceiling);
     if(!is_floor)
         return GetTextureAt(x,y, TileTexture_Ceiling);
     
