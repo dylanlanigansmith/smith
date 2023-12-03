@@ -91,6 +91,16 @@ struct Ray_t
   Vector2 direction; //normalized
 };
 
+struct Line_t
+{
+  Vector2 p0;
+  Vector2 p1;
+
+  Vector2& start() { return p0;}
+  Vector2& end()   { return p1;}
+  Vector2 start() const { return p0;}
+  Vector2 end()  const { return p1;}
+};
 
 
 class IVector2 

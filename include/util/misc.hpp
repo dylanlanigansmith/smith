@@ -69,4 +69,37 @@ namespace Util
         absolutePosition.y = RelativePos.y + box.min.y;
         return absolutePosition;
     }
+
+    static bool RayIntersectsLineSegment(const Ray_t& ray, const Line_t& wall, Vector2& intersection) {
+        // Define line segment as AB
+        Vector2 A = wall.start();
+        Vector2 B = wall.end();
+
+            // Ray direction
+        Vector2 rayDir = ray.direction;
+
+        // Ray-Line Segment intersection formula
+        Vector2 AtoB = { B.x - A.x, B.y - A.y }; // Direction of the line segment
+        Vector2 AtoOrigin = { ray.origin.x - A.x, ray.origin.y - A.y };
+
+        // Calculate the determinant (2D cross product)
+        float det = rayDir.x * AtoB.y - rayDir.y * AtoB.x;
+
+        // If the determinant is zero, ray is parallel to the line segment
+        if (det == 0) {
+            return false;
+        }
+
+        // Solve for parameters t (for ray) and u (for line)
+        float t = (AtoB.x * AtoOrigin.y - AtoB.y * AtoOrigin.x) / det;
+        float u = (rayDir.x * AtoOrigin.y - rayDir.y * AtoOrigin.x) / det;
+
+        // Check if 0 <= u <= 1 and t >= 0
+        if (u >= 0 && u <= 1 && t >= 0) {
+            intersection = { ray.origin.x + t * rayDir.x, ray.origin.y + t * rayDir.y };
+            return true;
+        }
+
+        return false;
+    }
 }

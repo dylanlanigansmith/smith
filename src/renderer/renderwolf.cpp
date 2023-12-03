@@ -6,7 +6,7 @@
 #include <GL/gl.h>
 #include <interfaces/interfaces.hpp>
 #include <interfaces/IEngineTime/IEngineTime.hpp>
-
+#include <util/misc.hpp>
 void CRenderer::LoopWolf()
 {
   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
@@ -114,6 +114,7 @@ void CRenderer::LoopWolf()
   // Draw Walls
   for (int x = 0; x < w; x++)
   {
+    bool didDraw = false;
     Vector2 camera;
     camera.x = 2 * x / (double)screen.w() - 1.0;
     // calculate ray position and direction
@@ -134,7 +135,7 @@ void CRenderer::LoopWolf()
 
     double perpWallDist = 0.0, wallDistOffset = 0.0;
 
-    IVector2 tex_offset = {0,0};
+    IVector2 tex_offset = {0, 0};
     // what direction to step in x or y-direction (either +1 or -1)
     IVector2 step;
 
@@ -177,76 +178,146 @@ void CRenderer::LoopWolf()
         side = 1;
       }
       // Check if ray has hit a wall
-      int type = ILevelSystem->GetMapAt(mapPos.x, mapPos.y);
-      if (type != Level::Tile_Empty)
+      auto tile = ILevelSystem->GetTileAt(mapPos.x, mapPos.y);
+      if (!tile || tile == nullptr)
+        continue;
+      int type = tile->m_nType;
+
+      if (type == Level::Tile_Wall)
         hit = 1;
 
-      if (type == Level::Tile_Door)
+      if (tile->IsThinWall())
       {
         hit = 3;
+        Line_t wall = {{0, 0}, {0, 0}};
+        auto p = tile->m_vecPosition;
+        switch (type)
+        {
 
-        double doorWallDist;
-        if (side == 0)
-          doorWallDist = (sideDist.x - deltaDist.x);
-        else
-          doorWallDist = (sideDist.y - deltaDist.y);
+        case Level::Tile_WallN:
+          wall = {{p.x, p.y}, {p.x + 1.0, p.y}}; side = 0;
+          break;
+        case Level::Tile_Door:
+        case Level::Tile_WallE:
+          wall = {{p.x + 1.0, p.y}, {p.x + 1.0, p.y + 1.0}}; side = 1;
+          break;
+        case Level::Tile_WallS:
+          wall = {{p.x, p.y + 1}, {p.x + 1.0, p.y + 1.0}}; side = 0;
+          break;
+        case Level::Tile_WallW:
+          wall = {{p.x, p.y}, {p.x, p.y + 1.0}}; side = 1;
+          break;
+        default:
+          Error("bad thinwall type %i", type);
+          break;
+        };
+        Vector2 rayPos = {mapPos.x, mapPos.y};
+        Vector2 startPos = playerPos;
+        Ray_t ray = {
+            .origin = startPos,
+            .direction = rayDir.Normalize(),
 
-        double wallX; // where exactly the wall was hit
-        if (side == 0)
-          wallX = player->GetPosition().y + doorWallDist * rayDir.y;
-        else
-          wallX = player->GetPosition().x + doorWallDist * rayDir.x;
-        wallX -= floor((wallX));
+        };
+        Vector2 intersect;
+        const double wall_thick = 0.2;
+        BBoxAABB thickness = {
+          .min = wall.p0,
+          .max = wall.p1
+        };
 
-        IVector2 tex;
-        tex.x = int(wallX * double(textW));
-        if (side == 0 && rayDir.x > 0)
-          tex.x = textW - tex.x - 1;
-        if (side == 1 && rayDir.y < 0)
-          tex.x = textW - tex.x - 1;
-        static float doorState = 0.2f;
-       static auto lastTick =  IEngineTime->GetCurLoopTick();
-
-       if(lastTick + 2 < IEngineTime->GetCurLoopTick()){
-           lastTick =  IEngineTime->GetCurLoopTick();
-           doorState += 0.01f;
-
-       }
-       if(doorState > 1.f) doorState = 0.f;
-
-          if((float) tex.x / (float) textW > doorState){
-            hit = 0; continue;
-          }
-          if(side == 1 ){
+        if(side == 0)
+          thickness.max = { wall.p1.x + wall_thick, wall.p1.y };
+        else 
+          thickness.max = { wall.p1.x , wall.p1.y + wall_thick };
+        if (!Util::RayIntersectsLineSegment(ray, wall, intersect))
+        {
+          hit = 0;
+          continue;
+        }
+        if(!Util::RayIntersectsBox(ray, thickness)) //todo add thickness
+        {
           hit = 0; continue;
         }
-        if (rayDir.x > 0){ //what if we rcast for another 0.5
-          //offset wall 
-          //wallDistOffset = 0.5;
-         // deltaDist.x = deltaDist.x + (deltaDist.x * 0.5);
-         // sideDist.x = sideDist.x / 2.0;
 
+        if (side == 0) {
+        perpWallDist = (intersect.x - player->GetPosition().x + (0) / 2)/ rayDir.x;
+        } else {
+            perpWallDist = (intersect.y - player->GetPosition().y + (0) / 2) / rayDir.y;
         }
-        else{
-          if (sideDist.x < sideDist.y)
-          {
-            sideDist.x += deltaDist.x;
-            mapPos.x += 0.5;
-            side = 0;
-          }
-          else
-          {
-            hit = 0; continue;
-            side = 1;
-          }
-          // wallDistOffset = -0.5;
-          // deltaDist.x = deltaDist.x - (deltaDist.x * 0.5);
-         // sideDist.x = sideDist.x * 2.0;
-        }
+        // Calculate height of line to draw on screen
+        int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
+
+        int pitch = player->Camera().m_flPitch;
+
+        // calculate lowest and highest pixel to fill in current stripe
+        int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+        if (drawStart < 0)
+          drawStart = 0;
+        int drawEnd = lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+        if (drawEnd >= h)
+          drawEnd = h - 1;
+
+        // calculate value of wallX
+        double wallX; // where exactly the wall was hit
+       
          
-      }
+        IVector2 tex;
+        if (side == 1) {
+        wallX = intersect.y - floor(intersect.y);
+        } else {
+            wallX = intersect.x - floor(intersect.x);
+        }
+        const float epsilon = 0.001f;  // Small threshold
+     // wallX = intersect.y - floor(intersect.y);
 
+      // Adjust for edge cases
+      if (wallX < epsilon) {
+        wallX = 0.0f;
+      } else if (wallX > 1.0f - epsilon) {
+        wallX = 1.0f;
+      }// Apply texture mirroring if necessary
+       if ((side == 0 && rayDir.x > 0) || (side == 1 && rayDir.y < 0)) {
+            wallX = 1.0 - wallX;
+        }
+      // Convert wallX to texture coordinate
+        tex.x = int(wallX * double(textW));
+        dbg("pDist%f %i mappos{%i %i} ist{%0.2f %0.2f} %f, %i", perpWallDist, side, mapPos.x, mapPos.y,intersect.x, intersect.y, wallX, tex.x); 
+        double stepTex = 1.0 * textH / lineHeight;
+        double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
+        auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
       
+        auto tile = ILevelSystem->GetTileAt(mapPos);
+        bool hasBulletHole = (tile->m_nDecals > 0);
+        const float hole_alpha = (175 / 255.f);
+        const float oalpha = 1.f - hole_alpha;
+        const SDL_Color hole_color = {0, 0, 0, 175};
+        // if(hasBulletHole) log("%i %i", mapPos.x, mapPos.y);
+        for (int y = drawStart; y < drawEnd; y++)
+        {
+          // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+          tex.y = (int)texPos & (textH - 1);
+          tex.x += tex_offset.x;
+          tex.y += tex_offset.y;
+          texPos += stepTex;
+
+          uint32_t *pixelsT = (uint32_t *)texture->pixels;
+          uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
+
+          SDL_Color color = Render::TextureToSDLColor(uColor);
+          //removed: bullet holes went here
+
+          if (side == 1) // make color darker for y-sides
+            Render::DarkenSDLColor(color, 2.f);
+          int index = (y * m_surface->pitch / 4) + x;
+          pixels[index] = Render::SDLColorToWorldColor(color);
+          didDraw = true;
+   
+        }
+      }
+    }
+
+    if(didDraw){
+       ZBuffer[x] = perpWallDist; continue;
     }
     // Calculate distance projected on camera direction. This is the shortest distance from the point where the wall is
     // hit to the camera plane. Euclidean to center camera point would give fisheye effect!
@@ -286,7 +357,7 @@ void CRenderer::LoopWolf()
       tex.x = textW - tex.x - 1;
     if (side == 1 && rayDir.y < 0)
       tex.x = textW - tex.x - 1;
-    
+
     double stepTex = 1.0 * textH / lineHeight;
     double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
     auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
@@ -300,7 +371,7 @@ void CRenderer::LoopWolf()
     for (int y = drawStart; y < drawEnd; y++)
     {
       // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-      tex.y = (int)texPos & (textH - 1); 
+      tex.y = (int)texPos & (textH - 1);
       tex.x += tex_offset.x;
       tex.y += tex_offset.y;
       texPos += stepTex;

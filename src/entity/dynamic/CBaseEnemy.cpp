@@ -161,10 +161,12 @@ void CBaseEnemy::OnUpdate()
    // auto delta = local_pos - m_vecPosition;
 
     IVector2 mapPos = {m_vecPosition.x, m_vecPosition.y};
-    
+    bool wander = true;
+    Debug(false);
+    IVector2 goalPos = (wander) ? ILevelSystem->FindEmptySpace() :  IVector2(local_pos.x, local_pos.y);
     if(!path.HasPath()){
        
-        path.Search(mapPos, {local_pos.x, local_pos.y} );
+        path.Search(mapPos, goalPos );
          dbg("finding a path %i",path.HasPath());
     }
         

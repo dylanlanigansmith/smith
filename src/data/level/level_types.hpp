@@ -10,6 +10,11 @@ namespace Level
         Tile_Wall = 1,
         Tile_Opaque = 2,
         Tile_Door = 3,
+        Tile_WallN = 4,
+        Tile_WallE = 5,
+        Tile_WallS = 6,
+        Tile_WallW = 7,
+        
         Tile_Type_SIZE,
     };
 

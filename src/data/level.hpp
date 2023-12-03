@@ -59,6 +59,20 @@ struct tile_t
    // uint64_t m_nFlags;              //$!
     std::vector<hEntity> m_occupants;
 
+    bool IsThinWall(){
+        switch(m_nType)
+        {
+            case Level::Tile_Door:
+            case Level::Tile_WallN:
+            case Level::Tile_WallE:
+            case Level::Tile_WallS:
+            case Level::Tile_WallW:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     void UpdateTexture(texture_t* newTexture, Tile_Texture which = TileTexture_Primary)
     {
         switch(which){

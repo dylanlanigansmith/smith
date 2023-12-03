@@ -181,6 +181,7 @@ void CEditor::drawMapView()
     static SDL_Texture *paintpreviewTexture = NULL;
     static SDL_Texture *previewTexture = NULL;
     static SDL_Texture *previewTexture2 = NULL;
+    static SDL_Texture *previewTexture3 = NULL;
     static ImGuiTextFilter textureFilter;
     ImGui::Columns(2, "###mapedit");
     ImVec2 tileSize(20, 20);
@@ -191,7 +192,7 @@ void CEditor::drawMapView()
             ImGui::PushID(tile.id);
             hTexture tile_handle = tile.m_pTexture->m_handle;
 
-            hTexture color_handle = (tile.m_nType == Level::Tile_Wall) ? tile_handle : tile.m_hTextureFloor;
+            hTexture color_handle = (tile.m_nType != Level::Tile_Empty) ? tile_handle : tile.m_hTextureFloor;
             std::string texturename = ITextureSystem->FilenameFromHandle(tile_handle);
             std::string clrtexturename = ITextureSystem->FilenameFromHandle(color_handle);
             auto text_info = texture_info.at(texturename);
@@ -209,8 +210,16 @@ void CEditor::drawMapView()
                 selectedTexture = tile.m_pTexture;
                 selectedTextureCeiling = tile.m_pTextureCeiling;
                 selectedTextureFloor = tile.m_pTextureFloor;
+                ceiling_texture_preview = ITextureSystem->FilenameFromHandle(tile.m_hTextureCeiling);
+                floor_texture_preview = ITextureSystem->FilenameFromHandle(tile.m_hTextureFloor);
+                auto ceil_info = texture_info.at(ceiling_texture_preview);
+                auto floor_info = texture_info.at(floor_texture_preview);
                 primary_texture_preview = texturename;
+                
+                
                 previewTexture = text_info.texture_preview;
+                previewTexture2 = floor_info.texture_preview;
+                previewTexture3 = ceil_info.texture_preview;
                 type_preview = Editor::GetEnumName((Level::Tile_Type)tile.m_nType).data();
             }
             if (!(tile.m_vecPosition.x == MAP_SIZE - 1))
@@ -257,16 +266,16 @@ void CEditor::drawMapView()
         ImGui::EndCombo();
     }
 
-    if (selectedTile->m_nType == Level::Tile_Empty)
+    if (selectedTile->m_nType != Level::Tile_Wall)
     {
-        TexturePicker("Ceiling", selectedTextureCeiling, previewTexture, ceiling_texture_preview, &textureFilter);
+        TexturePicker("Ceiling", selectedTextureCeiling, previewTexture3, ceiling_texture_preview, &textureFilter);
         TexturePicker("Floor", selectedTextureFloor, previewTexture2, floor_texture_preview, &textureFilter);
-        if (selectedTextureCeiling != nullptr && previewTexture != NULL)
+        if (selectedTextureCeiling != nullptr && previewTexture3 != NULL)
         {
             auto strCeil = ITextureSystem->FilenameFromHandle(selectedTextureCeiling->m_handle);
 
-            previewTexture = texture_info.at(strCeil).texture_preview;
-            ImGui::Image(previewTexture, ImVec2(64, 64));
+            previewTexture3 = texture_info.at(strCeil).texture_preview;
+            ImGui::Image(previewTexture3, ImVec2(64, 64));
              selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
         }
         if (selectedTextureFloor != nullptr && previewTexture2 != NULL)
@@ -280,13 +289,13 @@ void CEditor::drawMapView()
               selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
         }
     }
-    else
+    if(selectedTile->m_nType != Level::Tile_Empty)
     {
         TexturePicker("Wall", selectedTexture, previewTexture, primary_texture_preview, &textureFilter);
         if (selectedTexture != nullptr && previewTexture != NULL)
         {
             ImGui::Image(previewTexture, ImVec2(64, 64));
-              selectedTile->UpdateTexture(selectedTexture);
+             selectedTile->UpdateTexture(selectedTexture);
         }
     }
     textureFilter.Draw("Filter ##text");
@@ -342,6 +351,8 @@ void CEditor::drawMapView()
         }
     }
 
+    ImGui::SliderFloat("Ceiling Height", &selectedTile->m_flCeiling, -25.f, 25.f);
+    ImGui::SliderFloat("Floor Height", &selectedTile->m_flFloor, -25.f, 25.f);
     ImGui::Columns();
     // Editor::IVec2Str(tile.m_vecPosition).c_str(),
 }
