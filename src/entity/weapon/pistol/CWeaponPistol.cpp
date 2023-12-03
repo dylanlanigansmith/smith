@@ -44,6 +44,40 @@ void CWeaponPistol::Shoot()
     auto cam = owner->Camera();
     auto pos = owner->GetPosition();
 
+
+
+
+    //collision detection
+    
+    auto tile = ILevelSystem->GetTileAt(IVector2(pos.x, pos.y)); //this should be a function
+    CBaseEnemy *hit_ent = nullptr;
+    if (!tile->m_occupants.empty())
+    {
+        static constexpr auto enemy_type = Util::fnv1a::Hash64("CBaseEnemy");
+        for (auto &id : tile->m_occupants)
+        {
+            auto ent = IEntitySystem->GetEntity(id);
+            if (ent == nullptr)
+                continue;
+            if (ent->IsLocalPlayer())
+                continue;
+            if (ent->GetType() == enemy_type)
+            {
+                hit_ent = (CBaseEnemy *)ent;
+                IVector2 textpos;
+                if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
+                    engine->log("hit");
+                    int pos = Util::SemiRandRange(0, 8) * -1;
+                    hit_ent->OnHit(Util::SemiRandRange(8, 16), pos);
+
+                    return;
+                }
+            }
+        }
+    }
+    else{
+        engine->log("we arent in the tile what the fuck ");
+    }
     int screenx = (SCREEN_WIDTH / 2);
     double camOffset = 2.0 * screenx / (double)SCREEN_WIDTH - 1.0;
     // dda dda dda
@@ -126,20 +160,11 @@ void CWeaponPistol::Shoot()
                 if (ent->GetType() == enemy_type)
                 {
                     hit_ent = (CBaseEnemy *)ent;
-                    auto ent_pos = hit_ent->GetPosition();
-                    // engine->log("hit tile with enemy ayo");
-                    // engine->log("%f %f", ent_pos.x, ent_pos.y);
-                    bool bb = HitDetect2(owner, hit_ent, rayDir);
-                    bool wb = HitDetect(owner, hit_ent, rayDir);
-                    if(  bb || wb){
-                        if(bb)
-                            engine->log("bbox hit");
-                        if(wb)
-                            engine->log("bounds hit");
-
-                        //int pos = FindTexturePoint(owner, hit_ent, rayDir); //the point is always screenwidth/2
+                   IVector2 textpos;
+                    if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
+                        engine->log("hit");
                         int pos = Util::SemiRandRange(0, 8) * -1;
-                        hit_ent->OnHit(Util::SemiRandRange(8, 16), pos);
+                        hit_ent->OnHit(Util::SemiRandRange(8, 16), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
 
                         return;
                     }
@@ -198,6 +223,13 @@ bool CWeaponPistol::HitDetect2(CPlayer *player, CBaseEnemy *ent, const Vector2 &
         return true;
     }
     return false;
+}
+
+bool CWeaponPistol::HitDetectPixelPerfect(CPlayer *player, CBaseEnemy *ent, IVector2 *textpos)
+{
+    auto crosshair_color = ent->GetPixelAtPoint(player->m_pCamera(), {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2}, textpos);
+    engine->log("%x", crosshair_color);
+    return (crosshair_color != 0u);
 }
 
 int CWeaponPistol::FindTexturePoint(CPlayer *player, CBaseEnemy *ent, const Vector2 &rayDir) //redundant
@@ -264,11 +296,11 @@ bool CWeaponPistol::HitDetect(CPlayer* player, CBaseEnemy* ent, const Vector2& r
      auto ray = rayDir * 0.1;
      int safety = 0;
     
-
-    double tol = ent->GetBounds().x ; //0.09; // try bbox also scale
+     // engine->log("ray passed through tile with entity");
+    double tol = ent->GetBounds().x ; //0.09
     while (1)
     {
-            // engine->log("hit tile with enemy ayo");
+           
         start = start + ray;
         /// engine->log("%f %f", start.x, start.y);
         
@@ -276,13 +308,13 @@ bool CWeaponPistol::HitDetect(CPlayer* player, CBaseEnemy* ent, const Vector2& r
             if (start.y - tol < ent_pos.y && ent_pos.y < start.y + tol)
             {
                 return true;
-                // engine->log("hit that fucker so damn hard"); break;
+                // engine->log("hit ent"); break;
             }
         if (start.x > MAP_SIZE || start.y > MAP_SIZE)
             break;
         if (start.x < 0 || start.y < 0)
             break;
-        if (safety > 1000) //never will happen
+        if (safety > 1000) //never will happen remove this
             break;
         safety++;
     }

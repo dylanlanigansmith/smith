@@ -5,6 +5,11 @@
 
 #include <entity/components/pathfinder/CPathFinder.hpp>
 
+struct sprite_draw_params{
+    double wScale;
+    double vScale;
+    int vOffset;
+};
 
 class CBaseEnemy : public CBaseRenderable, public CLogger
 {
@@ -23,6 +28,8 @@ public:
     auto& GetBBox()  { UpdateBBox(); return m_bbox; } //probably dont need to update
     virtual Vector2 GetBounds() { return m_vecBounds; } //x = width, y = radius
     virtual void Freeze(bool set) { m_bFrozen = set; }
+
+    virtual uint32_t GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos);
 protected:
     virtual void SetupTexture(const std::string& name);
     virtual void DrawEnemy(CRenderer* renderer, double wScale = 1.0, double vScale = 1.0, int vOffset = 0.0);
@@ -30,9 +37,12 @@ protected:
     virtual void CreateMove(IVector2 dir);
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos);
     
+    virtual void CalculateDrawInfo(IVector2* drawStart,IVector2* drawEnd, IVector2* renderSize, IVector2* screen, Vector2* tform ,
+                                     CCamera* camera, double wScale, double vScale, int vOffset);
 
     virtual inline void UpdateBBox();
 protected:
+    sprite_draw_params draw_params;
     IVector2 m_lastRenderPos;
     IVector2 m_lastAnimOffset;
     BBoxAABB m_lastRenderBounds;

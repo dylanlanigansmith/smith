@@ -24,6 +24,8 @@ inline void CBaseEnemy::OnSetPosition(const Vector2& old_pos, const Vector2& new
    m_anim->SetOffset(new_offset);
 }
 
+
+
 void CBaseEnemy::UpdateBBox()
 {
     double sizeMod = std::max(1.0, m_iLastRenderHeight / (SCREEN_HEIGHT / 3.0));
@@ -37,11 +39,17 @@ void CBaseEnemy::UpdateBBox()
 
 void CBaseEnemy::CreateRenderable()
 {
+    draw_params = {
+        .wScale = 1.3, 
+        .vScale = 1.3,
+        .vOffset = 95 
+    };
     SetupTexture("dylan_devred.png");
     SetUpAnimation();
 }
 
-void CBaseEnemy::SetupTexture(const std::string& name)
+
+void CBaseEnemy::SetupTexture(const std::string &name)
 {
     m_Texture = engine->TextureSystem()->FindOrCreatetexture(name);
     m_hTexture = m_Texture->m_handle;
@@ -205,20 +213,17 @@ void CBaseEnemy::CreateMove(IVector2 dir)
 
 void CBaseEnemy::Render(CRenderer *renderer)
 {
-    DrawEnemy(renderer, 1.3, 1.3, 95);
-
-
-
-
+    
+    DrawEnemy(renderer,draw_params.wScale, draw_params.vScale, draw_params.vOffset );
     m_anim->DrawFrame(renderer, { 0, 0}, 230);
 }
 void CBaseEnemy::OnRenderStart(){}
 void CBaseEnemy::OnRenderEnd(){}
 
-void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, int vOffset)
+void CBaseEnemy::CalculateDrawInfo(IVector2 *drawStart,IVector2* drawEnd, IVector2* renderSize, IVector2* screen, Vector2* tform,
+                                        CCamera *camera, double wScale, double vScale, int vOffset)
 {
-     auto camera = renderer->GetActiveCamera();
-    Vector2 relPos = {
+     Vector2 relPos = {
          m_vecPosition.x - camera->m_vecPosition.x, 
          m_vecPosition.y - camera->m_vecPosition.y, 
      };
@@ -236,8 +241,8 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
     transform.x = invDet * (camDir.y * relPos.x - camDir.x * relPos.y);
     transform.y = invDet * (-1.0 * (camPlane.y) * relPos.x + camPlane.x * relPos.y);
 
-    IVector2 screen;
-    screen.x = int((SCREEN_WIDTH / 2) * (1 + (transform.x / transform.y) ));
+    int screen_x;
+    screen_x = int((SCREEN_WIDTH / 2) * (1 + (transform.x / transform.y) ));
     // parameters for scaling and moving the sprites -> maybe use for custom texture spriteinfo class thing
   
 
@@ -259,21 +264,37 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
         drawEndY = SCREEN_HEIGHT - 1;
 
     
-    int drawStartX = (-renderWidth / 2) + screen.x;
+    int drawStartX = (-renderWidth / 2) + screen_x;
     if (drawStartX < 0)
         drawStartX = 0;
-    int drawEndX = (renderWidth / 2) + screen.x;
+    int drawEndX = (renderWidth / 2) + screen_x;
     if (drawEndX >= SCREEN_WIDTH)
         drawEndX = SCREEN_WIDTH - 1;
 
     m_lastRenderBounds = { { drawStartX, drawStartY}, {drawEndX, drawEndY}};
     m_lastRenderPos = {drawStartX, drawStartY};
+
+    *drawStart = { drawStartX, drawStartY};
+    *drawEnd = {drawEndX, drawEndY};
+    *renderSize = { renderWidth, renderHeight};
+    *screen = { screen_x, vMoveScreen};
+    *tform = { transform.x, transform.y};
+}
+
+void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, int vOffset)
+{
+     auto camera = renderer->GetActiveCamera();
+
+    IVector2 drawStart,drawEnd, renderSize, screen;
+    Vector2 transform;
+    CalculateDrawInfo(&drawStart,&drawEnd, &renderSize, &screen, &transform, camera, wScale, vScale, vOffset);
+
     auto texture = m_Texture->m_texture;
     uint32_t *pixelsT = (uint32_t *)texture->pixels;
-    for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+    for (int stripe = drawStart.x; stripe < drawEnd.x; stripe++)
     {
         IVector2 tex;
-        tex.x = int(256 * (stripe - ( (-renderWidth / 2) + screen.x)) * m_vecTextureSize.x / renderWidth) / 256;
+        tex.x = int(256 * (stripe - ( (-renderSize.w() / 2) + screen.x)) * m_vecTextureSize.x / renderSize.w() ) / 256;
         // the conditions in the if are:
         // 1) it's in front of camera plane so you don't see things behind you
         // 2) it's on the screen (left)
@@ -281,10 +302,10 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
         // 4) ZBuffer, with perpendicular distance
         if (transform.y > 0 && stripe > 0 && stripe < SCREEN_WIDTH && transform.y < (renderer->ZBufferAt(stripe)))
         {
-            for (int y = drawStartY; y < drawEndY; y++) // for every pixel of the current stripe
+            for (int y = drawStart.y; y < drawEnd.y; y++) // for every pixel of the current stripe
             {
-                int d = (y - vMoveScreen) * 256 - SCREEN_HEIGHT * 128 + renderHeight * 128; // 256 and 128 factors to avoid floats
-                tex.y = ((d * m_vecTextureSize.y) / renderHeight) / 256;
+                int d = (y - screen.y) * 256 - SCREEN_HEIGHT * 128 + renderSize.h() * 128; // 256 and 128 factors to avoid floats
+                tex.y = ((d * m_vecTextureSize.y) / renderSize.h()) / 256;
 
                 uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
                 if(!uColor) continue;
@@ -301,3 +322,42 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
     }
 }
 
+uint32_t CBaseEnemy::GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos)
+{
+    IVector2 drawStart,drawEnd, renderSize, screen;
+    Vector2 transform;
+    CalculateDrawInfo(&drawStart,&drawEnd, &renderSize, &screen, &transform, 
+                        camera, draw_params.wScale, draw_params.vScale, draw_params.vOffset);
+
+    if (!(drawStart.x <= point.x && point.x <= drawEnd.x ) )
+        return 0u;
+    if (!(drawStart.y <= point.y && point.y <= drawEnd.y ) )
+        return 0u;
+    auto texture = m_Texture->m_texture;
+    uint32_t *pixelsT = (uint32_t *)texture->pixels;
+    int stripe = point.x;
+  
+    IVector2 tex;
+    tex.x = int(256 * (stripe - ( (-renderSize.w() / 2) + screen.x)) * m_vecTextureSize.x / renderSize.w() ) / 256; //256 to avoid floats
+
+    //***likely dont need any of the checks below***
+    // conditions in the if are:
+    // 1) it's in front of camera plane  2) it's on the screen (left) 3) it's on the screen (right) //REMOVED 4) ZBuffer, with perpendicular distance
+    if (transform.y > 0 && stripe > 0 && stripe < SCREEN_WIDTH ) // REMOVED: && transform.y < (renderer->ZBufferAt(stripe)) we shouldnt need bc we will just hit a wall first
+    {
+        int y = point.y;
+        int d = (y - screen.y) * 256 - SCREEN_HEIGHT * 128 + renderSize.h() * 128; // 256 and 128 factors to avoid floats
+        tex.y = ((d * m_vecTextureSize.y) / renderSize.h()) / 256;
+
+        uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
+        if(!uColor) return 0;
+        SDL_Color color = Render::TextureToSDLColor(uColor);
+        if(Render::ColorEqualRGB(color, {0, 255, 255, 255})) return 0u;
+        if(color.a < 45 && color.g > 244 && color.b > 244) return 0u; //fixes odd mask issues
+        
+        return Render::SDLColorToWorldColor(color);
+    }
+    
+
+    return 0;
+}

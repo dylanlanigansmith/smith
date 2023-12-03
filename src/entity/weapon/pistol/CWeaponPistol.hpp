@@ -18,7 +18,7 @@ public:
 protected:
     virtual bool HitDetect(CPlayer* player, CBaseEnemy* ent, const Vector2& rayDir);
     virtual bool HitDetect2(CPlayer* player, CBaseEnemy* ent, const Vector2& rayDir);
-
+    virtual bool HitDetectPixelPerfect(CPlayer* player, CBaseEnemy* ent, IVector2* textpos);
     virtual int FindTexturePoint(CPlayer* player, CBaseEnemy* ent, const Vector2& rayDir);
 private:
    CAnimController* m_flash;
