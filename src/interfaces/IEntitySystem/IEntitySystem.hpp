@@ -52,8 +52,9 @@ public:
         auto base = (CBaseEntity*)(ent);
        
         entity_list.push_back(base);
-         base->OnCreate();
+        
         log("added entity %s | %lx | #%i", base->GetName().c_str(), base->GetType(), base->GetID());
+         base->OnCreate();
         if(base->IsRenderable() && !base->IsLocalPlayer())
             m_iRenderableEntities++;
         return ent;

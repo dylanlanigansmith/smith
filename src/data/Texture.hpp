@@ -38,6 +38,14 @@ struct texture_t
          uint32_t *pixelsT = (uint32_t *)m_texture->pixels;
         return pixelsT[(m_texture->pitch / 4 * y) + x]; // ABGR
     }
+
+    bool SetColorAtPoint(int x, int y, uint32_t color){
+        if(m_texture == NULL) return false;
+        if(SDL_MUSTLOCK(m_texture)) return false;
+        uint32_t *pixelsT = (uint32_t *)m_texture->pixels;
+        pixelsT[(m_texture->pitch / 4 * y) + x] =  color;
+        return true;
+    }
 };
 
 class CTexture : public CBaseSerializable, public texture_t

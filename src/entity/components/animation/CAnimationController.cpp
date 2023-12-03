@@ -5,12 +5,13 @@
 void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t alpha ) //provide a callback function for pixel manip as an arg!!!!
 {
      auto animd = &(this->m_draw);
-
+    if(offset.x != 0 || offset.y != 0 )
+        this->m_vecOffset = offset;
     const int frame_width = animd->m_curRect.w; //80
     const int frame_height = animd->m_curRect.h; //80
 
-    int start_x = SCREEN_WIDTH / 2 - frame_width / 2 + offset.x;
-    int start_y = SCREEN_HEIGHT - frame_height + offset.y;
+    int start_x = SCREEN_WIDTH / 2 - frame_width / 2 + m_vecOffset.x;
+    int start_y = SCREEN_HEIGHT - frame_height + m_vecOffset.y;
 
     // greasy
     texture_t t;
@@ -29,6 +30,8 @@ void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t al
                 continue;
             if (Render::ColorEqualRGB(clr, mask2))
                 continue;
+             if (m_draw.m_sourceTexture->m_clrKey && Render::ColorEqualRGB(clr, Render::TextureToSDLColor(m_draw.m_sourceTexture->m_clrKey)))
+                continue;
             if(clr.g > 160 && clr.r < 78 && clr.b < 78 )
                 continue;
             if(alpha == 255)
@@ -44,6 +47,19 @@ void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t al
         }
 }
 
+IVector2 CAnimController::ScreenToOffset(IVector2 screen)
+{
+     auto animd = &(this->m_draw);
+    
+    const int frame_width = animd->m_curRect.w; //80
+    const int frame_height = animd->m_curRect.h; //80
+     return {
+        screen.x - SCREEN_WIDTH / 2 + frame_width / 2,
+        screen.y - SCREEN_HEIGHT + frame_height
+     };
+
+   
+}
 
 void CAnimController::NextFrame()
 {
@@ -63,7 +79,7 @@ void CAnimController::NextFrame()
         m_pCurSequence = nullptr; 
         return;
     }
-
+    //dbg("#%i %s", m_pCurSequence->cur()->num, m_pCurSequence->name().c_str());
    
     m_nextUpdate = m_curUpdate + m_pCurSequence->m_frameTime;
     m_pCurSequence->endframe();
@@ -151,10 +167,16 @@ bool CAnimController::AddSequence(const CAnimSequence& seq, bool is_default)
     return success.second;
 }
 
-void CAnimController::PlaySequence(hSequence request_seq)
+void CAnimController::PlaySequence(hSequence request_seq, IVector2 offset)
 {
     m_curSequence = request_seq;
-    m_pCurSequence = &m_sequences.at(request_seq);
+    m_pCurSequence = &(m_sequences.at(request_seq));
+
+    if(m_pCurSequence == nullptr || (uintptr_t)m_pCurSequence < 0xFF){
+        Error("PlaySequence: could not find or set newsequence %x", m_curSequence); //return;
+    }
     m_nextUpdate = m_curUpdate; // + m_pCurSequence->m_frameTime;
+    if(offset.x != 0 || offset.y != 0 )
+        m_vecOffset = offset;
 
 }

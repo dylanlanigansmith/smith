@@ -41,7 +41,7 @@ void CEditor::InitTextureInfo()
 
 
 
-void CEditor::render()
+void CEditor::render(CRenderer *renderer)
 {
     static bool changedLastFrame = false;
     static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
@@ -59,13 +59,16 @@ void CEditor::render()
     if(auto draw = ImGui::GetBackgroundDrawList(); draw) //just for scope really
     {
         static constexpr auto text_color = IM_COL32(255,255,255,255);
-        auto p = player->GetPosition();
-        std::string str_playerpos = Util::stringf("(%.1f, %.1f, %.1f)", p.x, p.y, p.z);
-        auto textSize = ImGui::CalcTextSize(str_playerpos.c_str());
-        static const ImVec2 position(SCREEN_WIDTH - 10,  SCREEN_HEIGHT - 10);
-        draw->AddText(position - textSize, text_color, str_playerpos.c_str());
 
-        if(false)
+        if(settings.show_pos)
+        {
+             auto p = player->GetPosition();
+            std::string str_playerpos = Util::stringf("(%.1f, %.1f, %.1f)", p.x, p.y, p.z);
+            auto textSize = ImGui::CalcTextSize(str_playerpos.c_str());
+            static const ImVec2 position(SCREEN_WIDTH - 10,  SCREEN_HEIGHT - 10);
+            draw->AddText(position - textSize, text_color, str_playerpos.c_str());
+        }
+        if(settings.show_cam)
         {
              auto c = player->Camera().m_vecPlane;
             auto d = player->Camera().m_vecDir;
@@ -74,17 +77,35 @@ void CEditor::render()
             static const ImVec2 camposition(SCREEN_WIDTH - 10,  SCREEN_HEIGHT - 25);
             draw->AddText(camposition - camtextSize, text_color, str_camplane.c_str());
         }
-        static float fps_min = 10000.f;
-        static float fps_max = 0.f;
-        float fps =  IEngineTime->GetFPS(); 
-        float fps_avg = IEngineTime->GetFPSAvg();
-        if(fps < fps_min) fps_min = fps;
-        if(fps > fps_max) fps_max = fps;
-        if(fps_max > 10000) fps_max = 0;
-        std::string fps_str = Util::stringf("%.2f | (%.1f, %.1f)",fps_avg, fps_min, fps_max);
-        auto textSize_fps = ImGui::CalcTextSize(fps_str.c_str()) / 2; //textSize_fps.x =- 1.f;
-         draw->AddText(textSize_fps, text_color, fps_str.c_str());
+        if(settings.fps)
+        {
+             static float fps_min = 10000.f;
+            static float fps_max = 0.f;
+            float fps =  IEngineTime->GetFPS(); 
+            float fps_avg = IEngineTime->GetFPSAvg();
+            if(fps < fps_min) fps_min = fps;
+            if(fps > fps_max) fps_max = fps;
+            if(fps_max > 10000) fps_max = 0;
+            std::string fps_str = Util::stringf("%.2f | (%.1f, %.1f)",fps_avg, fps_min, fps_max);
+            auto textSize_fps = ImGui::CalcTextSize(fps_str.c_str()) / 2; //textSize_fps.x =- 1.f;
+            draw->AddText(textSize_fps, text_color, fps_str.c_str());
+        }
+       if(settings.ent_info)
+       {
+            auto cam = renderer->GetActiveCamera();
+            for(auto ent : IEntitySystem->iterableList()){
+                    if(ent->IsLocalPlayer()) continue;
+
+                    auto screen = cam->WorldToScreen(ent->GetPosition());
+                    ImVec2 tp = { screen.x, screen.y};
+                    std::string ent_info = Util::stringf("%s / %i", ent->GetName().c_str(), ent->GetID());
+                    auto ent_ts = ImGui::CalcTextSize(ent_info.c_str());
+
+                    draw->AddText(tp - ent_ts, text_color, ent_info.c_str());
+            }
+       }
        
+
     }
 
     if(!isOpen())
@@ -123,6 +144,8 @@ void CEditor::render()
                     - final option: CBaseSerializableField, template for types etc, might be fun, every field gets added to a CSerializeControllerComponent or soemthing
                         -tldr: entities havent been fleshed out yet and we can probably make this simple for static props at least (subclass!!)
                 
+
+                update: need to clean up the entity mess fr
              */
             ImGui::EndTabItem();
         }

@@ -2,7 +2,7 @@
 #include <common.hpp>
 #include <data/Texture.hpp>
 #include <imgui.h>
-
+#include <renderer/renderer.hpp>
 struct editor_texture_t
 {
     std::string subpath = std::string();
@@ -11,6 +11,16 @@ struct editor_texture_t
     ImVec4 primary_color;
 };
 
+
+struct dev_tools
+{
+    bool ent_info = false;
+    bool fps = true;
+    bool show_cam = false;
+    bool show_pos = true;
+};
+
+
 class CEditor
 {
 public:
@@ -18,7 +28,7 @@ public:
         static CEditor ce;
         return ce;
     }
-    void render();
+    void render(CRenderer *renderer);
     bool isOpen() const { return m_bIsOpen; }
 private:
     void drawMapView();
@@ -34,7 +44,7 @@ private:
 private:
     texture_t* m_texLastSelected = nullptr;
     bool m_bIsOpen = false;
-
+    dev_tools settings;
     bool m_bHasInit = false;
     SDL_Renderer* m_renderer;
     std::unordered_map<std::string, editor_texture_t> texture_info;

@@ -6,7 +6,7 @@ void CBaseEntity::SetPosition(double x, double y, double z)
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     IVector2 newmapPos = {int(x), int(y)};
 
-
+    Vector2 old_pos = GetPosition();
     auto new_tile = ILevelSystem->GetTileAt(newmapPos);
 
     IVector2 mapPos = {int(m_vecPosition.x), int(m_vecPosition.y)};
@@ -18,5 +18,7 @@ void CBaseEntity::SetPosition(double x, double y, double z)
     }
     new_tile->m_occupants.push_back(m_iID);
     m_vecPosition = { x,y,z}; 
+
+    OnSetPosition(old_pos, m_vecPosition );
 
 };

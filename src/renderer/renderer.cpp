@@ -107,7 +107,7 @@ void CRenderer::RunImGui()
   ImGui::NewFrame();
     // bool open = true;
   // ImGui::ShowDemoWindow(&open);
-  CEditor::instance().render();
+  CEditor::instance().render(this);
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
 

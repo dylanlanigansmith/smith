@@ -17,7 +17,7 @@ struct weapon_data_t{
     uint8_t nAmmoType;
 };
 
-class CBaseWeapon 
+class CBaseWeapon //should include component 
 {
 public:
     CBaseWeapon(const std::string& m_szName) : m_szName(m_szName) {}

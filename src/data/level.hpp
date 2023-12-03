@@ -139,8 +139,10 @@ public:
 
     virtual tile_t* GetTileAt(int x, int y){
      //   log("%i %i", x, y);
-        assert(x >= 0  && y >= 0 && (x < m_vecBounds.x) && (y < m_vecBounds.y));
-        return &(world.at(y).at(x));
+        if(x >= 0  && y >= 0 && (x < m_vecBounds.x) && (y < m_vecBounds.y))
+            return &(world.at(y).at(x));
+        else
+            return nullptr;
     }
     virtual void AddTile(const tile_t& tile){
         world.at(tile.m_vecPosition.y).at(tile.m_vecPosition.x)

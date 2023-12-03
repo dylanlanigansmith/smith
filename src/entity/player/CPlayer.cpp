@@ -24,7 +24,7 @@ void CPlayer::OnCreate()
   SET_ENT_NAME();
   SET_ENT_TYPE();
 
-  m_vecPosition = {4,10,0};//Vector(22, 12, 0);
+  m_vecPosition = {16,16,0};//Vector(22, 12, 0);
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;

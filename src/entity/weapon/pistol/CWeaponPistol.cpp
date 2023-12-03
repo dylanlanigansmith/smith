@@ -3,7 +3,17 @@
 #include <renderer/renderer.hpp>
 #include <util/misc.hpp>
 #include <engine/engine.hpp>
-#include <entity/dynamic/CBaseEnemy.hpp>
+
+/*
+need to figure out collisions for real
+
+a top down 2d view in editor seems to recurringly be helpful as well
+
+also do something fun because enemies are frustrating
+
+*/
+
+
 void CWeaponPistol::Render(CRenderer *renderer)
 {
     m_flash->DrawFrame(renderer, {75, -200}, 190);
@@ -111,50 +121,41 @@ void CWeaponPistol::Shoot()
                 auto ent = IEntitySystem->GetEntity(id);
                 if (ent == nullptr)
                     continue;
-                if(ent->IsLocalPlayer()) continue;
+                if (ent->IsLocalPlayer())
+                    continue;
                 if (ent->GetType() == enemy_type)
                 {
                     hit_ent = (CBaseEnemy *)ent;
-                    break;
+                    auto ent_pos = hit_ent->GetPosition();
+                    // engine->log("hit tile with enemy ayo");
+                    // engine->log("%f %f", ent_pos.x, ent_pos.y);
+                    bool bb = HitDetect2(owner, hit_ent, rayDir);
+                    bool wb = HitDetect(owner, hit_ent, rayDir);
+                    if(  bb || wb){
+                        if(bb)
+                            engine->log("bbox hit");
+                        if(wb)
+                            engine->log("bounds hit");
+
+                        //int pos = FindTexturePoint(owner, hit_ent, rayDir); //the point is always screenwidth/2
+                        int pos = Util::SemiRandRange(0, 8) * -1;
+                        hit_ent->OnHit(Util::SemiRandRange(8, 16), pos);
+
+                        return;
+                    }
                 }
             }
         }
-
-        if (hit_ent != nullptr)
-        {
-                auto ent_pos = hit_ent->GetPosition();
-                //engine->log("hit tile with enemy ayo");
-               // engine->log("%f %f", ent_pos.x, ent_pos.y);
-                int safety = 0;
-                Vector2 start = {pos.x, pos.y};
-                while(1)
-                {
-                    auto ray = rayDir * 0.1;
-                    start = start + ray;
-                    //engine->log("%f %f", start.x, start.y);
-                    double tol = 0.09;
-                    if(start.x - tol < ent_pos.x && ent_pos.x < start.x + tol)
-                        if(start.y - tol < ent_pos.y && ent_pos.y < start.y + tol){
-                            hit_ent->OnHit(Util::SemiRandRange(8,16),0);
-                            //engine->log("hit that fucker so damn hard"); break;
-                        }
-                    if(start.x > MAP_SIZE || start.y > MAP_SIZE) break;
-                    if(start.x < 0 || start.y < 0) break;
-                     if(safety > 400) break;
-                     safety++;
-                }
-
-        }
-     // Check if ray has hit a wall o
+        // Check if ray has hit a wall o
         if (ILevelSystem->GetMapAt(mapPos.x, mapPos.y) > 0)
             hit = 1;
     }
-        // FOR BULLET HOLES ^
+    // FOR BULLET HOLES ^
 
     if (hit)
     {
         auto tile = ILevelSystem->GetTileAt(mapPos.x, mapPos.y);
-       // engine->dbg("shot %i %i | %i", tile->m_vecPosition.x, tile->m_vecPosition.y, tile->m_nDecals);
+        // engine->dbg("shot %i %i | %i", tile->m_vecPosition.x, tile->m_vecPosition.y, tile->m_nDecals);
         if (side == 0)
             perpWallDist = (sideDist.x - deltaDist.x);
         else
@@ -179,42 +180,155 @@ void CWeaponPistol::Shoot()
         ILevelSystem->AddBulletHole(tile, tex, dir, 2.f); // 3 works well
     }
 }
-    void CWeaponPistol::OnCreate()
-    {
-        // setup data
-        this->m_nNextShot = 0;
-        this->m_nFireRate = 16;
 
-        /*
-        [ default 80x80] [ shoot1 80x80]  [ shoot2 80x80]
-        [ reload0 80x96] [ reload1 80x96] [ reload2 80xa lot]
-        [ reload3 80x96] [ reload4 80x96] [ reload5 80x96]
+bool CWeaponPistol::HitDetect2(CPlayer *player, CBaseEnemy *ent, const Vector2 &rayDir)
+{
+    auto bbox = ent->GetBBox();
+    auto ent_pos = ent->GetPosition();
+    Vector2 rayDirNormal = rayDir; //.Normalize();
+    Ray_t ray = {  player->GetPosition(), rayDirNormal};
 
-        287x285
-        */
-        m_anim = new CAnimController("pistol.png", {"pistol", {360, 360}, {65, 176, 70, 255}, {65, 176, 70, 255}},
-                                     CAnimSequence("shoot0", 2,
-                                                   std::vector<sequence_frame>{
-                                                       sequence_frame({0, 0, 80, 80}, 0), sequence_frame({80, 0, 80, 80}, 1),
-                                                       sequence_frame({160, 0, 80, 80}, 2), sequence_frame({80, 0, 80, 80}, 3),
-                                                       sequence_frame({0, 0, 80, 80}, 4)}));
-        m_flash = new CAnimController("flash.png", {"flash", {256, 256}, {0, 255, 255, 255}, {0, 0, 0, 255}},
-                                      CAnimSequence("default", 1,
-                                                    std::vector<sequence_frame>{
-                                                        sequence_frame({0, 0, 1, 1}, 0),
-                                                    }));
-        m_flash->AddSequence(CAnimSequence("flash0", 1,
-                                           std::vector<sequence_frame>{
-                                               sequence_frame({0, 0, 1, 1}, 0),
-                                               sequence_frame({0, 0, 1, 1}, 1),
-                                               sequence_frame({0, 0, 71, 86}, 2),
-                                               sequence_frame({71, 0, 70, 86}, 3),
-                                               sequence_frame({143, 0, 70, 85}, 4),
-                                           }));
-        if (m_pOwner == nullptr)
-        {
-            engine->log("yo im a gun and im having some fuckin issues finding out who i belong to");
-            return;
-        }
-        assert(m_pOwner->IsLocalPlayer());
+
+
+    if(Util::RayIntersectsCircle(ray, ent_pos, 0.2)){
+       // return true;
     }
+
+    if(Util::RayIntersectsBox(ray, bbox)){
+        return true;
+    }
+    return false;
+}
+
+int CWeaponPistol::FindTexturePoint(CPlayer *player, CBaseEnemy *ent, const Vector2 &rayDir) //redundant
+{
+    auto& pos = player->GetPosition();
+    Vector2 ent_pos = ent->GetPosition();
+
+    Vector2 start = {pos.x, pos.y};
+     auto ray = rayDir * 0.1;
+     int safety = 0;
+    
+
+    double tol = ent->GetBounds().x + 0.1 ; //0.09; // try bbox also scale
+    int hit = 0;
+
+    double perpWallDist;
+    while (!hit)
+    {
+            // engine->log("hit tile with enemy ayo");
+        start = start + ray;
+        /// engine->log("%f %f", start.x, start.y);
+        
+        if (start.x - tol < ent_pos.x && ent_pos.x < start.x + tol)
+            if (start.y - tol < ent_pos.y && ent_pos.y < start.y + tol)
+            {
+                hit = 1; break;
+                // engine->log("hit that fucker so damn hard"); break;
+            }
+        if (start.x > MAP_SIZE || start.y > MAP_SIZE)
+            break;
+        if (start.x < 0 || start.y < 0)
+            break;
+        if (safety > 1000) //never will happen
+            break;
+        safety++;
+    }
+    
+    int tex_x = 0;
+    int tex_w = 97;
+
+    int side = 1;
+
+    if (start.x - tol < ent_pos.x || (start.y - tol < ent_pos.y) )
+        side = 1;
+    else
+        side = -1;
+    
+    tex_x = tex_w * std::abs(start.x - ent_pos.x) + (tex_w / 2 + 81) * side;
+    engine->log(" tex x %i", tex_x);
+
+    std::clamp(tex_x, 0, tex_w );
+           
+
+
+    return tex_x;
+}
+
+bool CWeaponPistol::HitDetect(CPlayer* player, CBaseEnemy* ent, const Vector2& rayDir)
+{
+    auto& pos = player->GetPosition();
+    Vector2 ent_pos = ent->GetPosition();
+
+    Vector2 start = {pos.x, pos.y};
+     auto ray = rayDir * 0.1;
+     int safety = 0;
+    
+
+    double tol = ent->GetBounds().x ; //0.09; // try bbox also scale
+    while (1)
+    {
+            // engine->log("hit tile with enemy ayo");
+        start = start + ray;
+        /// engine->log("%f %f", start.x, start.y);
+        
+        if (start.x - tol < ent_pos.x && ent_pos.x < start.x + tol)
+            if (start.y - tol < ent_pos.y && ent_pos.y < start.y + tol)
+            {
+                return true;
+                // engine->log("hit that fucker so damn hard"); break;
+            }
+        if (start.x > MAP_SIZE || start.y > MAP_SIZE)
+            break;
+        if (start.x < 0 || start.y < 0)
+            break;
+        if (safety > 1000) //never will happen
+            break;
+        safety++;
+    }
+    return false;
+}
+
+
+
+
+
+void CWeaponPistol::OnCreate()
+{
+    // setup data
+    this->m_nNextShot = 0;
+    this->m_nFireRate = 16;
+
+    /*
+    [ default 80x80] [ shoot1 80x80]  [ shoot2 80x80]
+    [ reload0 80x96] [ reload1 80x96] [ reload2 80xa lot]
+    [ reload3 80x96] [ reload4 80x96] [ reload5 80x96]
+
+    287x285
+    */
+    m_anim = new CAnimController(m_pOwner, "pistol.png", {"pistol", {360, 360}, {65, 176, 70, 255}, {65, 176, 70, 255}},
+                                 CAnimSequence("shoot0", 2,
+                                               std::vector<sequence_frame>{
+                                                   sequence_frame({0, 0, 80, 80}, 0), sequence_frame({80, 0, 80, 80}, 1),
+                                                   sequence_frame({160, 0, 80, 80}, 2), sequence_frame({80, 0, 80, 80}, 3),
+                                                   sequence_frame({0, 0, 80, 80}, 4)}));
+    m_flash = new CAnimController(m_pOwner, "flash.png", {"flash", {256, 256}, {0, 255, 255, 255}, {0, 0, 0, 255}},
+                                  CAnimSequence("default", 1,
+                                                std::vector<sequence_frame>{
+                                                    sequence_frame({0, 0, 1, 1}, 0),
+                                                }));
+    m_flash->AddSequence(CAnimSequence("flash0", 1,
+                                       std::vector<sequence_frame>{
+                                           sequence_frame({0, 0, 1, 1}, 0),
+                                           sequence_frame({0, 0, 1, 1}, 1),
+                                           sequence_frame({0, 0, 71, 86}, 2),
+                                           sequence_frame({71, 0, 70, 86}, 3),
+                                           sequence_frame({143, 0, 70, 85}, 4),
+                                       }));
+    if (m_pOwner == nullptr)
+    {
+        engine->log("yo im a gun and im having some fuckin issues finding out who i belong to");
+        return;
+    }
+    assert(m_pOwner->IsLocalPlayer());
+}

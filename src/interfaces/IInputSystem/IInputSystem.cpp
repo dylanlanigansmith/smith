@@ -86,8 +86,8 @@ void CInputSystem::OnMouseMotion(SDL_Event* event)
     if(mode == SDL_FALSE) return;
 
     const double flScaleFactor = 0.4;
-    if(abs(event->motion.xrel) < 1 && abs(event->motion.yrel) < 1)
-        return;
+  ///  if(abs(event->motion.xrel) < 1 && abs(event->motion.yrel) < 1)
+      //  return;
     m_vecMouseMove = {
         event->motion.xrel * m_flSensitivity * flScaleFactor * -1.0,
         event->motion.yrel * m_flSensitivity * flScaleFactor

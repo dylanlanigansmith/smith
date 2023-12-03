@@ -5,7 +5,7 @@
 #include <entity/prop/objects/CPillar.hpp>
 #include <entity/dynamic/CBaseEnemy.hpp>
 #include <data/level.hpp>
-
+#include <util/misc.hpp>
 /*
 For Editor:
 
@@ -68,15 +68,34 @@ void CLevelSystem::OnEngineInitFinish()
     pillar->SetPosition(2, 12);
 
     auto enemy = IEntitySystem->AddEntity<CBaseEnemy>();
-    enemy->SetPosition(9, 2);
-
-    auto enemy2 = IEntitySystem->AddEntity<CBaseEnemy>();
-    enemy2->SetPosition(20, 12);
-
-     auto enemy3 = IEntitySystem->AddEntity<CBaseEnemy>();
-    enemy3->SetPosition(12, 22);
+    enemy->SetPosition(9, 19);
+   // enemy->Freeze(true);
+   auto enemy2 = IEntitySystem->AddEntity<CBaseEnemy>();
+   enemy2->SetPosition(12, 22);
+    // enemy2->Freeze(true);
+    auto enemy3 = IEntitySystem->AddEntity<CBaseEnemy>();
+    enemy3->SetPosition(8, 2);
+    // enemy3->Freeze(true);
 }
 
+IVector2 CLevelSystem::FindEmptySpace() //Random
+{
+    int bail = 0;
+    while(1)
+    {
+        if(bail > 100 ){
+            Error("findemptyspace bailed after %i tries- returning {1,1}", bail);
+            return { 1,1 }; break;
+        }
+
+        int x = Util::SemiRandRange(0, MAP_SIZE - 1);
+        int y = Util::SemiRandRange(0, MAP_SIZE - 1);
+        bail++;
+        if(GetMapAt(x,y) != Level::Tile_Empty)
+            continue;
+        return {x,y};
+    }
+}
 
 void CLevelSystem::LoadAndFindTexturesForMap()
 {
