@@ -25,11 +25,16 @@ public:
     virtual void OnDestroy();
     virtual void OnHit(int damage, int position);
 
+    auto& GetHealth() const { return m_iHealth;}
+    auto& GetMaxHealth() const { return m_iMaxHealth;}
+    auto& GetMoveSpeed() const { return m_flMoveSpeed;}
     auto& GetBBox()  { UpdateBBox(); return m_bbox; } //probably dont need to update
     virtual Vector2 GetBounds() { return m_vecBounds; } //x = width, y = radius
     virtual void Freeze(bool set) { m_bFrozen = set; }
 
     virtual uint32_t GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos);
+
+    auto GetPathFinder() { return &path; }
 protected:
     virtual void SetupTexture(const std::string& name);
     virtual void DrawEnemy(CRenderer* renderer, double wScale = 1.0, double vScale = 1.0, int vOffset = 0.0);

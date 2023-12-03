@@ -91,7 +91,9 @@
 			"*.ipp": "cpp",
 			"forward_list": "cpp",
 			"ranges": "cpp",
-			"bitset": "cpp"
+			"bitset": "cpp",
+			"sdl_opengles2.h": "c",
+			"sdl_opengl.h": "c"
 		},
 		"C_Cpp.default.compileCommands": "/home/dylan/code/smith/builddir/compile_commands.json",
 		"C_Cpp.default.compilerPath": "/usr/bin/gcc",

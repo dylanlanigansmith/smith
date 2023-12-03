@@ -4,7 +4,7 @@
 #include <entity/CBaseRenderable.hpp>
 #include <entity/CBaseEntity.hpp>
 #include "CCamera.hpp"
-
+#include <entity/weapon/CBaseWeapon.hpp>
 #include <entity/weapon/pistol/CWeaponPistol.hpp>
 
 

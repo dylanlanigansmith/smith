@@ -9,8 +9,8 @@ CEngine::~CEngine()
 void CEngine::Start(const char* title)
 {
     SDL_Init(SDL_INIT_VIDEO);
-    log("starting window { %ix%i }", SCREEN_WIDTH, SCREEN_HEIGHT);
-    m_SDLWindow = SDL_CreateWindow(title, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
+    log("starting window { %ix%i }", SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL);
+    m_SDLWindow = SDL_CreateWindow(title, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, SDL_WINDOW_OPENGL);
 
     render = new CRenderer(m_SDLWindow);
     if(!render->Create()) return;

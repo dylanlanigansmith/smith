@@ -3,7 +3,7 @@
 #include <magic_enum/magic_enum.hpp> //holy s$%# this library is awesome
 namespace Level
 {
-    enum Tile_Type : uint8_t
+    enum Tile_Type : int
     {
         Tile_Invalid = 0xFF,
         Tile_Empty = 0,

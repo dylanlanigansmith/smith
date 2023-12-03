@@ -49,9 +49,9 @@ void CWeaponPistol::Shoot()
 
     //collision detection
     
-    auto tile = ILevelSystem->GetTileAt(IVector2(pos.x, pos.y)); //this should be a function
+    auto tile = ILevelSystem->GetTileAt(IVector2::Rounded(pos.x, pos.y)); //this should be a function
     CBaseEnemy *hit_ent = nullptr;
-    if (!tile->m_occupants.empty())
+    if (!tile->m_occupants.empty()) //player doesnt get tiled
     {
         static constexpr auto enemy_type = Util::fnv1a::Hash64("CBaseEnemy");
         for (auto &id : tile->m_occupants)
@@ -66,7 +66,7 @@ void CWeaponPistol::Shoot()
                 hit_ent = (CBaseEnemy *)ent;
                 IVector2 textpos;
                 if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
-                    engine->log("hit");
+                    log("hit");
                     int pos = Util::SemiRandRange(0, 8) * -1;
                     hit_ent->OnHit(Util::SemiRandRange(8, 16), pos);
 
@@ -74,9 +74,6 @@ void CWeaponPistol::Shoot()
                 }
             }
         }
-    }
-    else{
-        engine->log("we arent in the tile what the fuck ");
     }
     int screenx = (SCREEN_WIDTH / 2);
     double camOffset = 2.0 * screenx / (double)SCREEN_WIDTH - 1.0;
@@ -162,7 +159,7 @@ void CWeaponPistol::Shoot()
                     hit_ent = (CBaseEnemy *)ent;
                    IVector2 textpos;
                     if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
-                        engine->log("hit");
+                        log("hit");
                         int pos = Util::SemiRandRange(0, 8) * -1;
                         hit_ent->OnHit(Util::SemiRandRange(8, 16), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
 
@@ -228,7 +225,7 @@ bool CWeaponPistol::HitDetect2(CPlayer *player, CBaseEnemy *ent, const Vector2 &
 bool CWeaponPistol::HitDetectPixelPerfect(CPlayer *player, CBaseEnemy *ent, IVector2 *textpos)
 {
     auto crosshair_color = ent->GetPixelAtPoint(player->m_pCamera(), {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2}, textpos);
-    engine->log("%x", crosshair_color);
+    //log("%x", crosshair_color);
     return (crosshair_color != 0u);
 }
 
@@ -248,15 +245,15 @@ int CWeaponPistol::FindTexturePoint(CPlayer *player, CBaseEnemy *ent, const Vect
     double perpWallDist;
     while (!hit)
     {
-            // engine->log("hit tile with enemy ayo");
+            // log("hit tile with enemy ayo");
         start = start + ray;
-        /// engine->log("%f %f", start.x, start.y);
+        /// log("%f %f", start.x, start.y);
         
         if (start.x - tol < ent_pos.x && ent_pos.x < start.x + tol)
             if (start.y - tol < ent_pos.y && ent_pos.y < start.y + tol)
             {
                 hit = 1; break;
-                // engine->log("hit that fucker so damn hard"); break;
+                // log("hit that fucker so damn hard"); break;
             }
         if (start.x > MAP_SIZE || start.y > MAP_SIZE)
             break;
@@ -278,7 +275,7 @@ int CWeaponPistol::FindTexturePoint(CPlayer *player, CBaseEnemy *ent, const Vect
         side = -1;
     
     tex_x = tex_w * std::abs(start.x - ent_pos.x) + (tex_w / 2 + 81) * side;
-    engine->log(" tex x %i", tex_x);
+    log(" tex x %i", tex_x);
 
     std::clamp(tex_x, 0, tex_w );
            
@@ -296,19 +293,19 @@ bool CWeaponPistol::HitDetect(CPlayer* player, CBaseEnemy* ent, const Vector2& r
      auto ray = rayDir * 0.1;
      int safety = 0;
     
-     // engine->log("ray passed through tile with entity");
+     // log("ray passed through tile with entity");
     double tol = ent->GetBounds().x ; //0.09
     while (1)
     {
            
         start = start + ray;
-        /// engine->log("%f %f", start.x, start.y);
+        /// log("%f %f", start.x, start.y);
         
         if (start.x - tol < ent_pos.x && ent_pos.x < start.x + tol)
             if (start.y - tol < ent_pos.y && ent_pos.y < start.y + tol)
             {
                 return true;
-                // engine->log("hit ent"); break;
+                // log("hit ent"); break;
             }
         if (start.x > MAP_SIZE || start.y > MAP_SIZE)
             break;
@@ -359,7 +356,7 @@ void CWeaponPistol::OnCreate()
                                        }));
     if (m_pOwner == nullptr)
     {
-        engine->log("yo im a gun and im having some fuckin issues finding out who i belong to");
+        log("yo im a gun and im having some fuckin issues finding out who i belong to");
         return;
     }
     assert(m_pOwner->IsLocalPlayer());

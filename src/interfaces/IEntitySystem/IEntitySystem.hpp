@@ -8,7 +8,7 @@
 
 
 
-
+#include <util/hash_fnv1a.hpp>
 
 
 
@@ -60,6 +60,8 @@ public:
         return ent;
     }
     const auto& iterableList() { return entity_list; }
+
+    static constexpr auto CreateType(const char* str) { return Util::fnv1a::Hash64(str); }
 private:
     virtual void CreateLocalPlayer();
 private:

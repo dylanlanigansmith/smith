@@ -167,12 +167,13 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
 
 void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius)
 {
-    #define MAX_DECALS 3
+    #define MAX_DECALS 4
 
     if(tile->m_nDecals > MAX_DECALS){
         int index = (tile->m_nDecals - 1) % MAX_DECALS;
         auto pDecals = tile->m_pDecals;
         for (int i = 0; i < index; ++i) {
+            if(pDecals == nullptr) break;
             pDecals = pDecals->m_pNextDecal;
         }
         if(pDecals == nullptr) return; //always nullptr!!
@@ -200,15 +201,23 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
            tile->m_pDecals = hole;
            return;
     }
-    auto pDecals = tile->m_pDecals;
+    decal_t* pDecals = tile->m_pDecals;
     tile->m_nDecals++;
     int d = 0;
-    while(pDecals->m_pNextDecal != nullptr)
+    while (pDecals != nullptr && pDecals->m_pNextDecal != nullptr)
     {
+        
+        auto c_pDecals = pDecals->m_pNextDecal;
+
+        if( c_pDecals->m_pNextDecal == nullptr) break;
         pDecals = pDecals->m_pNextDecal;
         d++;
     }
-    log("%i %i", tile->m_nDecals, d);
+    if(pDecals == nullptr || pDecals && pDecals->m_pNextDecal){
+        delete hole; return;
+    }
+
+   // log("%i %i", tile->m_nDecals, d);
     pDecals->m_pNextDecal = hole;
 }
 

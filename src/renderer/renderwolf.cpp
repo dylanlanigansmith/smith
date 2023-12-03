@@ -180,8 +180,15 @@ void CRenderer::LoopWolf()
         side = 1;
       }
       // Check if ray has hit a wall
-      if (ILevelSystem->GetMapAt(mapPos.x, mapPos.y) > 0)
+      int type = ILevelSystem->GetMapAt(mapPos.x, mapPos.y);
+      if (type != Level::Tile_Empty)
         hit = 1;
+
+      if(type == Level::Tile_Door)
+      {
+        hit = 3;
+      }
+
     }
       // Calculate distance projected on camera direction. This is the shortest distance from the point where the wall is
       // hit to the camera plane. Euclidean to center camera point would give fisheye effect!
@@ -248,7 +255,7 @@ void CRenderer::LoopWolf()
           bool setPixel = false;
           auto pDecals = tile->m_pDecals;
           int i  = 0;
-          while(1){
+          while(1  && pDecals != nullptr){
             int hole_side = pDecals->side;
             uint8_t hole_x = pDecals->dir[0];
             uint8_t hole_y = pDecals->dir[1];

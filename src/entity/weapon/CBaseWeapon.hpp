@@ -4,6 +4,13 @@
 
 #include <entity/CBaseRenderable.hpp>
 #include <entity/components/animation/CAnimationController.hpp>
+#include <entity/components/CBaseEntityComponent.hpp>
+#include <logger/logger.hpp>
+
+#include <entity/CBaseRenderable.hpp>
+
+
+
 
 //https://forum.zdoom.org/viewtopic.php?t=71476
 //https://forum.zdoom.org/viewtopic.php?t=70605
@@ -17,10 +24,10 @@ struct weapon_data_t{
     uint8_t nAmmoType;
 };
 
-class CBaseWeapon //should include component 
+class CBaseWeapon : public CLogger //should include component and logging
 {
 public:
-    CBaseWeapon(const std::string& m_szName) : m_szName(m_szName) {}
+    CBaseWeapon( const std::string& m_szName) : CLogger(m_szName), m_szName(m_szName) {}
     virtual ~CBaseWeapon(){}
     virtual void OnCreate() = 0;
     virtual void Render(CRenderer* renderer) = 0;

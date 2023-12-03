@@ -37,22 +37,26 @@ struct decal_t
 
 struct tile_t
 {
-    uint32_t id{};
+    //$ = memory size 1/$ $ $$ $! $16 ... | 1 byte 4 byte 8 byte 16 bytes ...
+    //# vars also saved
+
+    uint32_t id{};          //$#
    
-    IVector2 m_vecPosition;
-    hTexture m_hTexture;//READONLY
-    hTexture m_hTextureCeiling;//READONLY
-    hTexture m_hTextureFloor;//READONLY
-    texture_t* m_pTexture = nullptr; //READONLY
-    texture_t* m_pTextureCeiling = nullptr;//READONLY
-    texture_t* m_pTextureFloor = nullptr;//READONLY
-    tile_state* m_pState  = nullptr;
-    float m_flLight = 1.f;
-    uint8_t m_nDecals{};
-    decal_t* m_pDecals = nullptr;
-    float m_flCeiling = 0.f;
-    float m_flFloor = 0.f;
-    uint8_t m_nType{};
+    IVector2 m_vecPosition;     //$$#
+    hTexture m_hTexture;//READONLY      //$#
+    hTexture m_hTextureCeiling;//READONLY   //$#
+    hTexture m_hTextureFloor;//READONLY     //$#
+    texture_t* m_pTexture = nullptr; //READONLY @file //$!
+    texture_t* m_pTextureCeiling = nullptr;//READONLY //$!
+    texture_t* m_pTextureFloor = nullptr;//READONLY   //$!
+    tile_state* m_pState  = nullptr;                  //$!
+    float m_flLight = 1.f;      //$#
+    uint8_t m_nDecals{};        //1/$#
+    decal_t* m_pDecals = nullptr;  //$8 
+    float m_flCeiling = 0.f;        //$#
+    float m_flFloor = 0.f;          //$#
+    uint8_t m_nType{};              //1/$#
+   // uint64_t m_nFlags;              //$!
     std::vector<hEntity> m_occupants;
 
     void UpdateTexture(texture_t* newTexture, Tile_Texture which = TileTexture_Primary)
@@ -123,7 +127,7 @@ public:
                 if( x == 0 || y == 0 || x == m_vecBounds.x - 1 || y == m_vecBounds.y - 1) 
                     empty.m_nType = 1;
                 empty.m_hTexture = empty.m_hTextureCeiling = empty.m_hTextureFloor = def;
-                empty.m_vecPosition = IVector2(x,y);
+                empty.m_vecPosition = IVector2(x,y);// empty.m_nFlags = 0;
                 empty.id = MakeTileID(empty);
                 row.push_back(empty);
             }
@@ -176,7 +180,7 @@ public:
        m_szLevelName = meta.at(0);
        m_vecBounds.x = meta.at(1); m_vecBounds.y = meta.at(2);
        m_flCeilingHeight = meta.at(3); m_flFloorHeight = meta.at(4);
-
+       
         MakeEmptyLevel(HTEXTURE_INVALID); //now that we have bounds
        auto tile_data = j.at("tile");
         int amt = 0;
@@ -227,6 +231,7 @@ protected:
             .m_flCeiling = j.at(8),
             .m_flFloor = j.at(9),
             .m_nType = j.at(10)
+            //.m_nFlags = 0 //j.at(11)
         };
     }
     IVector2 m_vecBounds;

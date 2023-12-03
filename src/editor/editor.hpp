@@ -3,6 +3,13 @@
 #include <data/Texture.hpp>
 #include <imgui.h>
 #include <renderer/renderer.hpp>
+
+#include <entity/dynamic/CBaseEnemy.hpp>
+#include <entity/player/CPlayer.hpp>
+
+#define UI_W 1680
+#define UI_H 1050
+
 struct editor_texture_t
 {
     std::string subpath = std::string();
@@ -39,7 +46,7 @@ private:
 private:
     void InitTextureInfo();
     void TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview, ImGuiTextFilter* filter);
-
+    void ShowEntityObject(CBaseEntity* entity, ImVec2 offset, ImDrawList *draw_list);
 
 private:
     texture_t* m_texLastSelected = nullptr;

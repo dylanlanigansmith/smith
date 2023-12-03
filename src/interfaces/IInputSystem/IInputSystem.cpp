@@ -45,6 +45,7 @@ void CInputSystem::OnEvent(SDL_Event *event)
 
 WASD_t CInputSystem::GetInput()
 {
+    
     m_wasd = {
         .w = IsKeyDown(SDL_SCANCODE_W),
         .a = IsKeyDown(SDL_SCANCODE_A),
@@ -56,6 +57,8 @@ WASD_t CInputSystem::GetInput()
 
 bool CInputSystem::IsKeyDown(SDL_Scancode code)
 {
+    auto mode = SDL_GetRelativeMouseMode();    
+     if(mode == SDL_FALSE && code != SDL_SCANCODE_BACKSLASH) return false;
     if(code > keyboardSize - 1)
         return false;
 

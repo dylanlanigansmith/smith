@@ -13,6 +13,7 @@
 
 class CPathFinder : public CBaseEntityComponent,  public CLogger
 {
+  friend class CEditor;
 public:
     CPathFinder(CBaseEntity* m_pParent);
     virtual ~CPathFinder(){}

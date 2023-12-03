@@ -18,7 +18,7 @@ void CRenderer::Shutdown()
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
   SDL_DestroyTexture(m_renderTexture);
-  SDL_DestroySurface(m_surface);
+  
 
   SDL_DestroyRenderer(m_renderer);
   log("Destroyed Renderer");
@@ -48,8 +48,7 @@ bool CRenderer::Create()
 
   m_renderTexture = SDL_CreateTexture(get(), SMITH_PIXELFMT, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-  m_surface = SDL_CreateSurface(SCREEN_WIDTH, SCREEN_HEIGHT, SMITH_PIXELFMT);
-
+  
   return ret;
 }
 
@@ -81,18 +80,21 @@ bool CRenderer::CreateRendererLinuxGL()
 
 #define mapWidth 24
 #define mapHeight 24
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 720
+
 
 void CRenderer::Loop()
 {
+
+  SDL_FRect scale = {0.f,0.f, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL};
+
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
   LoopWolf();
   SDL_UnlockTexture(m_renderTexture);
- // SDL_UpdateTexture(m_renderTexture, NULL, m_surface->pixels, m_surface->pitch); //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
-
+ //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
+if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL)
   SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);
-
+else
+  SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
  
   RunImGui();
  
@@ -105,8 +107,8 @@ void CRenderer::RunImGui()
   ImGui_ImplSDLRenderer3_NewFrame();
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
-    // bool open = true;
-  // ImGui::ShowDemoWindow(&open);
+
+   //ImGui::ShowDemoWindow();
   CEditor::instance().render(this);
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
