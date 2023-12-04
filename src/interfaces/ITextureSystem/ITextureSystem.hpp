@@ -39,7 +39,7 @@ friend class CEditor;
 private:
     std::string TextureNameToFile(const std::string& name);
     hTexture GenerateHandle(const std::string& name);
-    SDL_Surface* LoadAndOptimizeSurface(const std::string& path);
+    SDL_Surface* LoadAndOptimizeSurface(const std::string& path, uint32_t key = 0);
     bool AddTexture(const std::string& name, texture_t* text, bool log_add = true);
 private:
     hTexture m_hTextureError;

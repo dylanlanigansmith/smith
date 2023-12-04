@@ -59,6 +59,10 @@ void CLevelSystem::OnEngineInitFinish()
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
+    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
+    ILightingSystem->AddLight<CLightOverhead>({12.f, 22.f, 1.f}, Color::CandleLight(), 2.0, 1.f);
+    ILightingSystem->AddLight<CLightOverhead>({16.f, 16.f, 1.f}, Color::FluorescentLight());
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(12, 22);

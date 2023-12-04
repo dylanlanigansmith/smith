@@ -13,6 +13,9 @@ namespace Util
         va_end(args);
         return std::string(buf);
     }
+    static inline std::string stripPath(const std::string& path){
+         return path.substr(path.find_last_of("/") + 1);
+    }
 
     static inline int SemiRandRange(int min, int max){
         return min + ( std::rand() % ( max - min + 1 ) );

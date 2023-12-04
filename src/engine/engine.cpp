@@ -1,7 +1,7 @@
 #include "engine.hpp"
 #include <interfaces/interfaces.hpp>
 #include <imgui_impl_sdl3.h>
-
+#include <magic_enum/magic_enum.hpp>
 CEngine::~CEngine()
 {
 }
@@ -16,6 +16,12 @@ void CEngine::Start(const char* title)
     if(!render->Create()) return;
     shouldStopLoop = SDL_FALSE;
 
+    SDL_ThreadPriority priority = SDL_THREAD_PRIORITY_HIGH;
+    if(int err = SDL_SetThreadPriority(priority); err != 0){
+        Error("Failed to set thread-priority '%s'  : (%i) %s ",magic_enum::enum_name(priority).data(), err, SDL_GetError() );
+    } else{
+        log("set threadpriority -> %s", magic_enum::enum_name(priority).data() ); //+10-15fps boost with -Og  
+    }
     InitInterfaces();
     for(auto& element : interfaces.list())
             element.second->OnResourceLoadStart();
@@ -57,7 +63,7 @@ int CEngine::Run()
 
        // log("%f", 1.0 / IEngineTime->GetLastFrameTime().sec());//this is broken
     }
-
+    
     return Shutdown();
 }
 int CEngine::Shutdown()

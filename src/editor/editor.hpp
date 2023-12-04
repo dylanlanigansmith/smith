@@ -42,10 +42,12 @@ private:
     void drawEntityView();
     void drawResourceView();
     void drawMaterialView();
+    void drawMaterialEditor();
+    void drawLightView();
     void Init();
 private:
     void InitTextureInfo();
-    void TexturePicker(const char* title, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview, ImGuiTextFilter* filter);
+    void TexturePicker(const char* title,tile_t* selectedTile, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview, ImGuiTextFilter* filter, uint8_t updatetype = 0);
     void ShowEntityObject(CBaseEntity* entity, ImVec2 offset, ImDrawList *draw_list);
 
 private:

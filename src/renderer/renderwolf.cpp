@@ -13,13 +13,15 @@ void CRenderer::LoopWolf()
   static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
   static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
   // level system should handle these
 
   int textH, textW;
   ITextureSystem->GetTextureSize(&textW, &textH);
 
-  SDL_SetRenderTarget(get(), NULL);
-  SDL_LockSurface(m_surface);
+ // SDL_SetRenderTarget(get(), NULL);
+  if(SDL_MUSTLOCK(m_surface))
+    SDL_LockSurface(m_surface);
   pixels = (uint32_t *)m_surface->pixels;
 
   auto player = IEntitySystem->GetLocalPlayer();
@@ -32,84 +34,8 @@ void CRenderer::LoopWolf()
   int w = SCREEN_WIDTH; // so confusing
   int h = SCREEN_HEIGHT;
   IVector2 screen(w, h);
-  for (int y = 0; y < SCREEN_HEIGHT; ++y)
-  {
-    // whether this section is floor or ceiling
-    bool is_floor = y > SCREEN_HEIGHT / 2 + player->Camera().m_flPitch;
 
-    // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
-    float rayDirX0 = player->Camera().m_vecDir.x - player->Camera().m_vecPlane.x;
-    float rayDirY0 = player->Camera().m_vecDir.y - player->Camera().m_vecPlane.y;
-    float rayDirX1 = player->Camera().m_vecDir.x + player->Camera().m_vecPlane.x;
-    float rayDirY1 = player->Camera().m_vecDir.y + player->Camera().m_vecPlane.y;
-
-    // Current y position compared to the center of the screen (the horizon)
-    int p = is_floor ? (y - SCREEN_HEIGHT / 2 - player->Camera().m_flPitch) : (SCREEN_HEIGHT / 2 - y + player->Camera().m_flPitch);
-
-    // Vertical position of the camera.
-    // NOTE: with 0.5, it's exactly in the center between floor and ceiling,
-    // matching also how the walls are being raycasted. For different values
-    // than 0.5, a separate loop must be done for ceiling and floor since
-    // they're no longer symmetrical.
-    float camZ = is_floor ? (0.5 * SCREEN_HEIGHT + player->GetPosition().z) : (0.5 * SCREEN_HEIGHT - player->GetPosition().z);
-
-    // Horizontal distance from the camera to the floor for the current row.
-    // 0.5 is the z position exactly in the middle between floor and ceiling.
-    // NOTE: this is affine texture mapping, which is not perspective correct
-    // except for perfectly horizontal and vertical surfaces like the floor.
-    // NOTE: this formula is explained as follows: The camera ray goes through
-    // the following two points: the camera itself, which is at a certain
-    // height (posZ), and a point in front of the camera (through an imagined
-    // vertical plane containing the screen pixels) with horizontal distance
-    // 1 from the camera, and vertical position p lower than posZ (posZ - p). When going
-    // through that point, the line has vertically traveled by p units and
-    // horizontally by 1 unit. To hit the floor, it instead needs to travel by
-    // posZ units. It will travel the same ratio horizontally. The ratio was
-    // 1 / p for going through the camera plane, so to go posZ times farther
-    // to reach the floor, we get that the total horizontal distance is posZ / p.
-    float rowDistance = camZ / p;
-
-    // calculate the real world step vector we have to add for each x (parallel to camera plane)
-    // adding step by step avoids multiplications with a weight in the inner loop
-    float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
-    float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
-
-    // real world coordinates of the leftmost column. This will be updated as we step to the right.
-    float floorX = player->GetPosition().x + rowDistance * rayDirX0;
-    float floorY = player->GetPosition().y + rowDistance * rayDirY0;
-
-    for (int x = 0; x < SCREEN_WIDTH; ++x)
-    {
-      // the cell coord is simply got from the integer parts of floorX and floorY
-      int cellX = (int)(floorX);
-      int cellY = (int)(floorY);
-
-      // get the texture coordinate from the fractional part
-      IVector2 tex;
-      tex.x = (int)(textW * (floorX - cellX)) & (textW - 1);
-      tex.y = (int)(textH * (floorY - cellY)) & (textH - 1);
-
-      floorX += floorStepX;
-      floorY += floorStepY;
-
-      // choose texture and draw the pixel
-
-      auto texture = ILevelSystem->GetTexturePlane(is_floor, cellX, cellY)->m_texture;
-
-      uint32_t *pixelsT = (uint32_t *)texture->pixels;
-      uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
-
-      SDL_Color color = Render::TextureToSDLColor(uColor);
-
-      if (is_floor)
-        Render::DarkenSDLColor(color, 2.f);
-      else
-        Render::DarkenSDLColor(color, 1.25f);
-
-      int index = (y * m_surface->pitch / 4) + x;
-      pixels[index] = Render::SDLColorToWorldColor(color);
-    }
-  }
+  DrawFloorCeiling(player, textW, textH, w, h);
 
   // Draw Walls
   for (int x = 0; x < w; x++)
@@ -119,8 +45,8 @@ void CRenderer::LoopWolf()
     camera.x = 2 * x / (double)screen.w() - 1.0;
     // calculate ray position and direction
     Vector2 rayDir = {
-        player->Camera().m_vecDir.x + player->Camera().m_vecPlane.x * camera.x,
-        player->Camera().m_vecDir.y + player->Camera().m_vecPlane.y * camera.x};
+        m_Camera->m_vecDir.x + m_Camera->m_vecPlane.x * camera.x,
+        m_Camera->m_vecDir.y + m_Camera->m_vecPlane.y * camera.x};
 
     // which box of the map we're in
     IVector2 mapPos(playerPos.x, playerPos.y);
@@ -247,7 +173,7 @@ void CRenderer::LoopWolf()
         // Calculate height of line to draw on screen
         int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
 
-        int pitch = player->Camera().m_flPitch;
+        int pitch = m_Camera->m_flPitch;
 
         // calculate lowest and highest pixel to fill in current stripe
         int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
@@ -276,21 +202,16 @@ void CRenderer::LoopWolf()
       } else if (wallX > 1.0f - epsilon) {
         wallX = 1.0f;
       }// Apply texture mirroring if necessary
-       if ((side == 0 && rayDir.x > 0) || (side == 1 && rayDir.y < 0)) {
-            wallX = 1.0 - wallX;
-        }
       // Convert wallX to texture coordinate
         tex.x = int(wallX * double(textW));
-        dbg("pDist%f %i mappos{%i %i} ist{%0.2f %0.2f} %f, %i", perpWallDist, side, mapPos.x, mapPos.y,intersect.x, intersect.y, wallX, tex.x); 
+       // dbg("pDist%f %i mappos{%i %i} ist{%0.2f %0.2f} %f, %i", perpWallDist, side, mapPos.x, mapPos.y,intersect.x, intersect.y, wallX, tex.x); 
         double stepTex = 1.0 * textH / lineHeight;
         double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
         auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
-      
+
         auto tile = ILevelSystem->GetTileAt(mapPos);
-        bool hasBulletHole = (tile->m_nDecals > 0);
-        const float hole_alpha = (175 / 255.f);
-        const float oalpha = 1.f - hole_alpha;
-        const SDL_Color hole_color = {0, 0, 0, 175};
+        //bool hasBulletHole = (tile->m_nDecals > 0);
+      
         // if(hasBulletHole) log("%i %i", mapPos.x, mapPos.y);
         for (int y = drawStart; y < drawEnd; y++)
         {
@@ -301,15 +222,16 @@ void CRenderer::LoopWolf()
           texPos += stepTex;
 
           uint32_t *pixelsT = (uint32_t *)texture->pixels;
-          uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
+          Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
 
-          SDL_Color color = Render::TextureToSDLColor(uColor);
+        
           //removed: bullet holes went here
 
           if (side == 1) // make color darker for y-sides
-            Render::DarkenSDLColor(color, 2.f);
-          int index = (y * m_surface->pitch / 4) + x;
-          pixels[index] = Render::SDLColorToWorldColor(color);
+            color /= 0.5f;
+      
+      
+          SetPixel(x,y, color);
           didDraw = true;
    
         }
@@ -333,7 +255,7 @@ void CRenderer::LoopWolf()
     // Calculate height of line to draw on screen
     int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
 
-    int pitch = player->Camera().m_flPitch;
+    int pitch = m_Camera->m_flPitch;
 
     // calculate lowest and highest pixel to fill in current stripe
     int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
@@ -364,9 +286,10 @@ void CRenderer::LoopWolf()
 
     auto tile = ILevelSystem->GetTileAt(mapPos);
     bool hasBulletHole = (tile->m_nDecals > 0);
-    const float hole_alpha = (175 / 255.f);
-    const float oalpha = 1.f - hole_alpha;
-    const SDL_Color hole_color = {0, 0, 0, 175};
+  
+    constexpr Color hole_color(0, 0, 0, 175);
+
+    Color light = ILightingSystem->GetLightForTile(tile);
     // if(hasBulletHole) log("%i %i", mapPos.x, mapPos.y);
     for (int y = drawStart; y < drawEnd; y++)
     {
@@ -377,9 +300,9 @@ void CRenderer::LoopWolf()
       texPos += stepTex;
 
       uint32_t *pixelsT = (uint32_t *)texture->pixels;
-      uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
+      Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
 
-      SDL_Color color = Render::TextureToSDLColor(uColor);
+     color = ILightingSystem->ApplyLightForTile(tile, color);
 
       if (hasBulletHole && 22 < tex.y && tex.y < 42)
       {
@@ -399,7 +322,7 @@ void CRenderer::LoopWolf()
             if (radius * radius >= delta.x * delta.x + delta.y * delta.y + 0.25f)
             {
               // SetPixel(x,y,  Render::MergeColorsFixed( hole_color, color, hole_alpha, oalpha));
-              SetPixel(x, y, Render::MergeColorsLazy(hole_color, color));
+              SetPixel(x, y, hole_color + color);
               setPixel = true;
               break;
             }
@@ -413,14 +336,11 @@ void CRenderer::LoopWolf()
           continue;
       }
       if (side == 1) // make color darker for y-sides
-        Render::DarkenSDLColor(color, 2.f);
-      int index = (y * m_surface->pitch / 4) + x;
-      pixels[index] = Render::SDLColorToWorldColor(color);
-
-      /*
-      so turns out transparency is as easy as bullet holes with mergecolorsfast
-
-      */
+        color /= 0.5f;
+      
+      
+      SetPixel(x,y, color);
+     
     }
     ZBuffer[x] = perpWallDist;
   }
@@ -458,14 +378,119 @@ void CRenderer::LoopWolf()
 
   int crosshair_x = SCREEN_WIDTH / 2;
   int crosshair_y = SCREEN_HEIGHT / 2;
-  SDL_Color crosshair_color = {255, 255, 255, 225};
-  Render::SetPixel(pixels, crosshair_x, crosshair_y, m_surface->pitch, crosshair_color);
+  constexpr Color crosshair_color = Color::White();
+  SetPixel(crosshair_x, crosshair_y,  crosshair_color);
   for (int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
     for (int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)
-      Render::SetPixel(pixels, x, y, m_surface->pitch, crosshair_color);
+      SetPixel( x, y,  crosshair_color);
   for (int y = crosshair_y - 4; y <= crosshair_y + 4; ++y)
     for (int x = crosshair_x - 1; x <= crosshair_x + 1; ++x)
-      Render::SetPixel(pixels, x, y, m_surface->pitch, crosshair_color);
+      SetPixel(x, y,  crosshair_color);
 
-  SDL_UnlockSurface(m_surface);
+  if(m_surface->locked == SDL_TRUE)
+    SDL_UnlockSurface(m_surface);
+}
+
+void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h)
+{
+  static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+   static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+  const double vertPos = 0.5; //
+  for (int y = 0; y < SCREEN_HEIGHT; ++y)
+  {
+    // whether this section is floor or ceiling
+    bool is_floor = y > SCREEN_HEIGHT / 2 + m_Camera->m_flPitch;
+
+    // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+    float rayDirX0 = m_Camera->m_vecDir.x - m_Camera->m_vecPlane.x;
+    float rayDirY0 = m_Camera->m_vecDir.y - m_Camera->m_vecPlane.y;
+    float rayDirX1 = m_Camera->m_vecDir.x + m_Camera->m_vecPlane.x;
+    float rayDirY1 = m_Camera->m_vecDir.y + m_Camera->m_vecPlane.y;
+
+    // Current y position compared to the center of the screen (the horizon)
+    int p = is_floor ? (y - SCREEN_HEIGHT / 2 - m_Camera->m_flPitch) : (SCREEN_HEIGHT / 2 - y + m_Camera->m_flPitch);
+    
+    // Vertical position of the camera.
+    // NOTE: with 0.5, it's exactly in the center between floor and ceiling,
+    // matching also how the walls are being raycasted. For different values
+    // than 0.5, a separate loop must be done for ceiling and floor since
+    // they're no longer symmetrical.
+    float camZ = is_floor ? (vertPos * SCREEN_HEIGHT + player->GetPosition().z) : (vertPos * SCREEN_HEIGHT - player->GetPosition().z);
+
+    // Horizontal distance from the camera to the floor for the current row.
+    // 0.5 is the z position exactly in the middle between floor and ceiling.
+    // NOTE: this is affine texture mapping, which is not perspective correct
+    // except for perfectly horizontal and vertical surfaces like the floor.
+    // NOTE: this formula is explained as follows: The camera ray goes through
+    // the following two points: the camera itself, which is at a certain
+    // height (posZ), and a point in front of the camera (through an imagined
+    // vertical plane containing the screen pixels) with horizontal distance
+    // 1 from the camera, and vertical position p lower than posZ (posZ - p). When going
+    // through that point, the line has vertically traveled by p units and
+    // horizontally by 1 unit. To hit the floor, it instead needs to travel by
+    // posZ units. It will travel the same ratio horizontally. The ratio was
+    // 1 / p for going through the camera plane, so to go posZ times farther
+    // to reach the floor, we get that the total horizontal distance is posZ / p.
+    float rowDistance = camZ / p;
+   // if(!is_floor) dbg("%i %f", p, rowDistance);
+
+    // calculate the real world step vector we have to add for each x (parallel to camera plane)
+    // adding step by step avoids multiplications with a weight in the inner loop
+    float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
+    float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
+
+    // real world coordinates of the leftmost column. This will be updated as we step to the right.
+    float floorX = player->GetPosition().x + rowDistance * rayDirX0;
+    float floorY = player->GetPosition().y + rowDistance * rayDirY0;
+
+    for (int x = 0; x < SCREEN_WIDTH; ++x)
+    {
+      // the cell coord is simply got from the integer parts of floorX and floorY
+      int cellX = (int)(floorX);
+      int cellY = (int)(floorY);
+      /*
+      auto tile = ILevelSystem->GetTileSafe(cellX, cellY);
+      if(tile->m_flCeiling != 0.5f && !is_floor){
+          p =  (SCREEN_HEIGHT / 2 - y + m_Camera->m_flPitch);
+          camZ =  (tile->m_flCeiling * SCREEN_HEIGHT - player->GetPosition().z);
+          rowDistance = camZ / p;
+
+
+           // real world coordinates of the leftmost column. This will be updated as we step to the right.
+        floorX = player->GetPosition().x + rowDistance * rayDirX0;
+        floorY = player->GetPosition().y + rowDistance * rayDirY0;
+        cellX = (int)(floorX);
+        cellY = (int)(floorY);
+        floorStepX = rowDistance * (rayDirX1 - rayDirX0) / SCREEN_WIDTH;
+        floorStepY = rowDistance * (rayDirY1 - rayDirY0) / SCREEN_WIDTH;
+      }*/
+
+
+      // get the texture coordinate from the fractional part
+      IVector2 tex;
+      tex.x = (int)(textW * (floorX - cellX)) & (textW - 1);
+      tex.y = (int)(textH * (floorY - cellY)) & (textH - 1);
+
+      floorX += floorStepX;
+      floorY += floorStepY;
+
+      // choose texture and draw the pixel
+      auto tile = ILevelSystem->GetTileSafe(cellX, cellY);
+     
+      auto texture = ILevelSystem->GetTexturePlane(is_floor, cellX, cellY)->m_texture;
+      
+      uint32_t *pixelsT = (uint32_t *)texture->pixels;
+      Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
+       color = ILightingSystem->ApplyLightForTile(tile, color);
+     // SDL_Color color = Render::TextureToSDLColor(uColor);
+
+      if (is_floor)
+        color /= 2.f;
+      else
+        color /= 1.25f;
+
+      int index = (y * m_surface->pitch / 4) + x;
+      pixels[index] = color;
+    }
+  }
 }

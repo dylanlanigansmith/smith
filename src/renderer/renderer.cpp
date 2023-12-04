@@ -91,10 +91,10 @@ void CRenderer::Loop()
   LoopWolf();
   SDL_UnlockTexture(m_renderTexture);
  //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
-if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL)
-  SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);
-else
-  SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
+  if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);
+    
+  else SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
+    
  
   RunImGui();
  
@@ -115,20 +115,17 @@ void CRenderer::RunImGui()
 
 }
 
-void CRenderer::SetPixel(int x, int y, SDL_Color color)
+void CRenderer::SetPixel(int x, int y, SDL_Color color) // @deprecated Switch To Color class
 {
+  #warning "Using SDLColor is deprecated"
   int index = (y * m_surface->pitch / 4) + x;
   pixels[index] = Render::SDLColorToWorldColor(color);
 }
-
-void CRenderer::SetPixel(int x, int y, uint32_t color)
-{
-  SDL_Color scolor = Render::TextureToSDLColor(color);
-  SetPixel(x,y, scolor);
-}
-
+/*
 SDL_Color CRenderer::GetPixel(int x, int y)
 {
    int index = (y * m_surface->pitch / 4) + x;
   return Render::TextureToSDLColor( pixels[index]);
-}
+}*/
+
+

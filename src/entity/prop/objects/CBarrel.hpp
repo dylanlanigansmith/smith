@@ -2,7 +2,7 @@
 
 #include "../CStaticProp.hpp"
 
-
+#include <SDL3/SDL.h>
 class CBarrel : public CStaticProp
 {
 public:
@@ -29,6 +29,9 @@ void CBarrel::OnDestroy()
 void CBarrel::CreateRenderable()
 {
     SetupTexture("barrel.png");
+    
+   
+
 }
 
 void CBarrel::Render(CRenderer *renderer)

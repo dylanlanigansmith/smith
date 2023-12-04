@@ -142,6 +142,7 @@ public:
                     empty.m_nType = 1;
                 empty.m_hTexture = empty.m_hTextureCeiling = empty.m_hTextureFloor = def;
                 empty.m_vecPosition = IVector2(x,y);// empty.m_nFlags = 0;
+                empty.m_flFloor = 0.5f; empty.m_flCeiling = 0.5f;
                 empty.id = MakeTileID(empty);
                 row.push_back(empty);
             }
@@ -182,7 +183,7 @@ public:
             for(const auto& tile : row)
             {
                 auto t = TileToJson(tile);
-                tile_data.emplace(std::to_string(tile.id), t);
+                tile_data.emplace(std::string(tile.m_vecPosition.str()) +  std::to_string(tile.m_nType), t);
             }
         }
         j.emplace("tile", tile_data);

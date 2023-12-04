@@ -152,7 +152,11 @@ void CEditor::render(CRenderer *renderer)
             */
             ImGui::EndTabItem();
         }
-
+        if (ImGui::BeginTabItem("Lighting View"))
+        {
+            drawLightView();
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
     }
     ImGui::End();
@@ -268,15 +272,15 @@ void CEditor::drawMapView()
 
     if (selectedTile->m_nType != Level::Tile_Wall)
     {
-        TexturePicker("Ceiling", selectedTextureCeiling, previewTexture3, ceiling_texture_preview, &textureFilter);
-        TexturePicker("Floor", selectedTextureFloor, previewTexture2, floor_texture_preview, &textureFilter);
+        TexturePicker("Ceiling",selectedTile, selectedTextureCeiling, previewTexture3, ceiling_texture_preview, &textureFilter, TileTexture_Ceiling);
+        TexturePicker("Floor", selectedTile, selectedTextureFloor, previewTexture2, floor_texture_preview, &textureFilter, TileTexture_Floor);
         if (selectedTextureCeiling != nullptr && previewTexture3 != NULL)
         {
             auto strCeil = ITextureSystem->FilenameFromHandle(selectedTextureCeiling->m_handle);
 
             previewTexture3 = texture_info.at(strCeil).texture_preview;
             ImGui::Image(previewTexture3, ImVec2(64, 64));
-             selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
+            // selectedTile->UpdateTexture(selectedTextureCeiling, TileTexture_Ceiling);
         }
         if (selectedTextureFloor != nullptr && previewTexture2 != NULL)
         {
@@ -286,16 +290,16 @@ void CEditor::drawMapView()
             if (selectedTextureCeiling != nullptr && previewTexture != NULL)
                 ImGui::SameLine();
             ImGui::Image(previewTexture2, ImVec2(64, 64));
-              selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
+             // selectedTile->UpdateTexture(selectedTextureFloor, TileTexture_Floor); //not too happy about how ceil/flr ended up, shoulda just been 2 textures
         }
     }
     if(selectedTile->m_nType != Level::Tile_Empty)
     {
-        TexturePicker("Wall", selectedTexture, previewTexture, primary_texture_preview, &textureFilter);
+        TexturePicker("Wall", selectedTile, selectedTexture, previewTexture, primary_texture_preview, &textureFilter, TileTexture_Primary);
         if (selectedTexture != nullptr && previewTexture != NULL)
         {
             ImGui::Image(previewTexture, ImVec2(64, 64));
-             selectedTile->UpdateTexture(selectedTexture);
+            
         }
     }
     textureFilter.Draw("Filter ##text");
@@ -340,7 +344,7 @@ void CEditor::drawMapView()
         }
     }
     // do a different tab for paint mode
-    TexturePicker("Paint", paintTexture, paintpreviewTexture, paint_texture_preview, &textureFilter);
+    TexturePicker("Paint", selectedTile, paintTexture, paintpreviewTexture, paint_texture_preview,  &textureFilter, -1);
     if (paintTexture != nullptr && paintpreviewTexture != NULL)
     {
         ImGui::Image(paintpreviewTexture, ImVec2(64, 64));
@@ -484,7 +488,6 @@ void CEditor::drawEntityView()
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     // there is an example for this in the imguidemo
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-    static ImVector<ImVec2> points;
     static ImVec2 scrolling(0.0f, 0.0f);
     static bool opt_enable_grid = true;
     static bool opt_enable_context_menu = true;
@@ -499,7 +502,7 @@ void CEditor::drawEntityView()
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
 
-    // Using InvisibleButton() as a convenience 1) it will advance the layout cursor and 2) allows us to use IsItemHovered()/IsItemActive()
+    
     ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();    // ImDrawList API uses screen coordinates!
     ImVec2 canvas_sz = ImGui::GetContentRegionAvail(); // Resize canvas to what's available
     if (canvas_sz.x < 50.0f)
@@ -516,26 +519,13 @@ void CEditor::drawEntityView()
     draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(50, 50, 50, 255));
     draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
-    // This will catch our interactions
-    // ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+ 
     const bool is_hovered = ImGui::IsItemHovered();                            // Hovered
     const bool is_active = ImGui::IsItemActive();                              // Held
     const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
     const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-    // Add first and second point
-    if (is_hovered && !adding_line && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-    {
-        points.push_back(mouse_pos_in_canvas);
-        points.push_back(mouse_pos_in_canvas);
-        adding_line = true;
-    }
-    if (adding_line)
-    {
-        points.back() = mouse_pos_in_canvas;
-        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-            adding_line = false;
-    }
+   
 
     // Pan (we use a zero mouse threshold when there's no context menu)
     // You may decide to make that threshold dynamic based on whether the mouse is hovering something etc.
@@ -552,16 +542,15 @@ void CEditor::drawEntityView()
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
     if (ImGui::BeginPopup("context"))
     {
-        if (adding_line)
-            points.resize(points.size() - 2);
-        adding_line = false;
-        if (ImGui::MenuItem("Remove one", NULL, false, points.Size > 0))
+       
+      
+        if (ImGui::MenuItem("todo", NULL, false, true))
         {
-            points.resize(points.size() - 2);
+            
         }
-        if (ImGui::MenuItem("Remove all", NULL, false, points.Size > 0))
+        if (ImGui::MenuItem("todo", NULL, false, true))
         {
-            points.clear();
+            
         }
         ImGui::EndPopup();
     }
@@ -609,7 +598,7 @@ void CEditor::drawEntityView()
         }
     }
 
-    // draw_list->PopClipRect();
+
     static bool pOpen = false;
 
     ImGui::EndChild();
@@ -650,14 +639,15 @@ void CEditor::drawResourceView()
     static std::string type_preview = "--";
     static bool view_textures = false;
     static bool view_other = false;
+    static bool view_mateditor = false;
     if (ImGui::BeginCombo("Type", type_preview.c_str(), 0))
     {
         ImGui::PushID("materialrscoption");
-        if (ImGui::Selectable("Materials", &view_textures))
+        if (ImGui::Selectable("Material Import", &view_textures))
         {
             view_textures = true;
             view_other = false;
-            type_preview = "Materials";
+            type_preview = "Material Import";
         }
         ImGui::PopID();
         ImGui::PushID("leveldatarscoption");
@@ -668,11 +658,21 @@ void CEditor::drawResourceView()
             type_preview = "Level Data";
         }
         ImGui::PopID();
+        ImGui::PushID("materialeditor");
+        if (ImGui::Selectable("Material Editor", &view_mateditor))
+        {
+            view_textures = false;
+            view_other = false;
+            type_preview = "Material Editor";
+        }
+        ImGui::PopID();
         ImGui::EndCombo();
     }
 
     if (view_textures)
         return drawMaterialView();
+    if(view_mateditor)
+        return drawMaterialEditor();
 
     ImGui::Text("Level Data View Goes Here");
 }
@@ -777,9 +777,202 @@ void CEditor::drawMaterialView()
     ImGui::Columns();
 }
 
-void CEditor::TexturePicker(const char *title, texture_t *&selectedTexture, SDL_Texture *&previewTexture, std::string &preview, ImGuiTextFilter *filter)
+void CEditor::drawMaterialEditor()
+{
+     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    ImGui::SeparatorText("Material Editor");
+   
+  
+    static ImGuiTextFilter filter;
+    static texture_t* selectedTexture = nullptr;
+    static SDL_Texture *previewTexture = NULL;
+    static std::string tex_name;
+    static std::string tex_filename;
+    static editor_texture_t* tex_info = nullptr;
+    ImGui::Columns(2, "##mateditor");
+    static const auto pickerSize = ImVec2(UI_W / 2.5, UI_H  * 0.85);
+    filter.Draw("Filter (inc,-exc)", pickerSize.x - 10);
+    if (ImGui::BeginListBox("Select Material", pickerSize))
+    {
+        for (const auto &entry : texture_info)
+        {
+            if (!filter.PassFilter(entry.first.c_str()))
+                continue;
+            ImGui::PushID(&entry);
+            std::string name = entry.first;
+            if (ImGui::Selectable(name.c_str(), selectedTexture == entry.second.texture))
+            {
+                selectedTexture = entry.second.texture;
+                tex_name = ITextureSystem->FilenameFromHandle(selectedTexture->m_handle);
+                previewTexture = entry.second.texture_preview;
+                tex_info = &(texture_info.at(tex_name));
+                const static auto subdir = IResourceSystem->GetResourceSubDir("material");
+                tex_filename = IResourceSystem->FindResource(subdir, tex_name);
+            }
+            ImGui::SameLine();
+            ImGui::Image(entry.second.texture_preview, ImVec2(32, 32));
+            ImGui::PopID();
+        }
+        ImGui::EndListBox();
+    }
+
+    ImGui::NextColumn();
+    if(selectedTexture == nullptr || tex_info == nullptr){
+        ImGui::Columns();  return;
+    }
+    ImGui::Text("%s / %x", tex_name.c_str(), selectedTexture->m_handle); ImGui::SameLine();
+    if (ImGui::Button("Save"))
+    {
+        IResourceSystem->SaveTextureDefinition();
+    }
+   
+    //SelectedTexture 
+    ImGui::Image(previewTexture, ImVec2(256 , 256));
+    ImGui::SameLine();
+    ImGui::Text("%s / %x", tex_name.c_str(), selectedTexture->m_handle);
+    ImGui::TextWrapped("%s", tex_filename.c_str());
+    ImGui::Text("Size -> { %ix%i }", selectedTexture->m_size.x,  selectedTexture->m_size.y);
+    auto clr = Render::TextureToSDLColor(selectedTexture->m_clrKey);
+    ImGui::Text("Mask Color {%i %i %i %i}", clr.r, clr.b, clr.g, clr.a);
+
+    static int v[4];
+    if(ImGui::CollapsingHeader("Edit ##mask"))
+    {
+        ImVec4 imclr = ImGui::ColorConvertU32ToFloat4(IM_COL32((uint8_t) v[0], (uint8_t)v[1], (uint8_t)v[2], (uint8_t)v[3]));
+        ImGui::ColorButton("##mask", imclr, ImGuiColorEditFlags_NoPicker, {32,32});
+
+        ImGui::InputInt4("Mask Color", v);
+        ImGui::SameLine(); 
+        
+        if(ImGui::SmallButton("Apply")){
+            clr = { (uint8_t) v[0], (uint8_t)v[1], (uint8_t)v[2], (uint8_t)v[3]};
+            selectedTexture->m_clrKey = Render::SDLColorToWorldColor(clr);
+        }
+    }
+
+    ImGui::Columns();
+}
+
+void CEditor::drawLightView()
+{
+     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    // there is an example for this in the imguidemo
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
+
+
+    static ImVec2 scrolling(0.0f, 0.0f);
+
+
+
+
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));     // Disable padding
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(50, 50, 50, 255)); // Set a background color
+    ImGui::BeginChild("canvas", ImVec2(0.0f, 0.0f), true, ImGuiWindowFlags_NoMove);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
+
+    
+    ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();    // ImDrawList API uses screen coordinates!
+    ImVec2 canvas_sz = ImGui::GetContentRegionAvail(); // Resize canvas to what's available
+    if (canvas_sz.x < 50.0f)
+        canvas_sz.x = 50.0f;
+    if (canvas_sz.y < 50.0f)
+        canvas_sz.y = 50.0f;
+
+    // canvas_sz = {0.f,0.f};
+
+    const double x_mod = 0.5, y_mod = 0.7;
+    ImVec2 canvas_p1 = ImVec2(canvas_p0.x + (canvas_sz.x * x_mod), canvas_p0.y + (canvas_sz.y * y_mod));
+
+    // Draw border and background color
+    ImGuiIO &io = ImGui::GetIO();
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+   
+ 
+    const bool is_hovered = ImGui::IsItemHovered();                            // Hovered
+    const bool is_active = ImGui::IsItemActive();                              // Held
+    const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
+    const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  
+
+    const float GRID_STEP = 32.0f;
+    auto &level = ILevelSystem->m_Level;
+    auto &world = level->world;
+
+
+    for (auto &row : world)
+    {
+
+        for (auto &tile : row)
+        {
+
+            auto hTexture = tile.m_hTexture;
+            if (tile.m_nType == Level::Tile_Empty)
+                hTexture = tile.m_hTextureFloor;
+            auto name = ITextureSystem->FilenameFromHandle(hTexture);
+            auto editor_text = texture_info.at(name);
+            auto pos = tile.m_vecPosition;
+
+            float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
+            float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
+            ImGui::PushID(&tile);
+            ImGui::SetCursorPos(ImVec2(pos.x + GRID_STEP * pos.x, pos.y + GRID_STEP * pos.y));
+
+            draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
+            if (ImGui::InvisibleButton("##tile", {GRID_STEP, GRID_STEP}))
+            { // ImGui::ImageButton
+                engine->log("%s", name.c_str());
+            }
+            ImGui::PopID();
+        }
+    }
+
+
+    static bool pOpen = false;
+
+    ImGui::EndChild();
+    ImGui::SetNextWindowSize(ImVec2(UI_W / 3.5, UI_H - 150), ImGuiCond_FirstUseEver);
+    static bool once = false;
+    if(!once){
+        ImGui::SetNextWindowPos(ImVec2(SCREEN_WIDTH_FULL * 0.7, SCREEN_HEIGHT_FULL * 0.05)); once = true;
+    }
+        
+    if (!ImGui::Begin("Lighting Editor", &pOpen))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+    if (ImGui::BeginTable("##sssplit", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
+    {
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableSetupColumn("Light");
+        ImGui::TableSetupColumn("Properties");
+        ImGui::TableHeadersRow();
+
+        // Iterate placeholder objects (all the same data)
+      //  for (auto &ent : IEntitySystem->iterableList())
+        //    ShowEntityObject(ent, ImVec2{canvas_p0.x, canvas_p0.y}, draw_list);
+
+        ImGui::EndTable();
+    }
+    ImGui::PopStyleVar();
+    ImGui::End();
+}
+
+void CEditor::TexturePicker(const char *title, tile_t* selectedTile, texture_t *&selectedTexture,
+                 SDL_Texture *&previewTexture, std::string &preview, ImGuiTextFilter *filter, uint8_t updatetype)
 {
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
+  
 
     if (ImGui::BeginCombo(title, preview.c_str(), ImGuiComboFlags_HeightLarge))
     {
@@ -794,6 +987,8 @@ void CEditor::TexturePicker(const char *title, texture_t *&selectedTexture, SDL_
                 selectedTexture = entry.second.texture;
                 preview = ITextureSystem->FilenameFromHandle(selectedTexture->m_handle);
                 previewTexture = entry.second.texture_preview;
+                if(updatetype != (uint8_t)-1)
+                    selectedTile->UpdateTexture(selectedTexture, (Tile_Texture) updatetype);
                 // m_texLastSelected = selectedTexture;
             }
             ImGui::SameLine();

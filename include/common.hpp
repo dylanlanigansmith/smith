@@ -24,3 +24,5 @@
 #define RAD2DEGNUM 57.295779513082f
 
 #define quote(x) #x
+
+

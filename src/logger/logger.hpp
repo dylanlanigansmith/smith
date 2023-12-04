@@ -2,12 +2,16 @@
 #include <common.hpp>
 #include <iostream>
 #include <util/rtti.hpp>
+
+#include <util/constexpr_file.hpp>
 //apologies about this 
 //len('/home/dylan/code/smith/') == 23
 #define SOURCE_PATH_SIZE 23
 #define __FILENAME__ (__FILE__ + SOURCE_PATH_SIZE)
 
-#define Error(str, ...) error(__FILENAME__, __LINE__, str, __VA_ARGS__) 
+
+
+#define Error(str, ...) error(__FILE__, __LINE__, str, __VA_ARGS__) 
 
 class CLogger
 {
@@ -34,7 +38,7 @@ private:
     static void _logf(const char* fmt, ...) __attribute__((format(printf, 1, 2))); 
     static void _log(std::string msg);
     static void _logfile(const std::string msg);
-
+    static void _logclr(std::string msg, uint8_t clr = 0);
     static std::vector<std::string> history;
     void formatName();
 

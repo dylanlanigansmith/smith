@@ -52,8 +52,10 @@ void CBaseEnemy::CreateRenderable()
 void CBaseEnemy::SetupTexture(const std::string &name)
 {
     m_Texture = engine->TextureSystem()->FindOrCreatetexture(name);
+    SDL_SetSurfaceColorKey(m_Texture->m_texture, SDL_TRUE, Color::Cyan());
     m_hTexture = m_Texture->m_handle;
     m_vecTextureSize = m_Texture->m_size;
+    log("%i %i", m_vecTextureSize.w(), m_vecTextureSize.h());
 }
 void CBaseEnemy::SetUpAnimation()
 {
@@ -309,14 +311,19 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
                 int d = (y - screen.y) * 256 - SCREEN_HEIGHT * 128 + renderSize.h() * 128; // 256 and 128 factors to avoid floats
                 tex.y = ((d * m_vecTextureSize.y) / renderSize.h()) / 256;
 
-                uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
-                if(!uColor) continue;
-                SDL_Color color = Render::TextureToSDLColor(uColor);
-                if(Render::ColorEqualRGB(color, {0, 255, 255, 255})) continue;
-                if(color.a < 45 && color.g > 244 && color.b > 244) continue;
-                if(m_iHealth < 80) Render::DarkenSDLColor(color, 1.2f);
-                else if(m_iHealth < 50) Render::DarkenSDLColor(color, 2.f);
-                else if(m_iHealth < 20) Render::DarkenSDLColor(color, 3.f);
+                Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
+
+                
+                // log("%s", color.s().c_str());
+                if(color == Color::None()) continue;
+
+                if(color == Color::Cyan()) continue;
+           
+                if(color.r() < 45 && color.g() > 244 && color.b() > 244) continue;
+                if(m_iHealth < 80) color /= 1.2f;
+                else if(m_iHealth < 50) color /= 2.f;
+                else if(m_iHealth < 20) color /= 3.5f;
+               
                 renderer->SetPixel(stripe, y, color);
 
             }

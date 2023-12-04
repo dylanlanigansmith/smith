@@ -51,7 +51,7 @@ void CTextureSystem::OnLoopStart()
    // IResourceSystem->SaveTextureDefinition();
 }
 
-SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path)
+SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path, uint32_t key)
 {
      /*
     Load an image from a filesystem path into a software surface.
@@ -70,6 +70,7 @@ SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path)
        there is an equivalent call to load images directly into an SDL_Texture for use by the GPU without using a software surface:
         call IMG_LoadTexture() instead. When done with the returned surface, the app should dispose of it with a call to SDL_DestroySurface().
     */
+
     SDL_Surface *load = NULL;
     SDL_DestroySurface(load); // idk the example did this
 
@@ -78,10 +79,15 @@ SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path)
         log("failed loading texture file %s !", path.c_str());
         return NULL;
     }
+   
     SDL_Surface *optimized = NULL;
     //  SDL_DestroySurface(optimized);
      optimized = SDL_ConvertSurfaceFormat(load, SMITH_PIXELFMT);
       // https://lazyfoo.net/tutorials/SDL/06_extension_libraries_and_loading_other_image_formats/index2.php
+   
+    if(key != 0u){
+        SDL_SetSurfaceColorKey(optimized, SDL_TRUE, key);
+    }
 
     SDL_DestroySurface(load);
     if(optimized != NULL)
@@ -123,6 +129,7 @@ hTexture CTextureSystem::LoadTexture(const std::string &name)
 
     if(!AddTexture(name, new_texture)) return HTEXTURE_INVALID;
 
+    new_texture->m_size = {new_texture->m_texture->w, new_texture->m_texture->h};
     return handle;
 }
 
@@ -130,8 +137,9 @@ bool CTextureSystem::LoadFromDefinition(const CTexture& def)
 {
     auto resource = TextureNameToFile(def.m_szName);
     if(resource.empty()) return false;
+    
 
-    auto optimized = LoadAndOptimizeSurface(resource);
+    auto optimized = LoadAndOptimizeSurface(resource, def.m_clrKey);
     if(optimized == NULL) return false;
 
     hTexture handle = GenerateHandle(def.m_szName);
@@ -141,6 +149,7 @@ bool CTextureSystem::LoadFromDefinition(const CTexture& def)
 
     texture_t* new_texture = new texture_t(def.Data());
     new_texture->m_texture = optimized;
+     new_texture->m_size = {new_texture->m_texture->w, new_texture->m_texture->h};
     if(!AddTexture(def.m_szName, new_texture, false)) return false;
 
 
@@ -167,14 +176,19 @@ hTexture CTextureSystem::FindTexture(const std::string& name)
 
 texture_t* CTextureSystem::FindOrCreatetexture(const std::string& name)
 {
+    log("finding or creating %s ", name.c_str());
     auto search = FindTexture(name);
-    if(search != ErrorTextureHandle())
-        return GetTexture(search);
+    if(search != ErrorTextureHandle()){
+        log("found %s %x", name.c_str(), search);   
+        return GetTextureData(search);
+    }
+        
     
     auto hAdded = LoadTexture(name);
     if(!IsHandleValid(hAdded))
-        Error("could not findorcreate texture %s", name.c_str());
-    return GetTexture(hAdded);
+        Error("could not findorcreate texture %s, tried loading", name.c_str());
+    log("findorcreate: created texture %s, %x", name.c_str(), hAdded);
+    return GetTextureData(hAdded);
 }
 
 texture_t *CTextureSystem::GetTexture(hTexture handle)
@@ -188,6 +202,7 @@ texture_t* CTextureSystem::GetTextureData(hTexture handle)
 {
      if (!IsHandleValid(handle))
     {
+        Error("Invalid Handle Requested %x", handle);
         return ErrorTexture(); //GetTexture(ErrorTexture());
     }
     texture_t* gotTexture =  nullptr;
