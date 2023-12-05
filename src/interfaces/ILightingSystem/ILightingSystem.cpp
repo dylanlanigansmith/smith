@@ -11,6 +11,8 @@ Color CLightingSystem::CalculateLightInfluence(CLight *light, const Vector &poin
 void CLightingSystem::OnEngineInitFinish()
 {
     Debug(false);
+    StartLogFileForInstance("lighting.log");
+
 }
 
 void CLightingSystem::SetupBlending()
@@ -44,12 +46,9 @@ void CLightingSystem::RegenerateLighting()
 
 void CLightingSystem::ApplyLightForTile(tile_t *tile, Color src, const Vector &worldpos, int x, int y)
 {
-    auto &tile_pos = tile->m_vecPosition;
-    auto vox_pos = ivec3{
-        std::clamp((worldpos.x - tile_pos.x) * 2.f, 0.f, 2.f), std::clamp((worldpos.y - tile_pos.y) * 2.f, 0.f, 2.f), std::clamp(worldpos.z, 0.f, 2.f)};
-
+    auto vox_pos = tile->worldToSector(worldpos);
     // need to determine pos based on ray dir and mappos, and then z via  drawstart/end
-
+    log("world{%.3f %.3f %.3f}, vox[%i %i %i], screen(%i %i) tile: [%i] @ [%i,%i]", worldpos.x, worldpos.y, worldpos.z, vox_pos.x, vox_pos.y, vox_pos.z, x, y, tile->m_nType, tile->m_vecPosition.x, tile->m_vecPosition.y);
     auto vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
 
     SetPixel(x, y, vox->m_light);
@@ -107,7 +106,7 @@ void CLightingSystem::CalculateLighting()
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     Timer_t gen_time(IEngineTime->GetCurTime());
     int num = 0;
-
+    SetLogFileOnly(true);
     auto &level = ILevelSystem->m_Level;
     auto &world = level->world;
      for(auto& entry : light_list){
@@ -120,7 +119,7 @@ void CLightingSystem::CalculateLighting()
             for (int x = 0; x < TILE_SECTORS; ++x)
                 for (int y = 0; y < TILE_SECTORS; ++y)
                     for (int z = 0; z < TILE_SECTORS; ++z)
-                        tile.sectors[x][y][z].m_light = MaxDark();
+                        tile.sectors[x][y][z].m_light = Color::None();
         }
     }
 
@@ -133,6 +132,9 @@ void CLightingSystem::CalculateLighting()
             num++;
         }
     }
+    //just add a pass that fixes all the wall tiles??
+
+
     gen_time.Update(IEngineTime->GetCurTime());
     auto tile_time = gen_time.Elapsed();
     log("made lightdata for %i tiles, %i voxels in %i ms", num, num * 9, tile_time.ms());
@@ -144,6 +146,7 @@ void CLightingSystem::CalculateLighting()
             num++;
         }
     }
+    SetLogFileOnly(false);
     for(auto& entry : light_list){
         log("light %s cast %i rays", entry.first.c_str(), entry.second->rays.size());
     }
@@ -152,7 +155,7 @@ void CLightingSystem::CalculateLighting()
 
     log("Built lighting info in %i ms for map %s with #%li lights", gen_time.Elapsed().ms(), ILevelSystem->m_Level->getName().c_str(), light_list.size());
 
-    
+    SetLogFileOnly(true);
 }
 void CLightingSystem::CalculateTileLightData(tile_t *tile)
 {
@@ -187,8 +190,8 @@ void CLightingSystem::CalculateLerpLightData(tile_t *tile)
                 FindNeighborColors(tile, voxel, x, y, z);
                 voxel->m_light = CombineWithNeighbors(voxel);
                 
-                if(tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
-                    log("LERP %s %i %i %i", voxel->m_light.s().c_str(), x, y, z);
+               // if(tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
+                   // log("LERP %s %i %i %i", voxel->m_light.s().c_str(), x, y, z);
             }
 }
 
@@ -205,7 +208,8 @@ Color CLightingSystem::getNeighborColor(tile_t *tile, const ivec3 &rel, int dir)
         auto nbr_tile = ILevelSystem->GetTileNeighbor(tile, dir);
         if (nbr_tile == nullptr)
             return Color::None();
-
+        if(tile->m_nType != Level::Tile_Empty && nbr_tile->m_nType != Level::Tile_Empty)
+            return Color::None();
         ivec3 offset = {3, 3, 3};
         ivec3 nbr_pos = (rel + offset) % 3;
 
@@ -296,11 +300,56 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     auto light_pos = light->GetPosition();
     auto delta = light_pos - point;
-    auto light_tile = ILevelSystem->GetTileAt(light_pos.x, light_pos.y);
+    auto light_tile = ILevelSystem->GetTileAt(IVector2::Rounded(light_pos.x, light_pos.y));
     Vector2 rayDir = delta.Normalize();
     Vector2 ray = light_pos;
+    auto pttile = ILevelSystem->GetTileAt(IVector2::Rounded(point));
+    if(pttile == nullptr) return false;
+    if(!pttile->isEmpty()){
 
-  //idk man just use DDA and it will work i bet
+        delta = point - light_pos;
+        rayDir = delta.Normalize();
+        
+        ray = point;
+        auto rel2 = Vector2(pttile->m_vecPosition.x - point.x, pttile->m_vecPosition.y - point.y) ;
+        Vector rel = (rel2.x, rel2.y, point.z);
+         auto vox_pos = ivec3{
+            std::clamp((rel.x) * 2.f, 0.f, 2.f), 
+            std::clamp((rel.y) * 2.f, 0.f, 2.f), 
+            std::clamp(rel.z, 0.f, 2.f)
+        };
+        if(rel.x == 1 && rel.y == 1) //center point
+            return false;
+
+
+        int hit = 0;
+        tile_t* lastTile = pttile;
+        while(hit == 0)
+        {
+            ray = ray - (rayDir * step);
+            auto ray_tile = ILevelSystem->GetTileAt(IVector2::Rounded(ray)) ;
+             lastTile = ray_tile;
+            if (ray_tile == nullptr){
+                return false;
+             }
+            if(ray_tile != pttile){
+                hit = 1; break;
+            }
+        }
+        if(lastTile->isEmpty())
+        {
+            float len = (ray - point).Length();
+            if(len < 0.4f){
+               // log("working");
+                return true;
+            } else{
+               // log("%i %i %.f", vox_pos.x, vox_pos.y, len);
+                return false;
+            }
+        }
+
+
+    }
 
   /*
   WALLS CANT LOOK INSIDE THEMSELVES FOR LIGHTING INFO!!!!
@@ -309,7 +358,7 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
   */
     while (Vector(ray - light_pos ).Length2D() <= maxDistance)
     {
-        ray = ray + (rayDir * step);
+        ray = ray - (rayDir * step);
 
        dbg("ray pos[%.1f %.1f] goal [%.1f %.1f] start [%.1f %.1f]", ray.x, ray.y, point.x, point.y, light_pos.x, light_pos.y);
 
@@ -322,14 +371,18 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
        
         if (tile != nullptr)
         {
-             if(ILevelSystem->GetTileAt(IVector2(ray.x + step, ray.y))->m_nType != Level::Tile_Empty ){ //bad exec right idea
-                if(ILevelSystem->GetTileAt(IVector2(ray.x , ray.y + step))->m_nType != Level::Tile_Empty ){
-                     light->rays.push_back( {ray, Vector2(point), false });
-                       // return false;
-                }
-             }
+             
             if (tile->m_nType != Level::Tile_Empty)
             {
+                if(ILevelSystem->GetTileAt(IVector2::Rounded(ray + (rayDir * step)))->m_nType == Level::Tile_Empty ){ //bad exec right idea
+                    if(ILevelSystem->GetTileAt(IVector2::Rounded(point)) == tile){
+                        //light->rays.push_back( {ray, Vector2(point), true }); return true;
+                    }
+
+                     
+                }
+
+
                 light->rays.push_back( {ray, Vector2(point), false });
                 return false;
                
@@ -381,6 +434,8 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
         if (distance <= range )
         {
            
+
+
             if (distance <= 0.01f || CastRayToPoint(light, point, distance, 0.5f))
             {
                  

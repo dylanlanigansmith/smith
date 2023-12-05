@@ -100,6 +100,18 @@ struct tile_t
                 return false;
         }
     }
+    inline bool isEmpty(){
+        return (m_nType == Level::Tile_Empty);
+    }
+    inline ivec3 worldToSector(const Vector& worldpos){
+        auto &tile_pos = m_vecPosition;
+        return ivec3{
+            std::clamp((worldpos.x - tile_pos.x) * 3.f, 0.f, 2.f), 
+            std::clamp((worldpos.y - tile_pos.y) * 3.f, 0.f, 2.f), 
+            std::clamp(worldpos.z, 0.f, 2.f)
+        };
+        
+    }
 
     void UpdateTexture(texture_t* newTexture, Tile_Texture which = TileTexture_Primary)
     {
@@ -141,7 +153,7 @@ struct tile_t
         return Vector(centerX, centerY, centerZ);
     }
 
-    voxel_t* getVoxelAt(int x, int y, int z){
+    inline voxel_t* getVoxelAt(int x, int y, int z){
       //  assert( 0 <= x && x < 3 && 0 <= y && y < 3 && 0 <= z && z < 3);
       if(! ( 0 <= x && x < 3 && 0 <= y && y < 3 && 0 <= z && z < 3)){
         x = std::clamp(x,0,2); y = std::clamp(y,0,2);z = std::clamp(z,0,2);

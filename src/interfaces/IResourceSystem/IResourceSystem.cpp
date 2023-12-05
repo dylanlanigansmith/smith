@@ -18,7 +18,7 @@ void CResourceSystem::OnCreate()
     else
         log("Failed to find home directory");
 
-    m_szResourcePath = m_szHomeDir + "/code/smith/resource";
+    m_szResourcePath = m_szHomeDir + LOG_RESOURCE_PATH;
     log("using %s as resource folder", m_szResourcePath.c_str());
 }
 

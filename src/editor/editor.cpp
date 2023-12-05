@@ -1006,14 +1006,17 @@ void CEditor::drawLightView()
         draw_list->AddCircle(ui_pos, 18.f, Editor::ColorToIU32(light->GetColor()), 8, 3.f);
         draw_list->AddCircle(ui_pos, light->GetRange() * GRID_STEP, Editor::ColorToIU32(light->GetColor(), true), 32, 0.5f);
     }
-    static bool drawPoints = true;
-    for(auto& pt : ILightingSystem->tested_points){
-        auto  pos = pt;
-         float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
-        float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
-        auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
-        draw_list->AddCircle(ui_pos, 3.f, Editor::ColorToIU32(Color::Olive()), 6, 1.f);
+    static bool drawPoints =false;
+    if(drawPoints){
+        for(auto& pt : ILightingSystem->tested_points){
+            auto  pos = pt;
+            float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
+            float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
+            auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
+            draw_list->AddCircle(ui_pos, 3.f, Editor::ColorToIU32(Color::Olive()), 6, 1.f);
+        }
     }
+    
 
     static bool pOpen = false;
 
@@ -1036,9 +1039,7 @@ void CEditor::drawLightView()
         {
             light_params* p = &(ILightingSystem->params);
             ImGui::Text("Light Params");
-            if(ImGui::Button("Regenerate Lighting")){
-                ILightingSystem->RegenerateLighting();
-            }
+           
             ImGui::SliderFloat("A", &p->a, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("B", &p->b, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("Min Intensity", &p->minIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
@@ -1101,6 +1102,7 @@ void CEditor::drawLightView()
         }
         if(ImGui::BeginTabItem("Rays"))
         {   
+             ImGui::Checkbox("Draw Points", &drawPoints);
             ImGui::Checkbox("Draw Rays", &drawRays);
             ImGui::Checkbox("Hits only", &drawHitsOnly);
             ImGui::Checkbox("Misses only", &drawMissesOnly);
@@ -1111,7 +1113,10 @@ void CEditor::drawLightView()
             ImGui::EndTabItem();
         }
     } ImGui::EndTabBar();
-
+    ImGui::SameLine();
+     if(ImGui::Button("Regenerate Lighting")){
+                ILightingSystem->RegenerateLighting();
+            }
     
     
     ImGui::PopStyleVar();

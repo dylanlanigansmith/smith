@@ -28,7 +28,7 @@ public:
     CLightingSystem() : CBaseInterface("ILightingSystem") { }
     ~CLightingSystem() override {}
     virtual void OnCreate() override {}
-    virtual void OnShutdown() override {}
+    virtual void OnShutdown() override { EndLogFileForInstance(); }
     virtual void OnLoopStart() override {}
     virtual void OnLoopEnd() override {}
     virtual void OnRenderStart() override{}
@@ -52,7 +52,7 @@ public:
         light->SetIntensity(m_flIntensity);
         light->SetRange(m_flRange);
         light_list.emplace(light->GetName() + std::to_string(light_list.size()), light);
-        log("Added light %s, %s, pos{%.1f, %.1f, %.1f}, brt %.3f, int %.3f, rng%.3f", 
+        status("Added light %s, %s, pos{%.1f, %.1f, %.1f}, brt %.3f, int %.3f, rng%.3f", 
                 light->GetName().c_str() ,m_color.s().c_str(), m_vecPosition.x, m_vecPosition.y, m_vecPosition.z, light->GetBrightness(), light->GetIntensity(), light->GetRange());
         return ptr;
     }
