@@ -1,7 +1,8 @@
 #include "renderer.hpp"
 
 #include <types/Vector.hpp>
-
+#include <thread>
+#include <chrono>
 #include <engine/engine.hpp>
 
 #include <GL/gl.h>
@@ -18,7 +19,7 @@ void CRenderer::Shutdown()
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
   SDL_DestroyTexture(m_renderTexture);
-  
+   SDL_DestroyTexture(m_lightTexture);
 
   SDL_DestroyRenderer(m_renderer);
   log("Destroyed Renderer");
@@ -48,8 +49,33 @@ bool CRenderer::Create()
 
   m_renderTexture = SDL_CreateTexture(get(), SMITH_PIXELFMT, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+  m_lightTexture = SDL_CreateTexture(get(), SMITH_PIXELFMT, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
   
+  SDL_SetTextureScaleMode(m_renderTexture, SDL_SCALEMODE_BEST);
   return ret;
+}
+
+void CRenderer::OnEngineInitFinish()
+{
+  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+  SetLightingRenderInfo();
+  ILightingSystem->SetupBlending();
+
+  ILightingSystem->CalculateLighting();
+}
+
+void CRenderer::SetLightingRenderInfo()
+{
+  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+  ILightingSystem->m_lightsurface = m_lightsurface;
+  ILightingSystem->m_lighttexture = m_lightTexture;
+  
+}
+
+void CRenderer::UpdateLighting()
+{
+  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+  ILightingSystem->m_lightsurface = m_lightsurface;
 }
 
 bool CRenderer::CreateRendererLinuxGL()
@@ -85,16 +111,41 @@ bool CRenderer::CreateRendererLinuxGL()
 void CRenderer::Loop()
 {
 
-  SDL_FRect scale = {0.f,0.f, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL};
+  const SDL_FRect scale = {0.f,0.f, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL};
 
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
-  LoopWolf();
+   SDL_LockTextureToSurface(m_lightTexture, NULL, &m_lightsurface); //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
+   SetLightingRenderInfo();
+  if(SDL_MUSTLOCK(m_surface)) //seems to not need to
+    SDL_LockSurface(m_surface);
+
+  pixels = (uint32_t *)m_surface->pixels;
+
+
+ // std::thread half(&CRenderer::LoopWolf,this,0, SCREEN_WIDTH / 2);
+  m_bThreadDone = false;
+ 
+  LoopWolf(0, SCREEN_WIDTH);
+
+  //while(!m_bThreadDone && true){
+  //  std::this_thread::sleep_for(std::chrono::microseconds(15));
+ // }
+  //if(half.joinable())
+  //  half.join();
+  
+  
+
+  if(m_surface->locked == SDL_TRUE)
+    SDL_UnlockSurface(m_surface);
   SDL_UnlockTexture(m_renderTexture);
- //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
-  if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);
-    
+
+  SDL_UnlockTexture(m_lightTexture);
+ 
+  if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);  
   else SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
-    
+  
+  if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_lightTexture, NULL, NULL);  
+  else SDL_RenderTexture(get(), m_lightTexture, NULL, &scale);
  
   RunImGui();
  

@@ -7,7 +7,34 @@
 #include <interfaces/interfaces.hpp>
 #include <interfaces/IEngineTime/IEngineTime.hpp>
 #include <util/misc.hpp>
-void CRenderer::LoopWolf()
+
+/*
+Goals for today:
+
+modularize rendering 
+alpha for thin walls
+
+tile and texture flags
+
+fix animation positions
+make gun a viewmodel 
+
+ensure scaling always works 
+bonus if u add a settings mode
+mipmap ceilings
+
+
+then finally:
+light texture and blending
+
+
+
+
+*/
+
+
+
+void CRenderer::LoopWolf(int minX, int maxX)
 {
   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
   static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
@@ -20,9 +47,7 @@ void CRenderer::LoopWolf()
   ITextureSystem->GetTextureSize(&textW, &textH);
 
  // SDL_SetRenderTarget(get(), NULL);
-  if(SDL_MUSTLOCK(m_surface))
-    SDL_LockSurface(m_surface);
-  pixels = (uint32_t *)m_surface->pixels;
+ 
 
   auto player = IEntitySystem->GetLocalPlayer();
   m_Camera = &player->m_camera;
@@ -35,10 +60,10 @@ void CRenderer::LoopWolf()
   int h = SCREEN_HEIGHT;
   IVector2 screen(w, h);
 
-  DrawFloorCeiling(player, textW, textH, w, h);
+  DrawFloorCeiling(player, textW, textH, w, h,minX, maxX);
 
   // Draw Walls
-  for (int x = 0; x < w; x++)
+  for (int x = minX; x < maxX; x++)
   {
     bool didDraw = false;
     Vector2 camera;
@@ -115,28 +140,9 @@ void CRenderer::LoopWolf()
       if (tile->IsThinWall())
       {
         hit = 3;
-        Line_t wall = {{0, 0}, {0, 0}};
+        
         auto p = tile->m_vecPosition;
-        switch (type)
-        {
-
-        case Level::Tile_WallN:
-          wall = {{p.x, p.y}, {p.x + 1.0, p.y}}; side = 0;
-          break;
-        case Level::Tile_Door:
-        case Level::Tile_WallE:
-          wall = {{p.x + 1.0, p.y}, {p.x + 1.0, p.y + 1.0}}; side = 1;
-          break;
-        case Level::Tile_WallS:
-          wall = {{p.x, p.y + 1}, {p.x + 1.0, p.y + 1.0}}; side = 0;
-          break;
-        case Level::Tile_WallW:
-          wall = {{p.x, p.y}, {p.x, p.y + 1.0}}; side = 1;
-          break;
-        default:
-          Error("bad thinwall type %i", type);
-          break;
-        };
+        auto wall = Render::GetLineForWallType(p, tile->m_nType, &side);
         Vector2 rayPos = {mapPos.x, mapPos.y};
         Vector2 startPos = playerPos;
         Ray_t ray = {
@@ -207,8 +213,11 @@ void CRenderer::LoopWolf()
        // dbg("pDist%f %i mappos{%i %i} ist{%0.2f %0.2f} %f, %i", perpWallDist, side, mapPos.x, mapPos.y,intersect.x, intersect.y, wallX, tex.x); 
         double stepTex = 1.0 * textH / lineHeight;
         double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
-        auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
-
+        auto material = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y);
+        auto texture = material->m_texture;
+        if(material->isTransparent()){
+          //keep drawing -> need to break this into a function it is getting ridonk
+        }
         auto tile = ILevelSystem->GetTileAt(mapPos);
         //bool hasBulletHole = (tile->m_nDecals > 0);
       
@@ -223,14 +232,19 @@ void CRenderer::LoopWolf()
 
           uint32_t *pixelsT = (uint32_t *)texture->pixels;
           Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
-
+          if(color.a() == 0u) continue;
         
           //removed: bullet holes went here
 
           if (side == 1) // make color darker for y-sides
             color /= 0.5f;
+          if(x > maxX) continue;
+
+               //log("{%i %i} { %.1f,  %.1f,  %.4f}, %i %i ", mapPos.x, mapPos.y,wp.x,wp.y,wp.z);
+          float lightH =  1.0 - ((float) (y - drawStart) /  (float) (drawEnd - drawStart ));
       
-      
+          Vector wp = Vector(intersect.x - (step.x / 3.f), intersect.y - (step.y / 3.f), lightH * 2.f );
+          ILightingSystem->ApplyLightForTile(tile, color,wp, x, y);
           SetPixel(x,y, color);
           didDraw = true;
    
@@ -289,7 +303,7 @@ void CRenderer::LoopWolf()
   
     constexpr Color hole_color(0, 0, 0, 175);
 
-    Color light = ILightingSystem->GetLightForTile(tile);
+   
     // if(hasBulletHole) log("%i %i", mapPos.x, mapPos.y);
     for (int y = drawStart; y < drawEnd; y++)
     {
@@ -302,7 +316,7 @@ void CRenderer::LoopWolf()
       uint32_t *pixelsT = (uint32_t *)texture->pixels;
       Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
 
-     color = ILightingSystem->ApplyLightForTile(tile, color);
+      
 
       if (hasBulletHole && 22 < tex.y && tex.y < 42)
       {
@@ -337,61 +351,31 @@ void CRenderer::LoopWolf()
       }
       if (side == 1) // make color darker for y-sides
         color /= 0.5f;
+     
+
+     
       
+        //log("{%i %i} { %.1f,  %.1f,  %.4f}, %i %i ", mapPos.x, mapPos.y,wp.x,wp.y,wp.z);
+      float lightH =  1.0 - ((float) (y - drawStart) /  (float) (drawEnd - drawStart ));
       
+      Vector wp = Vector((mapPos.x + wallX) - (step.x / 3.f), mapPos.y - (step.y / 3.f), lightH * 2.f );
+      ILightingSystem->ApplyLightForTile(tile, color,wp, x, y);
       SetPixel(x,y, color);
      
     }
     ZBuffer[x] = perpWallDist;
   }
-  // draw renderable entities
-  int numSprites = IEntitySystem->NumRenderables();
-  std::vector<std::pair<double, uint32_t>> render_list;
-
-  auto player_pos = player->GetPosition();
-  for (auto ent : IEntitySystem->iterableList())
-  {
-    if (ent->IsRenderable() && !ent->IsLocalPlayer())
-    {
-      auto entPos = ent->GetPosition();
-      double distanceSqr = Vector(player_pos - entPos).LengthSqr();
-      render_list.push_back({distanceSqr, ent->GetID()});
-    }
+  if(minX > 200){
+  //  m_bThreadDone = true;
+    return;
   }
-  assert(numSprites == render_list.size()); // no longer needed
-  std::sort(render_list.begin(), render_list.end(),
-            [](const std::pair<double, uint32_t> &a, const std::pair<double, uint32_t> &b)
-            {
-              return a.first > b.first; // Sorting in descending order based on the double value
-            });
-  for (const auto &entry : render_list)
-  {
-    auto ent = IEntitySystem->GetEntity<CBaseRenderable>(entry.second);
-    if (!ent)
-      continue;
-    ent->Render(this);
-  }
-  // render localplayer stuff
-  player->Render(this);
+    
 
-  // draw crosshair
-
-  int crosshair_x = SCREEN_WIDTH / 2;
-  int crosshair_y = SCREEN_HEIGHT / 2;
-  constexpr Color crosshair_color = Color::White();
-  SetPixel(crosshair_x, crosshair_y,  crosshair_color);
-  for (int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
-    for (int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)
-      SetPixel( x, y,  crosshair_color);
-  for (int y = crosshair_y - 4; y <= crosshair_y + 4; ++y)
-    for (int x = crosshair_x - 1; x <= crosshair_x + 1; ++x)
-      SetPixel(x, y,  crosshair_color);
-
-  if(m_surface->locked == SDL_TRUE)
-    SDL_UnlockSurface(m_surface);
+ RenderSprites(player);
+  
 }
 
-void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h)
+void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h,int minX, int maxX)
 {
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
@@ -443,8 +427,14 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
     float floorX = player->GetPosition().x + rowDistance * rayDirX0;
     float floorY = player->GetPosition().y + rowDistance * rayDirY0;
 
-    for (int x = 0; x < SCREEN_WIDTH; ++x)
+    for (int x = 0; x < w; ++x)
     {
+      if(x < minX) {
+        floorX += floorStepX;
+      floorY += floorStepY;
+        continue;
+      
+      }
       // the cell coord is simply got from the integer parts of floorX and floorY
       int cellX = (int)(floorX);
       int cellY = (int)(floorY);
@@ -481,7 +471,8 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
       
       uint32_t *pixelsT = (uint32_t *)texture->pixels;
       Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
-       color = ILightingSystem->ApplyLightForTile(tile, color);
+
+       ILightingSystem->ApplyLightForTile(tile, color, {floorX - floorStepX, floorY - floorStepY, (is_floor) ? 0.15f : 1.85f }, x, y);
      // SDL_Color color = Render::TextureToSDLColor(uColor);
 
       if (is_floor)
@@ -493,4 +484,57 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
       pixels[index] = color;
     }
   }
+
+  
+}
+
+
+
+void CRenderer::RenderSprites(CPlayer* player)
+{
+   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+ 
+   // draw renderable entities
+  int numSprites = IEntitySystem->NumRenderables();
+  std::vector<std::pair<double, uint32_t>> render_list;
+
+  auto player_pos = player->GetPosition();
+  for (auto ent : IEntitySystem->iterableList())
+  {
+    if (ent->IsRenderable() && !ent->IsLocalPlayer())
+    {
+      auto entPos = ent->GetPosition();
+      double distanceSqr = Vector(player_pos - entPos).LengthSqr();
+      render_list.push_back({distanceSqr, ent->GetID()});
+    }
+  }
+  assert(numSprites == render_list.size()); // no longer needed
+  std::sort(render_list.begin(), render_list.end(),
+            [](const std::pair<double, uint32_t> &a, const std::pair<double, uint32_t> &b)
+            {
+              return a.first > b.first; // Sorting in descending order based on the double value
+            });
+  for (const auto &entry : render_list)
+  {
+    auto ent = IEntitySystem->GetEntity<CBaseRenderable>(entry.second);
+    if (!ent)
+      continue;
+    ent->Render(this);
+  }
+  // render localplayer stuff
+  player->Render(this);
+
+  // draw crosshair
+
+  int crosshair_x = SCREEN_WIDTH / 2;
+  int crosshair_y = SCREEN_HEIGHT / 2;
+  constexpr Color crosshair_color = Color::White();
+  SetPixel(crosshair_x, crosshair_y,  crosshair_color);
+  for (int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
+    for (int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)
+      SetPixel( x, y,  crosshair_color);
+  for (int y = crosshair_y - 4; y <= crosshair_y + 4; ++y)
+    for (int x = crosshair_x - 1; x <= crosshair_x + 1; ++x)
+      SetPixel(x, y,  crosshair_color);
+
 }

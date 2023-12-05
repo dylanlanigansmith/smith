@@ -22,11 +22,12 @@ public:
     constexpr inline uint8_t b() const { return ((m_uColor >> 8) & 0xFF);   } 
     constexpr inline uint8_t a() const { return ((m_uColor) & 0xFF);   } 
 
-    inline void r(uint8_t v) { m_uColor |= (v << 24); }
-    inline void g(uint8_t v) { m_uColor |= (v << 16); }
-    inline void b(uint8_t v) { m_uColor |= (v << 8); }
-    inline void a(uint8_t v) { m_uColor |= (v); }
+    inline void r(uint8_t v) { m_uColor = (m_uColor & 0x00FFFFFF) | (v << 24); }
+    inline void g(uint8_t v) { m_uColor = (m_uColor & 0xFF00FFFF) | (v << 16); }
+    inline void b(uint8_t v) { m_uColor = (m_uColor & 0xFFFF00FF) | (v << 8); }
+    inline void a(uint8_t v) { m_uColor = (m_uColor & 0xFFFFFF00) | v; }
 
+    inline Color Opaque() { return Color(m_uColor | 0xFF); }
     inline auto s() const { return (std::string)*this; } 
     inline operator SDL_Color() const {
         return SDL_Color{ r() ,g(),b(),a()};
@@ -70,6 +71,9 @@ public:
     }
     inline Color operator/(const float v) const {
         return Color( r() / v, g() / v, b() / v, a());
+    }
+    inline Color operator%(const float v) const { //divides with alpha 
+        return Color( r() / v, g() / v, b() / v, a() / v);
     }
     inline Color operator/=(const float v) const {
         return Color( r() / v, g() / v, b() / v, a());

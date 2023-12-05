@@ -41,15 +41,21 @@ public:
         int index = (y * m_surface->pitch / 4) + x;
         return Color(pixels[index]);
     }
-
+    void OnEngineInitFinish();
 private:
     bool CreateRendererLinuxGL();
     void RunImGui();
-    void LoopWolf();
+    void LoopWolf(int minX, int maxX);
 
-    void inline DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h);
+    void inline DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h,int minX, int maxX);
+
+    void RenderSprites(CPlayer *player);
+
+    void SetLightingRenderInfo();
+    void UpdateLighting();
 
 private:
+    bool m_bThreadDone;
     double ZBuffer[SCREEN_WIDTH];
     uint32_t *pixels;
     SDL_Renderer *m_renderer;
@@ -58,7 +64,8 @@ private:
     SDL_GLContext m_gl;
 
     SDL_Texture *m_renderTexture;
+    SDL_Texture *m_lightTexture;
     SDL_Surface *m_surface;
-
+    SDL_Surface *m_lightsurface;
     CCamera *m_Camera;
 };

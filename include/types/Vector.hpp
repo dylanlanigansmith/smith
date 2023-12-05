@@ -2,7 +2,13 @@
 #include <common.hpp>
 #include <cstdio>
 
-
+enum Cardinal_Directions : int
+{
+  NORTH = 0, // -y
+  EAST = 1, //+x
+  SOUTH = 2, //+y
+  WEST = 3 //-x
+};
 class Vector2 
 {
 public:

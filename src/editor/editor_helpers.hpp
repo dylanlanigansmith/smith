@@ -1,6 +1,7 @@
 #pragma once
 #include <common.hpp>
 #include <types/Vector.hpp>
+#include <types/Color.hpp>
 #include <imgui.h>
 #include <SDL3/SDL.h>
 #include <magic_enum/magic_enum.hpp>
@@ -37,4 +38,11 @@ namespace Editor
         return magic_enum::enum_name(en);
      }
    
+
+   inline void ColorPreview(Color c, const ImVec2 size = ImVec2(32,32) ){
+        ImGui::PushID(&(c) );
+        ImVec4 imclr = ImGui::ColorConvertU32ToFloat4(IM_COL32(c.r(),c.g(),c.b(),c.a() ));
+        ImGui::ColorButton("##mask", imclr, ImGuiColorEditFlags_NoPicker, {32,32});
+        ImGui::PopID();
+   }
 }

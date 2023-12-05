@@ -61,8 +61,8 @@ void CLevelSystem::OnEngineInitFinish()
 
     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
 
-    ILightingSystem->AddLight<CLightOverhead>({12.f, 22.f, 1.f}, Color::CandleLight(), 2.0, 1.f);
-    ILightingSystem->AddLight<CLightOverhead>({16.f, 16.f, 1.f}, Color::FluorescentLight());
+    ILightingSystem->AddLight<CLightOverhead>({6.f, 22.f, 1.f}, Color::CandleLight(), 0.3, 0.5f, 3.0);
+    ILightingSystem->AddLight<CLightOverhead>({17.f, 19.f, 1.f}, Color::FluorescentLight(), 0.6, 0.6, 8.0);
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(12, 22);
@@ -82,7 +82,28 @@ void CLevelSystem::OnEngineInitFinish()
     // enemy3->Freeze(true);
 }
 
-IVector2 CLevelSystem::FindEmptySpace() //Random
+tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none
+{
+    IVector2 coords = tile->m_vecPosition;
+    switch(dir)
+    {
+        case NORTH:
+            coords.y -= 1;
+        case EAST:
+            coords.x += 1;
+        case SOUTH:
+            coords.y += 1;
+        case WEST:
+           coords.x -= 1;
+        default:
+            return nullptr;
+    }
+
+    auto neighbor = GetTileAt(coords);
+    return neighbor;
+}
+
+IVector2 CLevelSystem::FindEmptySpace() // Random
 {
     int bail = 0;
     while(1)

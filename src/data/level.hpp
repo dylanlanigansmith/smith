@@ -7,6 +7,8 @@
 #include "CBaseSerializable.hpp"
 #include <util/hash_fnv1a.hpp>
 #include <data/level/level_types.hpp>
+
+#include <types/Color.hpp>
 //https://lodev.org/cgtutor/raycasting4.html
 
 enum Tile_Texture : uint8_t
@@ -35,6 +37,32 @@ struct decal_t
     //texture_t* texture;
 };
 
+
+struct voxel_t{
+    uint8_t m_nCollision;
+
+    //lighting
+    Color m_light = Color::None();
+    uint8_t m_neighborsize = 6;
+    Color m_neighbors[6] = {
+        Color::None(),Color::None(),Color::None(),
+        Color::None(),Color::None(),Color::None()
+    };
+
+};
+
+//future: a class with operator overloads for tile & vec pair 
+struct ivec3{ //dont use
+    int x,y,z;
+
+    ivec3 operator+(const ivec3& rhs) const{
+        return {x + rhs.x, y + rhs.y, z + rhs.z };
+    };
+    ivec3 operator%(const int rhs) const{
+        return {x % rhs, y % rhs, z % rhs };
+    };
+};
+#define TILE_SECTORS 3
 struct tile_t
 {
     //$ = memory size 1/$ $ $$ $! $16 ... | 1 byte 4 byte 8 byte 16 bytes ...
@@ -50,7 +78,7 @@ struct tile_t
     texture_t* m_pTextureCeiling = nullptr;//READONLY //$!
     texture_t* m_pTextureFloor = nullptr;//READONLY   //$!
     tile_state* m_pState  = nullptr;                  //$!
-    float m_flLight = 1.f;      //$#
+    float m_flLight = 1.f;      //$# //not usable
     uint8_t m_nDecals{};        //1/$#
     decal_t* m_pDecals = nullptr;  //$8 
     float m_flCeiling = 0.f;        //$#
@@ -58,7 +86,7 @@ struct tile_t
     uint8_t m_nType{};              //1/$#
    // uint64_t m_nFlags;              //$!
     std::vector<hEntity> m_occupants;
-
+    voxel_t sectors[TILE_SECTORS][TILE_SECTORS][TILE_SECTORS];
     bool IsThinWall(){
         switch(m_nType)
         {
@@ -102,6 +130,25 @@ struct tile_t
             }
         }
     }
+    Vector getSectorCenterRelativeCoords(int x, int y, int z) {
+       
+        float voxelSize = _sectoroffset(); //1.f/3.f
+
+        float centerX = (x + 0.5f) * voxelSize;
+        float centerY = (y + 0.5f) * voxelSize;
+        float centerZ = (z + 0.5f) * voxelSize;
+
+        return Vector(centerX, centerY, centerZ);
+    }
+
+    voxel_t* getVoxelAt(int x, int y, int z){
+      //  assert( 0 <= x && x < 3 && 0 <= y && y < 3 && 0 <= z && z < 3);
+      if(! ( 0 <= x && x < 3 && 0 <= y && y < 3 && 0 <= z && z < 3)){
+        x = std::clamp(x,0,2); y = std::clamp(y,0,2);z = std::clamp(z,0,2);
+      }
+        return &(sectors[x][y][z]);
+    }
+    static constexpr float _sectoroffset() { return 1.f / (float)TILE_SECTORS ; }
 };
 
 /*
@@ -124,6 +171,7 @@ class CLevel : public CBaseSerializable //i sortof hate this whole implementatio
 public:
     friend class CLevelSystem;
     friend class CEditor;
+    friend class CLightingSystem;
     CLevel(IVector2 bounds = IVector2(0,0)) : CBaseSerializable(Util::getClassName(this)), m_vecBounds(bounds) {
       m_flCeilingHeight = m_flFloorHeight = 0.0;
       m_szLevelName = "default";
@@ -156,7 +204,7 @@ public:
                 ).c_str()); 
     }
 
-    virtual tile_t* GetTileAt(int x, int y){
+    inline virtual tile_t* GetTileAt(int x, int y){
      //   log("%i %i", x, y);
         if(x >= 0  && y >= 0 && (x < m_vecBounds.x) && (y < m_vecBounds.y))
             return &(world.at(y).at(x));
@@ -219,6 +267,8 @@ public:
         m_flFloorHeight = floor;
     }
     const auto getName() { return m_szLevelName; }
+
+    auto& GetWorld() { return world;}
 protected:
     virtual json TileToJson(const tile_t& tile)
     {

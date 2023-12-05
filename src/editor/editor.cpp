@@ -121,6 +121,7 @@ void CEditor::render(CRenderer *renderer)
     ImVec2 windowPos(0, 0);
     ImGui::SetNextWindowPos(windowPos);
     ImGui::SetNextWindowSize(windowSize);
+    ImGui::SetNextWindowBgAlpha(0.2f);
     ImGui::Begin("SmithEditor v0.0.0");
 
     // the code here can be a bit greasy because it is a dev tool but try not to make it too singletrack
@@ -855,6 +856,8 @@ void CEditor::drawMaterialEditor()
     ImGui::Columns();
 }
 
+
+
 void CEditor::drawLightView()
 {
      static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
@@ -869,11 +872,12 @@ void CEditor::drawLightView()
 
 
 
-
-
+    static bool runMapView = true;
+    ImGui::Checkbox("show mapview", &runMapView);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));     // Disable padding
     ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(50, 50, 50, 255)); // Set a background color
-    ImGui::BeginChild("canvas", ImVec2(0.0f, 0.0f), true, ImGuiWindowFlags_NoMove);
+    ImGui::SetNextWindowBgAlpha(0.1f);
+    ImGui::BeginChild("canvaslight", ImVec2(0.0f, 0.0f), true, ImGuiWindowFlags_NoMove);
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
 
@@ -905,33 +909,42 @@ void CEditor::drawLightView()
     auto &level = ILevelSystem->m_Level;
     auto &world = level->world;
 
-
-    for (auto &row : world)
-    {
-
-        for (auto &tile : row)
+    static tile_t* selectedTile = nullptr;
+    if(runMapView){
+        for (auto &row : world)
         {
+            for (auto &tile : row)
+            {
 
-            auto hTexture = tile.m_hTexture;
-            if (tile.m_nType == Level::Tile_Empty)
-                hTexture = tile.m_hTextureFloor;
-            auto name = ITextureSystem->FilenameFromHandle(hTexture);
-            auto editor_text = texture_info.at(name);
-            auto pos = tile.m_vecPosition;
+                auto hTexture = tile.m_hTexture;
+                if (tile.m_nType == Level::Tile_Empty)
+                    hTexture = tile.m_hTextureFloor;
+                auto name = ITextureSystem->FilenameFromHandle(hTexture);
+                auto editor_text = texture_info.at(name);
+                auto pos = tile.m_vecPosition;
 
-            float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
-            float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
-            ImGui::PushID(&tile);
-            ImGui::SetCursorPos(ImVec2(pos.x + GRID_STEP * pos.x, pos.y + GRID_STEP * pos.y));
+                float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
+                float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
+                ImGui::PushID(&tile);
+                ImGui::SetCursorPos(ImVec2(pos.x + GRID_STEP * pos.x, pos.y + GRID_STEP * pos.y));
+                Color vxvtr_clr= tile.getVoxelAt(1,1,1)->m_light;
 
-            draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
-            if (ImGui::InvisibleButton("##tile", {GRID_STEP, GRID_STEP}))
-            { // ImGui::ImageButton
-                engine->log("%s", name.c_str());
+                //if you wanna really do this right then make a texture the size of the grid, and draw a mini lightmap on it.. or do 9 mini images with uv set and tint of avg column color
+
+                 draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
+                draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP), 
+                        ImVec2(0,0), ImVec2(1,1), IM_COL32(vxvtr_clr.r(), vxvtr_clr.g(), vxvtr_clr.b(), vxvtr_clr.a()));
+                
+                if (ImGui::InvisibleButton("##tile", {GRID_STEP, GRID_STEP}))
+                { // ImGui::ImageButton
+                    engine->log("%s", name.c_str());
+                    selectedTile = &tile;
+                }
+                ImGui::PopID();
             }
-            ImGui::PopID();
         }
     }
+    
 
 
     static bool pOpen = false;
@@ -950,18 +963,50 @@ void CEditor::drawLightView()
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-    if (ImGui::BeginTable("##sssplit", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
-    {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Light");
-        ImGui::TableSetupColumn("Properties");
-        ImGui::TableHeadersRow();
+    light_params* p = &(ILightingSystem->params);
+    ImGui::Text("Light Params");
+    if(ImGui::Button("Regenerate Lighting")){
+        ILightingSystem->RegenerateLighting();
+    }
+    ImGui::SliderFloat("A", &p->a, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("B", &p->b, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Min Intensity", &p->minIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Alpha Factor Mod", &p->alphaFactorMod, 0.0f, 4.0f, "%.4f");
+    ImGui::SliderFloat("Bright Factor Mod", &p->brightFactorMod, 0.0f, 4.0f, "%.4f");
+    ImGui::SliderFloat("Final Alpha Mod", &p->finalAlphaMod, 0.0f, 10.0f, "%.4f");
 
-        // Iterate placeholder objects (all the same data)
-      //  for (auto &ent : IEntitySystem->iterableList())
-        //    ShowEntityObject(ent, ImVec2{canvas_p0.x, canvas_p0.y}, draw_list);
+    ImGui::SliderFloat("InterpFrac", &p->interpFraction, 0.0f, 1.f, "%.4f");
+    if(ImGui::Button("Toggle Debug")){
+        ILightingSystem->Debug(!ILightingSystem->Debug());
+    }
 
-        ImGui::EndTable();
+    ImGui::InputInt("merge method", &p->mergeMethod, 1); 
+    if(p->mergeMethod > 1) p ->mergeMethod = 1;
+    if(p->mergeMethod < 0) p ->mergeMethod = 0;
+    ImGui::SeparatorText("tile info");
+
+    if(selectedTile != nullptr){
+        auto& pos  = selectedTile->m_vecPosition;
+        const char *type_name = Editor::GetEnumName((Level::Tile_Type)selectedTile->m_nType).data();
+        ImGui::Text("Tile @ {%i %i}, %s", pos.x, pos.y, type_name );
+        for(int x = 0; x < TILE_SECTORS; ++x)
+                for(int y = 0; y < TILE_SECTORS; ++y)
+                    for(int z = 0; z < TILE_SECTORS; ++z){
+                        
+                        auto voxel = selectedTile->getVoxelAt(x,y,z);
+                        ImGui::PushID(&voxel);
+                        Editor::ColorPreview(voxel->m_light);ImGui::SameLine();
+                        ImGui::Text("{%i %i %i} %s [%i]",x,y,z, voxel->m_light.s().c_str(), voxel->m_neighborsize );
+                        if(ImGui::CollapsingHeader("neighbours")){
+                            for (int i = 0; i < voxel->m_neighborsize; ++i) {
+                                if (voxel->m_neighbors[i] != Color::None()) {
+                                    Editor::ColorPreview(voxel->m_neighbors[i]); ImGui::SameLine();
+                                    ImGui::Text("%i / %s", i, voxel->m_neighbors[i].s().c_str());
+                                }
+                            }
+                        }
+                        ImGui::PopID();
+                    }
     }
     ImGui::PopStyleVar();
     ImGui::End();

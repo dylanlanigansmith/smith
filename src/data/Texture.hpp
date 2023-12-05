@@ -46,6 +46,10 @@ struct texture_t
         pixelsT[(m_texture->pitch / 4 * y) + x] =  color;
         return true;
     }
+
+    bool isTransparent(){
+        return m_clrKey > 0u;
+    }
 };
 
 class CTexture : public CBaseSerializable, public texture_t

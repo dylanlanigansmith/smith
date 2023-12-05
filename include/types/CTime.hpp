@@ -62,4 +62,7 @@ struct Timer_t
     void Reset(Time_t cur){
         start_time = cur_time = cur;
     }
+    void Update(Time_t cur){
+        cur_time = cur;
+    }
 };

@@ -2,7 +2,8 @@
 
 #include <common.hpp>
 #include <SDL3/SDL.h>
-
+#include <types/Vector.hpp>
+#include <data/level.hpp>
 namespace Render
 {
     static SDL_Color TextureToSDLColor(uint32_t abgr)
@@ -33,10 +34,7 @@ namespace Render
         color.b = color.b / val;
     }
 
-    static void SetPixel(uint32_t* pixels, int x, int y, int pitch, SDL_Color color){
-        int index = (y * pitch / 4) + x;
-        pixels[index] = SDLColorToWorldColor(color);
-    }
+
 
     static inline bool ColorEqualRGB(const SDL_Color& c1, const SDL_Color& c2){
         return (c1.r == c2.r) && (c1.g == c2.g) && (c1.b == c2.b);
@@ -91,8 +89,37 @@ namespace Render
         x = x*(1.5f - xhalf*x*x);     // One round of Newton's method
         return x;
     }
-    static float Sqrt(const float x){
-        return 1.f / InvSqrt(x);
+
+
+    static Line_t GetLineForWallType(const IVector2& p, int type, int* side = nullptr){
+
+        int pside;
+         Line_t wall = {{0, 0}, {0, 0}};
+        switch (type)
+        {
+
+        case Level::Tile_WallN:
+          wall = {{p.x, p.y}, {p.x + 1.0, p.y}}; pside = 0;
+          break;
+        case Level::Tile_Door:
+        case Level::Tile_WallE:
+          wall = {{p.x + 1.0, p.y}, {p.x + 1.0, p.y + 1.0}}; pside = 1;
+          break;
+        case Level::Tile_WallS:
+          wall = {{p.x, p.y + 1}, {p.x + 1.0, p.y + 1.0}}; pside = 0;
+          break;
+        case Level::Tile_WallW:
+          wall = {{p.x, p.y}, {p.x, p.y + 1.0}}; pside = 1;
+          break;
+        default:
+          return wall;
+        };
+        if(side != nullptr)
+            *side = pside;
+        
+        return wall;
+
+
     }
    
 }

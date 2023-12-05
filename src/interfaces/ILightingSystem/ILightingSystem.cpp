@@ -2,17 +2,75 @@
 #include <interfaces/ILevelSystem/ILevelSystem.hpp>
 #include <engine/engine.hpp>
 
-constexpr Color MaxDark = Color(45,45,45,245);
+Color CLightingSystem::CalculateLightInfluence(CLight *light, const Vector &point)
+{
 
-constexpr double g_flDistanceMod = 0.2;
+    return Color::None();
+}
+
+
+
+void CLightingSystem::OnEngineInitFinish()
+{
+    Debug(false);
+    
+}
+
+void CLightingSystem::SetupBlending()
+{
+    SDL_SetTextureBlendMode(m_lighttexture, SDL_BLENDMODE_BLEND);
+}
+
+void CLightingSystem::RegenerateLighting()
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    auto& level = ILevelSystem->m_Level;
+    auto& world = level->world;
+    int lol = 0;
+    voxel_t empty{};
+    for( auto& row : world){
+        for(auto& tile : row){
+            for(int x = 0; x < TILE_SECTORS; ++x)
+                for(int y = 0; y < TILE_SECTORS; ++y)
+                    for(int z = 0; z < TILE_SECTORS; ++z){
+                         tile.sectors[x][y][z] = empty; lol++;
+            }
+
+        }
+    }
+    log("cleared color info for %i faces", lol);
+    CalculateLighting();
+    
+}
+
+void CLightingSystem::ApplyLightForTile(tile_t* tile, Color src,const Vector& worldpos, int x, int y)
+{
+    auto& tile_pos = tile->m_vecPosition;
+    auto vox_pos = ivec3{
+       std::clamp( (worldpos.x - tile_pos.x) * 2.f, 0.f, 2.f), std::clamp( (worldpos.y - tile_pos.y) * 2.f, 0.f, 2.f) , std::clamp(worldpos.z , 0.f, 2.f)
+    };
+ 
+    //need to determine pos based on ray dir and mappos, and then z via  drawstart/end
+
+    auto vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
+
+
+
+    SetPixel(x,y, vox->m_light );
+
+}
 
 Color CLightingSystem::GetLightForTile(tile_t *tile)
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    
 
     Vector tile_pos = { tile->m_vecPosition.x + 0.5f, tile->m_vecPosition.y + 0.5f, 0.25f};
-    Color total_light = MaxDark;
-    float total_brightness = 1.f;
+
+   
+
+   
+    Color total_light = MaxDark();
+
     for(auto& entry : light_list){
         Color to_set = Color::None();
         auto light = entry.second;
@@ -20,59 +78,289 @@ Color CLightingSystem::GetLightForTile(tile_t *tile)
         auto light_pos = light->GetPosition();
         auto delta = light_pos - tile_pos;
         float range = light->GetRange();
-        const float a = 0.2f, b = 0.02, minIntensity = 0.1; //wow this is hard
 
-        float distanceSquared = delta.LengthSqr();
-        float attenuation = 1.0f / (1.0f + a * sqrt(distanceSquared) + b * distanceSquared);
-        attenuation = std::min(std::max(attenuation, minIntensity), 1.0f); // Clamp attenuation
+        
+        
 
-        Color lightColor = light->GetColor(); 
-        lightColor.a( lightColor.a() * attenuation / light->GetIntensity() * light->GetBrightness() * 10);
-      
        
-        total_light = MergeLightColors(total_light, lightColor);
-        /*
-        if(delta.LengthSqr() <= g_flDistanceMod * range * range ){
-            to_set = light->GetColor();
-            to_set.a( to_set.a() / light->GetIntensity() * light->GetBrightness());
+        float distanceSquared = delta.LengthSqr();
+        
+        if (distanceSquared <= range * range) {
+            float attenuation = 1.0f / (1.0f + params.a * sqrt(distanceSquared) + params.b * distanceSquared);
+            attenuation = std::min(std::max(attenuation, params.minIntensity), 1.0f); 
 
-        }*/
+            Color lightColor = light->GetColor(); 
+            float brightFactor = light->GetIntensity() * light->GetBrightness() * params.brightFactorMod;
+            float alphaFactor = 1.0f - pow(std::min(brightFactor, 1.0f), 2) * params.alphaFactorMod;
+            lightColor.a( static_cast<uint8_t>(lightColor.a() * attenuation * alphaFactor * params.finalAlphaMod));
+             dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
+            switch(params.mergeMethod)
+            {
+                case 1:
+                    total_light = MergeLightColors(lightColor, total_light); break;
+                case 0:
+                default:
+                    total_light = MergeLightColors(total_light, lightColor);
+            }
+            total_light.a(lightColor.a());
+        }
 
-        if(to_set == Color::None()) continue;
-      
-        total_light = MergeLightColors(total_light, to_set);
         
     }
-   // uint8_t alpha = (uint8_t)std::clamp( int(total_light.a() *   ( 1.f - total_brightness  )) + 120, 0,255 );
-    //total_light.a(255 - alpha);
+     dbg(" final %i", total_light.a());
+     
     return total_light;
 }
-Color CLightingSystem::MergeLightColors(Color src, Color add)
+
+
+void CLightingSystem::CalculateLighting()
 {
-    return  src + add;
-}
-Color CLightingSystem::ApplyLightForTile(tile_t *tile, Color src)
-{
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    log("Building lighting info");
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    Timer_t gen_time( IEngineTime->GetCurTime());
+    int num = 0;
+
+    auto& level = ILevelSystem->m_Level;
+    auto& world = level->world;
+    for( auto& row : world){
+        for(auto& tile : row){
+            CalculateTileLightData(&tile);
+            num++;
+
+        }
+    }
+    gen_time.Update(IEngineTime->GetCurTime());
+    auto tile_time = gen_time.Elapsed();
+    log("made lightdata for %i tiles, %i voxels in %i ms", num , num * 9, tile_time.ms());
+    for( auto& row : world){
+        for(auto& tile : row){
+            CalculateLerpLightData(&tile);
+            num++;
+
+        }
+    }
+        
+    gen_time.Update(IEngineTime->GetCurTime());
+    log("made lerp light data for %i tiles, %i voxels & their neighbors in %i ms", num / 2, num * 9, gen_time.Elapsed().ms() - tile_time.ms());
+
+    log("Built lighting info in %i ms for map %s with #%li lights", gen_time.Elapsed().ms(), ILevelSystem->m_Level->getName().c_str(), light_list.size());
     
-    auto lit_color = GetLightForTile(tile);
-    if(lit_color != Color::None())
-        return ApplyLighting(src, lit_color);
-    return src;
+}
+void CLightingSystem::CalculateTileLightData(tile_t *tile)
+{
+    //pos is NW corner
+    Vector pos = { tile->m_vecPosition.x, tile->m_vecPosition.y, 0.f}; //int vector2 to float vector3
+
+    for(int x = 0; x < TILE_SECTORS; ++x)
+        for(int y = 0; y < TILE_SECTORS; ++y)
+            for(int z = 0; z < TILE_SECTORS; ++z){
+                Vector rel_pos = tile->getSectorCenterRelativeCoords(x,y,z);
+
+                Vector world_pos = pos + rel_pos;
+
+                Color vox_light = GetLightAtPoint(world_pos);
+
+                tile->sectors[x][y][z].m_light = vox_light;
+
+            }
+   
 }
 
-Color CLightingSystem::ApplyLighting(Color src, Color light)
+void CLightingSystem::CalculateLerpLightData(tile_t *tile)
 {
-
-    auto c =    light + src;
-    // log("src%s light %s ret%s",  src.s().c_str(), light.s().c_str(), c.s().c_str() );
-    c.a(255);
-    return c;
+     Vector pos = { tile->m_vecPosition.x, tile->m_vecPosition.y, 0.f};
+      for(int x = 0; x < TILE_SECTORS; ++x)
+        for(int y = 0; y < TILE_SECTORS; ++y)
+            for(int z = 0; z < TILE_SECTORS; ++z){
+                auto voxel = tile->getVoxelAt(x,y,z);
+                FindNeighborColors(tile, voxel, x,  y,  z);
+                voxel->m_light = CombineWithNeighbors(voxel);
+            }
 }
 
-
-
-Color CLightingSystem::CalculateLightInfluence(CLight *light, const Vector &point)
+/*
+1..6
+n,e,s,w,u,d
+*/
+Color CLightingSystem::getNeighborColor(tile_t* tile, const ivec3& rel, int dir)
 {
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    if( rel.x < 0 || rel.x >= 3 || rel.y < 0 || rel.y >= 3 || rel.z < 0 || rel.z >= 3)
+    {
+        //in another tile
+        auto nbr_tile = ILevelSystem->GetTileNeighbor(tile, dir);
+        if(nbr_tile == nullptr)
+            return Color::None();
+
+        ivec3 offset = {3,3,3};
+        ivec3 nbr_pos = (rel + offset) % 3;
+
+        auto vox = nbr_tile->getVoxelAt(nbr_pos.x, nbr_pos.y, nbr_pos.z);
+        if(vox == nullptr){
+            Error("our assert passed in getVoxelAt but we got a nullptr back, {%i, %i, %i}",nbr_pos.x, nbr_pos.y, nbr_pos.z);
+            return Color::None();
+        }
+        return vox->m_light;
+    }
+
+    auto vox = tile->getVoxelAt(rel.x, rel.y, rel.z);
+    
+    if(vox){
+        return vox->m_light;
+    };
+   
+    
+
 
     return Color::None();
 }
+void CLightingSystem::FindNeighborColors(tile_t *tile, voxel_t *voxel, int x, int y, int z)
+{
+    ivec3 coords = {x,y,z};
+    std::vector<ivec3> relcoords = {  
+        //north, east, south, west (2d)     
+        {0,-1,0}, {1,0,0}, {0,1,0}, {-1,0,0},
+    };
+        // up +z down -z (NEVER IN ADJACENT TILES)
+    ivec3 zcoords[] = { {0,0,1}, {0,0,-1} };
+
+    //not the prettiest way to do this
+    ivec3 nbr_N = coords + relcoords[NORTH];
+    Color north = getNeighborColor(tile, nbr_N, NORTH);
+
+    ivec3 nbr_E = coords + relcoords[EAST];
+    Color east = getNeighborColor(tile, nbr_E, EAST);
+
+    ivec3 nbr_S = coords + relcoords[SOUTH];
+    Color south = getNeighborColor(tile, nbr_S, SOUTH);
+
+    ivec3 nbr_W = coords + relcoords[WEST];
+    Color west = getNeighborColor(tile, nbr_W, WEST);
+
+    Color up = Color::None();
+    Color down = Color::None();
+    if( z < 2){
+        auto vox = tile->getVoxelAt(x, y, z + 1);
+        if(vox){
+            up = vox->m_light;
+        };
+    }
+    if( z > 0){
+        auto vox = tile->getVoxelAt(x, y, z - 1);
+        if(vox){
+            down = vox->m_light;
+        };
+    }
+
+    std::vector<Color> neighbors = {
+        north, east, south, west, up, down
+    };
+    voxel->m_neighborsize = 0;
+    for(int i = 0; i < 6; ++i){
+        auto clr = neighbors.at(i);
+        if(clr == Color::None())
+            continue;
+        
+        voxel->m_neighbors[i] = clr;
+        voxel->m_neighborsize++;
+    }
+
+    if(voxel->m_neighborsize < 3){
+        Error("voxel w/ only %i neighbors, tile{%i %i} voxel{%i %i %i} ",voxel->m_neighborsize, tile->m_vecPosition.x, tile->m_vecPosition.y, x,y,z);
+    }
+
+}
+
+Color CLightingSystem::GetLightAtPoint(const Vector &point)
+{
+      /*
+        Lighting Specs
+        alpha represents darkness or shadow, then brighter light should mean a lower alpha value (more transparent).
+        intensity can make this alpha change for brighter light, meaning more of the light color is applied
+
+        intensity and brightness range from 0.0 (min) - (1.0) max
+
+        the default no light value is MaxDark, defined below
+        */
+    Color total_light = MaxDark();
+
+    for(auto& entry : light_list){
+        Color to_set = Color::None();
+        auto light = entry.second;
+
+        auto light_pos = light->GetPosition();
+        auto delta = light_pos - point;
+        float range = light->GetRange();
+        //CalculateLightInfluence(light, point); //eventually raycast 
+        float distanceSquared = delta.LengthSqr();
+        
+        if (distanceSquared <= range * range) {
+            float attenuation = 1.0f / (1.0f + params.a * sqrt(distanceSquared) + params.b * distanceSquared);
+            attenuation = std::min(std::max(attenuation, params.minIntensity), 1.0f); 
+
+            Color lightColor = light->GetColor(); 
+            float brightFactor = light->GetIntensity() * light->GetBrightness() * params.brightFactorMod;
+            float alphaFactor = 1.0f - pow(std::min(brightFactor, 1.0f), 2) * params.alphaFactorMod;
+            lightColor.a( static_cast<uint8_t>(lightColor.a() * attenuation * alphaFactor * params.finalAlphaMod));
+             dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
+            switch(params.mergeMethod)
+            {
+                case 1:
+                    total_light = MergeLightColors(lightColor, total_light); break;
+                case 0:
+                default:
+                    total_light = MergeLightColors(total_light, lightColor);
+            }
+            total_light.a(lightColor.a());
+        }
+
+        
+    }
+     dbg(" final %i", total_light.a());
+     
+    return total_light;
+}
+
+
+Color CLightingSystem::CombineWithNeighbors(voxel_t *voxel)
+{
+    Color combinedColor = voxel->m_light;
+    int count = 1; // Start with the voxel itself
+
+    for (int i = 0; i < voxel->m_neighborsize; ++i) {
+        if (voxel->m_neighbors[i] != Color::None()) {
+            combinedColor = LinearInterpolate(combinedColor, voxel->m_neighbors[i], params.interpFraction);
+            count++;
+        }
+    }
+
+/*
+    //combinedColor = combinedColor +  voxel->m_neighbors[i]; 
+
+ // Average out the colors by dividing each component
+    uint8_t avgR = ((combinedColor >> 24) & 0xFF) / count;
+    uint8_t avgG = ((combinedColor >> 16) & 0xFF) / count;
+    uint8_t avgB = ((combinedColor >> 8) & 0xFF) / count;
+    uint8_t avgA = (combinedColor & 0xFF) / count;
+    
+    Color ret = Color(avgR, avgG, avgB, avgA);
+    //log("%s", ret.s().c_str());
+    return ret; */
+    // Average out the colors
+    return combinedColor / static_cast<float>(count);
+}
+
+
+
+Color CLightingSystem::LinearInterpolate(Color start, Color end, float fraction)
+{
+  
+        uint8_t interpR = static_cast<uint8_t>(start.r() + fraction * (end.r() - start.r()));
+        uint8_t interpG = static_cast<uint8_t>(start.g() + fraction * (end.g() - start.g()));
+        uint8_t interpB = static_cast<uint8_t>(start.b() + fraction * (end.b() - start.b()));
+
+        uint8_t interpA = static_cast<uint8_t>(start.a() + fraction * (end.a() - start.a()));
+        return Color(interpR, interpG, interpB, interpA);
+}
+

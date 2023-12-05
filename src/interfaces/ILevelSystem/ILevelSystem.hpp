@@ -9,6 +9,7 @@ class CLevelSystem : public CBaseInterface
 {
     friend class CResourceSystem;
     friend class CEditor;
+    friend class CLightingSystem;
 public:
 
     CLevelSystem() : CBaseInterface("ILevelSystem") { }
@@ -22,23 +23,27 @@ public:
     virtual void OnEngineInitFinish() override;
 
     virtual int GetMapAt(const IVector2& w) const { return GetMapAt(w.x, w.y); }
-    virtual int GetMapAt(int x, int y) const{ //type
+    inline virtual int GetMapAt(int x, int y) const{ //type
         return m_Level->GetTileAt(x,y)->m_nType;
     }
     virtual tile_t* GetTileAt(const IVector2& w) { return GetTileAt(w.x, w.y); }
-    virtual tile_t* GetTileAt(int x, int y){
+    inline virtual tile_t* GetTileAt(int x, int y){
         return m_Level->GetTileAt(x,y);
     }
-    virtual tile_t* GetTileSafe(int x, int y){
+    inline virtual tile_t* GetTileSafe(int x, int y){
         x = std::clamp(x, 0, MAP_SIZE - 1); 
         y = std::clamp(y, 0, MAP_SIZE - 1); 
           return m_Level->GetTileAt(x,y);
+    }
+    inline virtual bool ValidTilePosition(const IVector2& w) { return ValidTilePosition(w.x, w.y); }
+    inline virtual bool ValidTilePosition(int x, int y){
+      return (std::clamp(x, 0, MAP_SIZE - 1) == x &&  y == std::clamp(y, 0, MAP_SIZE - 1)); 
     }
     virtual texture_t* GetTextureAt(int x, int y, uint8_t type = 0); //main0, floor1, ceiling2
     virtual texture_t* GetTexturePlane(bool is_floor, int x, int y);
     virtual void AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius = 10.f);
 
-
+    virtual tile_t* GetTileNeighbor(tile_t* tile, int dir);
     virtual IVector2 FindEmptySpace();
 private:
     void LoadAndFindTexturesForMap();
@@ -47,7 +52,7 @@ private:
 private:
     CLevel* m_Level;
     CTextureSystem* m_TextureSystem;
-    std::unordered_map<int, hTexture> level_textures; //for geometry
+    std::unordered_map<int, hTexture> level_textures; //for geometry UNUSED
 
    
 

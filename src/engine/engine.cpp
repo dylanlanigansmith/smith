@@ -10,6 +10,10 @@ void CEngine::Start(const char* title)
 {
     SDL_Init(SDL_INIT_VIDEO);
     log("starting window { %ix%i }", SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, MSAA_BUFFER);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA_SAMPLES);
+    SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, TEXTURE_SCALE_QUALITY, SDL_HINT_OVERRIDE);
     m_SDLWindow = SDL_CreateWindow(title, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, SDL_WINDOW_OPENGL);
 
     render = new CRenderer(m_SDLWindow);
@@ -29,6 +33,7 @@ void CEngine::Start(const char* title)
             element.second->OnResourceLoadEnd();
     for(auto& element : interfaces.list())
             element.second->OnEngineInitFinish();
+    render->OnEngineInitFinish();
 }
 
 int CEngine::Run()
