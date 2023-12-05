@@ -939,13 +939,81 @@ void CEditor::drawLightView()
                 { // ImGui::ImageButton
                     engine->log("%s", name.c_str());
                     selectedTile = &tile;
+
+                    for (int x = 0; x < TILE_SECTORS; ++x)
+                        for (int y = 0; y < TILE_SECTORS; ++y)
+                            for (int z = 0; z < TILE_SECTORS; ++z)
+                            {
+                                Vector p = tile.getSectorCenterRelativeCoords(x, y, z) + Vector(tile.m_vecPosition.x, tile.m_vecPosition.y, 0.f);
+                                engine->log(" {%.3f %.3f %.3f } %i %i ", p.x, p.y, p.z, tile.m_vecPosition.x, tile.m_vecPosition.y );
+
+                            }
+
                 }
                 ImGui::PopID();
             }
         }
     }
-    
 
+
+    static CLight* selectedLight = nullptr;
+    static bool drawRays = true;
+    static bool drawHitsOnly = false;
+    static bool drawMissesOnly = false;
+    static bool drawRayGoals = true;
+    static float minRayLength = 0.f;
+    static float maxRayLength = 50.f;
+    static int ray_filter = 50;
+    if(ray_filter < 1) ray_filter = 1;
+    constexpr auto rayHitClr = IM_COL32(15,245,30,100);
+    constexpr auto rayMissClr = IM_COL32(245,0,30,50);
+    constexpr auto rayGoalClr = IM_COL32(245,245,245,50);
+    for(auto& entry : ILightingSystem->light_list){
+        auto light = entry.second;
+        Vector2 pos = light->GetPosition();
+        float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
+        float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
+        auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
+        int i = 0;
+        
+        for(auto& ray : light->rays){
+            if(!drawRays) continue;
+            // v2 ray end  v2 ray goal b ray hit
+            bool ray_hit = std::get<2>(ray);
+            if( !ray_hit && drawHitsOnly) continue; //so fals means it actually hit bc i am so good at naming
+            i++;
+            if(i % ray_filter != 0) continue;
+            auto& ray_end = std::get<0>(ray);
+            auto& ray_aim = std::get<1>(ray);
+            if(Vector2(ray_end - pos).Length() < minRayLength) continue;
+            if(Vector2(ray_end - pos).Length() > maxRayLength) continue;
+            float offset_endx = GRID_STEP * (float)ray_end.x + canvas_p0.x;
+            float offset_endy = GRID_STEP * (float)ray_end.y + canvas_p0.y;
+            if(drawMissesOnly && ray_hit) continue; //MAY I MENTION AGAIN A HIT IS ACTUALLY WHEN WE DIDNT RECORD A HIT G
+            //GOD DAMN IT 
+
+            
+            draw_list->AddLine(ui_pos, ImVec2(ray_end.x + offset_endx, ray_end.y + offset_endy), (ray_hit) ? rayHitClr : rayMissClr);
+            if(drawRayGoals && !ray_hit){
+            float offset_aimx = GRID_STEP * (float)ray_aim.x + canvas_p0.x;
+            float offset_aimy = GRID_STEP * (float)ray_aim.y + canvas_p0.y;
+                draw_list->AddLine( ImVec2(ray_end.x + offset_endx, ray_end.y + offset_endy),ImVec2(ray_aim.x + offset_aimx, ray_aim.y + offset_aimy), rayGoalClr);
+            }
+           // draw_list->AddLine(ui_pos, ImVec2(ray_aim.x + offset_x, ray_aim.y + offset_y), rayMissClr);
+            
+        }
+
+        draw_list->AddCircle(ui_pos, 18.f, Editor::ColorToIU32(light->GetColor()), 8, 3.f);
+        draw_list->AddCircle(ui_pos, light->GetRange() * GRID_STEP, Editor::ColorToIU32(light->GetColor(), true), 32, 0.5f);
+    }
+    static bool drawPoints = true;
+    for(auto& pt : ILightingSystem->tested_points){
+        auto  pos = pt;
+         float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
+        float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
+        auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
+        draw_list->AddCircle(ui_pos, 3.f, Editor::ColorToIU32(Color::Olive()), 6, 1.f);
+    }
 
     static bool pOpen = false;
 
@@ -961,53 +1029,91 @@ void CEditor::drawLightView()
         ImGui::End();
         return;
     }
-
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-    light_params* p = &(ILightingSystem->params);
-    ImGui::Text("Light Params");
-    if(ImGui::Button("Regenerate Lighting")){
-        ILightingSystem->RegenerateLighting();
-    }
-    ImGui::SliderFloat("A", &p->a, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("B", &p->b, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("Min Intensity", &p->minIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("Alpha Factor Mod", &p->alphaFactorMod, 0.0f, 4.0f, "%.4f");
-    ImGui::SliderFloat("Bright Factor Mod", &p->brightFactorMod, 0.0f, 4.0f, "%.4f");
-    ImGui::SliderFloat("Final Alpha Mod", &p->finalAlphaMod, 0.0f, 10.0f, "%.4f");
+    if(ImGui::BeginTabBar("###lightmodes"))
+    {
+        if(ImGui::BeginTabItem("Params and properties"))
+        {
+            light_params* p = &(ILightingSystem->params);
+            ImGui::Text("Light Params");
+            if(ImGui::Button("Regenerate Lighting")){
+                ILightingSystem->RegenerateLighting();
+            }
+            ImGui::SliderFloat("A", &p->a, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("B", &p->b, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("Min Intensity", &p->minIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("Alpha Factor Mod", &p->alphaFactorMod, 0.0f, 4.0f, "%.4f");
+            ImGui::SliderFloat("Bright Factor Mod", &p->brightFactorMod, 0.0f, 4.0f, "%.4f");
+            ImGui::SliderFloat("Final Alpha Mod", &p->finalAlphaMod, 0.0f, 10.0f, "%.4f");
 
-    ImGui::SliderFloat("InterpFrac", &p->interpFraction, 0.0f, 1.f, "%.4f");
-    if(ImGui::Button("Toggle Debug")){
-        ILightingSystem->Debug(!ILightingSystem->Debug());
-    }
+            ImGui::SliderFloat("InterpFrac", &p->interpFraction, 0.0f, 1.f, "%.4f");
+            if(ImGui::Button("Toggle Debug")){
+                ILightingSystem->Debug(!ILightingSystem->Debug());
+            }
 
-    ImGui::InputInt("merge method", &p->mergeMethod, 1); 
-    if(p->mergeMethod > 1) p ->mergeMethod = 1;
-    if(p->mergeMethod < 0) p ->mergeMethod = 0;
-    ImGui::SeparatorText("tile info");
+            ImGui::InputInt("merge method", &p->mergeMethod, 1); 
+            if(p->mergeMethod > 1) p ->mergeMethod = 1;
+            if(p->mergeMethod < 0) p ->mergeMethod = 0;
+            ImGui::SeparatorText("tile info");
 
-    if(selectedTile != nullptr){
-        auto& pos  = selectedTile->m_vecPosition;
-        const char *type_name = Editor::GetEnumName((Level::Tile_Type)selectedTile->m_nType).data();
-        ImGui::Text("Tile @ {%i %i}, %s", pos.x, pos.y, type_name );
-        for(int x = 0; x < TILE_SECTORS; ++x)
-                for(int y = 0; y < TILE_SECTORS; ++y)
-                    for(int z = 0; z < TILE_SECTORS; ++z){
-                        
-                        auto voxel = selectedTile->getVoxelAt(x,y,z);
-                        ImGui::PushID(&voxel);
-                        Editor::ColorPreview(voxel->m_light);ImGui::SameLine();
-                        ImGui::Text("{%i %i %i} %s [%i]",x,y,z, voxel->m_light.s().c_str(), voxel->m_neighborsize );
-                        if(ImGui::CollapsingHeader("neighbours")){
-                            for (int i = 0; i < voxel->m_neighborsize; ++i) {
-                                if (voxel->m_neighbors[i] != Color::None()) {
-                                    Editor::ColorPreview(voxel->m_neighbors[i]); ImGui::SameLine();
-                                    ImGui::Text("%i / %s", i, voxel->m_neighbors[i].s().c_str());
+            if(selectedTile != nullptr){
+                auto& pos  = selectedTile->m_vecPosition;
+                const char *type_name = Editor::GetEnumName((Level::Tile_Type)selectedTile->m_nType).data();
+                ImGui::Text("Tile @ {%i %i}, %s", pos.x, pos.y, type_name );
+                for(int x = 0; x < TILE_SECTORS; ++x)
+                        for(int y = 0; y < TILE_SECTORS; ++y)
+                            for(int z = 0; z < TILE_SECTORS; ++z){
+                                
+                                auto voxel = selectedTile->getVoxelAt(x,y,z);
+                                ImGui::PushID(&voxel);
+                                Editor::ColorPreview(voxel->m_light);ImGui::SameLine();
+                                ImGui::Text("{%i %i %i} %s [%i]",x,y,z, voxel->m_light.s().c_str(), voxel->m_neighborsize );
+                                if(ImGui::CollapsingHeader("neighbours")){
+                                    for (int i = 0; i < voxel->m_neighborsize; ++i) {
+                                        if (voxel->m_neighbors[i] != Color::None()) {
+                                            Editor::ColorPreview(voxel->m_neighbors[i]); ImGui::SameLine();
+                                            ImGui::Text("%i / %s", i, voxel->m_neighbors[i].s().c_str());
+                                        }
+                                    }
                                 }
+                                ImGui::PopID();
                             }
-                        }
-                        ImGui::PopID();
-                    }
-    }
+            }
+            ImGui::EndTabItem();
+        } 
+        if(ImGui::BeginTabItem("Lights"))
+        {   
+            for(auto& entry : ILightingSystem->light_list){
+                     auto light = entry.second;
+                     ImGui::PushID(light);
+                     auto p = light->GetPosition();
+                     ImGui::Text("%s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
+                     ImGui::SliderFloat("Brightness", &light->m_flBrightness, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+                     ImGui::SliderFloat("Intensity", &light->m_flIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+                     ImGui::SliderFloat("Range", &light->m_flRange, 0.0f, 50.0f, "%.4f");
+                     ImGui::SliderFloat("X", &light->m_vecPosition.x, 0.0f, 50.0f, "%.4f");
+                     ImGui::SliderFloat("Y", &light->m_vecPosition.y, 0.0f, 50.0f, "%.4f");
+                     ImGui::PopID();
+                     ImGui::Separator();
+
+            }
+            ImGui::EndTabItem();
+        }
+        if(ImGui::BeginTabItem("Rays"))
+        {   
+            ImGui::Checkbox("Draw Rays", &drawRays);
+            ImGui::Checkbox("Hits only", &drawHitsOnly);
+            ImGui::Checkbox("Misses only", &drawMissesOnly);
+            ImGui::Checkbox("Draw Goals", &drawRayGoals);
+             ImGui::SliderFloat("Min. Dist", &minRayLength, 0.0f, 40.0f, "%.2f");
+             ImGui::SliderFloat("Max. Dist", &maxRayLength, 0.0f, 40.0f, "%.2f");
+            ImGui::InputInt("Modulo filter", &ray_filter, 1); 
+            ImGui::EndTabItem();
+        }
+    } ImGui::EndTabBar();
+
+    
+    
     ImGui::PopStyleVar();
     ImGui::End();
 }

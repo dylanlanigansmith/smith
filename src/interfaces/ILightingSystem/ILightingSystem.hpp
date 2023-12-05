@@ -59,6 +59,7 @@ public:
 
     constexpr static Color MaxDark()  { return Color(45,45,45,225); }
 protected:
+    bool CastRayToPoint(CLight* light, const Vector& point, float maxDistance, float step = 0.5f);
     inline void SetPixel(int x, int y, const Color color)
     {
         int index = (y * m_lightsurface->pitch / 4) + x;
@@ -89,7 +90,7 @@ private:
     light_params params;
     SDL_Texture* m_lighttexture;
     SDL_Surface* m_lightsurface;
-
+    std::vector<Vector> tested_points;
    std::unordered_map<std::string, CLight*> light_list;
 };
 

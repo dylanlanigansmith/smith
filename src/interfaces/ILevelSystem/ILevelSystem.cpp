@@ -62,12 +62,14 @@ void CLevelSystem::OnEngineInitFinish()
     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
 
     ILightingSystem->AddLight<CLightOverhead>({6.f, 22.f, 1.f}, Color::CandleLight(), 0.3, 0.5f, 3.0);
-    ILightingSystem->AddLight<CLightOverhead>({17.f, 19.f, 1.f}, Color::FluorescentLight(), 0.6, 0.6, 8.0);
+    ILightingSystem->AddLight<CLightOverhead>({17.f, 19.f, 2.f}, Color::FluorescentLight(), 0.6, 0.6, 8.0);
+
+     ILightingSystem->AddLight<CLightOverhead>({7.5f, 7.5f, 2.f}, Color::FluorescentLight(), 0.6, 0.6, 6.0);
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(12, 22);
     auto light = IEntitySystem->AddEntity<CGreenLight>();
-    light->SetPosition(10, 12);
+    light->SetPosition(17, 19);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
     pillar->SetPosition(2, 12);
 

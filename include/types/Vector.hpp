@@ -210,7 +210,9 @@ class Vector{
     
 
 
-    
+    bool operator==(Vector const& a ) const{
+      return x == a.x && y == a.y && z == a.z;
+    }
     Vector operator+(Vector const& a ) const{
       return Vector(x + a.x, y + a.y, z + a.z);
     }

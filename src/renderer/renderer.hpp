@@ -35,7 +35,16 @@ public:
         int index = (y * m_surface->pitch / 4) + x;
         pixels[index] = color;
     }
-
+    inline void SetPixel(SDL_Surface* surf, int x, int y, const Color color)
+    {
+        int index = (y * surf->pitch / 4) + x;
+        ((uint32_t*)surf->pixels  )[index] = color;
+    }
+    inline Color GetPixel(SDL_Surface* surf,int x, int y)
+    {
+        int index = (y * surf->pitch / 4) + x;
+        return Color(((uint32_t*)surf->pixels  )[index]);
+    }
     inline Color GetPixel(int x, int y)
     {
         int index = (y * m_surface->pitch / 4) + x;
@@ -53,8 +62,14 @@ private:
 
     void SetLightingRenderInfo();
     void UpdateLighting();
-
+    void BlurTexture();
+    void GaussianBlurPass(bool horizontal);
+    void GaussBlurTexture();
+    void GenerateGaussKernel();
 private:
+    std::vector<float> kernel;
+    int kernelSize;
+     float sigma;
     bool m_bThreadDone;
     double ZBuffer[SCREEN_WIDTH];
     uint32_t *pixels;
@@ -67,5 +82,9 @@ private:
     SDL_Texture *m_lightTexture;
     SDL_Surface *m_surface;
     SDL_Surface *m_lightsurface;
+
+    SDL_Texture *m_blurTexture;
+    SDL_Surface *m_blur;
+    SDL_Surface *m_downscale;
     CCamera *m_Camera;
 };

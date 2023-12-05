@@ -15,7 +15,7 @@ struct light_influence
 
 class CLight
 {
-friend class CLightingSystem;
+friend class CLightingSystem; friend class CEditor;
 public:
     CLight() :  m_flIntensity(1.0f), m_flRange(1.0f), m_flBrightness(1.0f), m_iType(0), m_szName("CLight") {}
     template <typename T> 
@@ -24,7 +24,8 @@ public:
 
 
 
-
+    //debug
+    std::vector<std::tuple<Vector2, Vector2, bool>> rays;
 
 
 

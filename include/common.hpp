@@ -15,6 +15,7 @@
 #include <cassert>
 #include <limits.h>
 #include <float.h>
+#include <tuple>
 
 #define M_PI		3.14159265358979323846f
 #define M_RADPI		57.295779513082f

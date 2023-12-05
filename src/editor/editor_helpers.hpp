@@ -45,4 +45,13 @@ namespace Editor
         ImGui::ColorButton("##mask", imclr, ImGuiColorEditFlags_NoPicker, {32,32});
         ImGui::PopID();
    }
+
+   inline ImVec4 ColorToIm4(const Color& clr, bool alpha = false)
+    {
+        return ImVec4(clr.r() / 255.f, clr.g() / 255.f, clr.b() / 255.f, (alpha) ? clr.a() /255.f : 1.f);
+    }
+    inline ImU32 ColorToIU32(const Color& c, bool alpha = false)
+    {
+        return IM_COL32(c.r(),c.g(),c.b(), (alpha) ? c.a() : 255);
+    }
 }
