@@ -18,8 +18,8 @@
 //0 nearest pixel sampling 1 linear filter 2 anisotropic 
 #define TEXTURE_SCALE_QUALITY "1"
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 360
 
 #define SCREEN_WIDTH_FULL 1920
 #define SCREEN_HEIGHT_FULL 1080

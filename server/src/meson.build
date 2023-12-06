@@ -1,12 +1,3 @@
-
-x_dep = dependency('x11')
-gl_dep = dependency('gl')
-sdl3_dep = dependency('sdl3')
-sdl3_img_dep = dependency('SDL3_image')
-thread_dep = dependency('threads')
-
-
-
 c = run_command('find.sh', check: true)
 
 
@@ -18,7 +9,7 @@ if not sources.contains('idontthinkthisisneeded')
 endif
 
 
-executable('smith', sources, include_directories : inc, 
+executable('smith-server', sources, include_directories : [ inc, '../include' ], 
     dependencies : [
         x_dep,
         thread_dep,
@@ -30,9 +21,7 @@ executable('smith', sources, include_directories : inc,
         magic_enum_dep,
         [enet_lib]
     ],
-    cpp_args : [ '-Og'
+    cpp_args : [ #'-Og'
     ]
 
 )
-
-#

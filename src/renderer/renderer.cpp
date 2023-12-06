@@ -1,3 +1,4 @@
+#pragma GCC optimize ("O2")
 #include "renderer.hpp"
 
 #include <types/Vector.hpp>
@@ -12,7 +13,7 @@
 #include <imgui_impl_sdlrenderer3.h>
 #include <imgui_impl_sdl3.h>
 #include <editor/editor.hpp>
-#define BLUR_SCALE 1
+#define BLUR_SCALE 4
 void CRenderer::Shutdown()
 {
   ImGui_ImplSDLRenderer3_Shutdown();
@@ -56,6 +57,7 @@ bool CRenderer::Create()
   m_blurTexture = SDL_CreateTexture(get(), SMITH_PIXELFMT, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH / BLUR_SCALE, SCREEN_HEIGHT / BLUR_SCALE);
 
   SDL_SetTextureScaleMode(m_renderTexture, SDL_SCALEMODE_BEST);
+ // SDL_SetTextureScaleMode(m_blurTexture, SDL_SCALEMODE_BEST);
   return ret;
 }
 
@@ -75,8 +77,8 @@ void CRenderer::SetLightingRenderInfo()
   SDL_SetSurfaceBlendMode(m_downscale, SDL_BLENDMODE_NONE); 
   SDL_SetSurfaceBlendMode(m_lightsurface, SDL_BLENDMODE_NONE);
 
-  sigma = 15.f; // higher = softer
-  kernelSize = 6; // higher = more area
+  sigma = 14.f; // higher = softer
+  kernelSize = 10; // higher = more area
   GenerateGaussKernel();
   ILightingSystem->m_lightsurface = m_lightsurface;
  // ILightingSystem->m_lighttexture = m_lightTexture;
@@ -92,8 +94,8 @@ void CRenderer::UpdateLighting()
 void CRenderer::BlurTexture()
 {
 
-   int blurRadius = 1; // You can adjust this for a more or less blurred effect
-
+   int blurRadius = 3; // You can adjust this for a more or less blurred effect
+ SDL_Surface* surf = m_lightsurface;
   int width = SCREEN_WIDTH / BLUR_SCALE;
   int height = SCREEN_HEIGHT / BLUR_SCALE;
     for (int y = 0; y < height; ++y) {
@@ -109,7 +111,7 @@ void CRenderer::BlurTexture()
 
                     // Check bounds
                     if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                        Color clr = GetPixel(m_downscale, nx, ny );
+                        Color clr = GetPixel(surf, nx, ny );
                         r += clr.r();
                         g += clr.g();
                         b += clr.b();
@@ -130,6 +132,7 @@ void CRenderer::BlurTexture()
     }
 }
 void CRenderer::GaussianBlurPass(bool horizontal) {
+    SDL_Surface* surf = m_downscale;
     int width = SCREEN_WIDTH / BLUR_SCALE;
     int height = SCREEN_HEIGHT / BLUR_SCALE;
    
@@ -140,7 +143,7 @@ void CRenderer::GaussianBlurPass(bool horizontal) {
             for (int k = -kernelSize / 2; k <= kernelSize / 2; ++k) {
                 int sampleX = horizontal ? std::clamp(x + k, 0, width - 1) : x;
                 int sampleY = horizontal ? y : std::clamp(y + k, 0, height - 1);
-                Color clr = GetPixel(m_downscale, sampleX, sampleY);
+                Color clr = GetPixel(surf, sampleX, sampleY);
                 float weight = kernel[k + kernelSize / 2];
                 r += clr.r() * weight;
                 g += clr.g() * weight;
@@ -148,7 +151,7 @@ void CRenderer::GaussianBlurPass(bool horizontal) {
                 a += clr.a() * weight;
             }
 
-            SetPixel(m_blur, x, y, Color(static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b), static_cast<uint8_t>(a)));
+            SetPixel(m_blur, x, y, Color(r,g,b,a));
         }
     }
 }
@@ -236,13 +239,13 @@ void CRenderer::Loop()
 
    
  
-  bool blur = false;
+  bool blur = true;
  // SDL_LockSurface(m_lightsurface);
  SDL_LockTextureToSurface(m_blurTexture, NULL, &m_blur);
   if(blur){
     SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL);
     GaussBlurTexture();
-    ///BlurTexture();
+   // BlurTexture();
   } else{
      SDL_BlitSurface(m_lightsurface, NULL, m_blur, NULL);
   }

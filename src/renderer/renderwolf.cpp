@@ -1,3 +1,4 @@
+#pragma GCC optimize ("O2")
 #include "renderer.hpp"
 #include <types/Vector.hpp>
 
@@ -9,24 +10,26 @@
 #include <util/misc.hpp>
 
 /*
-Goals for today:
+Goals :
 
 modularize rendering 
 alpha for thin walls
 
-tile and texture flags
+tile and texture flags 
+-use voxels for col detection
 
-fix animation positions
-make gun a viewmodel 
+timestep is so fucking broken
 
-ensure scaling always works 
 bonus if u add a settings mode
-mipmap ceilings
 
+make lighting less of a shitshow
 
-then finally:
-light texture and blending
+TRANSPARENCY
 
+soo just make a queue of second passes
+stdpair startx endx 
+
+how will u break up render loop into funcs? beats me 
 
 
 
@@ -43,18 +46,17 @@ void CRenderer::LoopWolf(int minX, int maxX)
   static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
   // level system should handle these
 
-  int textH, textW;
-  ITextureSystem->GetTextureSize(&textW, &textH);
+  static int textH = 0, textW = 0;
+  if(textH == 0 || textW == 0)
+    ITextureSystem->GetTextureSize(&textW, &textH); //not even a good function
 
  // SDL_SetRenderTarget(get(), NULL);
  
 
   auto player = IEntitySystem->GetLocalPlayer();
   m_Camera = &player->m_camera;
-  Vector2 playerPos = {
-      player->GetPosition().x,
-      player->GetPosition().y,
-  };
+  Vector playerPos =  player->GetPosition();
+
 
   int w = SCREEN_WIDTH; // so confusing
   int h = SCREEN_HEIGHT;
@@ -113,6 +115,7 @@ void CRenderer::LoopWolf(int minX, int maxX)
       sideDist.y = (mapPos.y + 1.0 - playerPos.y) * (deltaDist.y);
     }
     // perform DDA
+    tile_t* hitTile = nullptr;
     while (hit == 0)
     {
       // jump to next map square, either in x-direction, or in y-direction
@@ -134,8 +137,10 @@ void CRenderer::LoopWolf(int minX, int maxX)
         continue;
       int type = tile->m_nType;
 
-      if (type == Level::Tile_Wall)
-        hit = 1;
+      if (type == Level::Tile_Wall){
+         hit = 1; hitTile = tile;
+      }
+       
 
       if (tile->IsThinWall())
       {
@@ -172,9 +177,9 @@ void CRenderer::LoopWolf(int minX, int maxX)
         }
 
         if (side == 0) {
-        perpWallDist = (intersect.x - player->GetPosition().x + (0) / 2)/ rayDir.x;
+        perpWallDist = (intersect.x - playerPos.x + (0) / 2)/ rayDir.x;
         } else {
-            perpWallDist = (intersect.y - player->GetPosition().y + (0) / 2) / rayDir.y;
+            perpWallDist = (intersect.y - playerPos.y + (0) / 2) / rayDir.y;
         }
         // Calculate height of line to draw on screen
         int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
@@ -182,10 +187,10 @@ void CRenderer::LoopWolf(int minX, int maxX)
         int pitch = m_Camera->m_flPitch;
 
         // calculate lowest and highest pixel to fill in current stripe
-        int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+        int drawStart = -lineHeight / 2 + h / 2 + pitch + (playerPos.z / perpWallDist);
         if (drawStart < 0)
           drawStart = 0;
-        int drawEnd = lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+        int drawEnd = lineHeight / 2 + h / 2 + pitch + (playerPos.z / perpWallDist);
         if (drawEnd >= h)
           drawEnd = h - 1;
 
@@ -243,8 +248,8 @@ void CRenderer::LoopWolf(int minX, int maxX)
                //log("{%i %i} { %.1f,  %.1f,  %.4f}, %i %i ", mapPos.x, mapPos.y,wp.x,wp.y,wp.z);
           float lightH =  1.0 - ((float) (y - drawStart) /  (float) (drawEnd - drawStart ));
       
-          Vector wp = Vector(intersect.x - (step.x / 3.f), intersect.y - (step.y / 3.f), lightH * 2.f );
-          ILightingSystem->ApplyLightForTile(tile, color,wp, x, y);
+          Vector wp = Vector(intersect.x - (rayDir.x / STEPMAGICNUM), intersect.y - (rayDir.y / STEPMAGICNUM), lightH  );
+          ILightingSystem->ApplyLightForTile(tile, (rayDir.x > 0), (rayDir.y > 0),wp, x, y);
           SetPixel(x,y, color);
           didDraw = true;
    
@@ -255,6 +260,8 @@ void CRenderer::LoopWolf(int minX, int maxX)
     if(didDraw){
        ZBuffer[x] = perpWallDist; continue;
     }
+    if(hitTile == nullptr) continue;
+    auto tile = hitTile;
     // Calculate distance projected on camera direction. This is the shortest distance from the point where the wall is
     // hit to the camera plane. Euclidean to center camera point would give fisheye effect!
     // This can be computed as (mapX - player->GetPosition().x + (1 - stepX) / 2) / rayplayerDir.x for side == 0, or same formula with Y
@@ -267,24 +274,27 @@ void CRenderer::LoopWolf(int minX, int maxX)
       perpWallDist = (sideDist.y - deltaDist.y) + wallDistOffset;
 
     // Calculate height of line to draw on screen
-    int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist);
+    int lineHeight = (int)(SCREEN_HEIGHT / perpWallDist) ;//
+    
 
     int pitch = m_Camera->m_flPitch;
 
     // calculate lowest and highest pixel to fill in current stripe
-    int drawStart = -lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+    int drawStart = -lineHeight / 2 + h / 2 + pitch + (playerPos.z / perpWallDist);
     if (drawStart < 0)
       drawStart = 0;
-    int drawEnd = lineHeight / 2 + h / 2 + pitch + (player->GetPosition().z / perpWallDist);
+    int drawEnd = lineHeight / 2 + h / 2 + pitch + (playerPos.z / perpWallDist);
     if (drawEnd >= h)
       drawEnd = h - 1;
-
+ if(hitTile->m_flCeiling > 1.0f) drawStart -= hitTile->m_flCeiling * 15;
+  if (drawStart < 0)
+      drawStart = 0;
     // calculate value of wallX
     double wallX; // where exactly the wall was hit
     if (side == 0)
-      wallX = player->GetPosition().y + perpWallDist * rayDir.y;
+      wallX = playerPos.y + perpWallDist * rayDir.y;
     else
-      wallX = player->GetPosition().x + perpWallDist * rayDir.x;
+      wallX = playerPos.x + perpWallDist * rayDir.x;
     wallX -= floor((wallX));
 
     IVector2 tex;
@@ -296,9 +306,9 @@ void CRenderer::LoopWolf(int minX, int maxX)
 
     double stepTex = 1.0 * textH / lineHeight;
     double texPos = (drawStart - pitch - h / 2 + lineHeight / 2) * stepTex;
-    auto texture = ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
+    auto texture = tile->m_pTexture->m_texture;//ILevelSystem->GetTextureAt(mapPos.x, mapPos.y)->m_texture;
 
-    auto tile = ILevelSystem->GetTileAt(mapPos);
+   // auto tile = ILevelSystem->GetTileAt(mapPos);
     bool hasBulletHole = (tile->m_nDecals > 0);
   
     constexpr Color hole_color(0, 0, 0, 175);
@@ -358,8 +368,8 @@ void CRenderer::LoopWolf(int minX, int maxX)
         //log("{%i %i} { %.1f,  %.1f,  %.4f}, %i %i ", mapPos.x, mapPos.y,wp.x,wp.y,wp.z);
       float lightH =  1.0 - ((float) (y - drawStart) /  (float) (drawEnd - drawStart ));
       
-      Vector wp = Vector((mapPos.x + wallX) - (step.x / 3.f), mapPos.y - (step.y / 3.f), lightH * 2.f );
-      ILightingSystem->ApplyLightForTile(tile, color,wp, x, y);
+      Vector wp = Vector((mapPos.x + wallX) - (rayDir.x / STEPMAGICNUM), mapPos.y - (rayDir.y / STEPMAGICNUM), lightH  );
+      ILightingSystem->ApplyLightForTile(tile, (rayDir.x > 0), (rayDir.y > 0),wp, x, y);
       SetPixel(x,y, color);
      
     }
@@ -472,9 +482,9 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
       uint32_t *pixelsT = (uint32_t *)texture->pixels;
       Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR
 
-       ILightingSystem->ApplyLightForTile(tile, color, {floorX - floorStepX, floorY - floorStepY, (is_floor) ? 0.15f : 1.85f }, x, y);
-     // SDL_Color color = Render::TextureToSDLColor(uColor);
-
+       ILightingSystem->ApplyLightForTile(tile, (rayDirX0 > 0), (rayDirY0 > 0), {floorX , floorY , (is_floor) ? 0.15f : 0.9f }, x, y);
+ 
+     // if(color == Color(0,255,255,255)) continue;
       if (is_floor)
         color /= 2.f;
       else
@@ -495,8 +505,8 @@ void CRenderer::RenderSprites(CPlayer* player)
    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
  
    // draw renderable entities
-  int numSprites = IEntitySystem->NumRenderables();
-  std::vector<std::pair<double, uint32_t>> render_list;
+ // int numSprites = IEntitySystem->NumRenderables();
+  std::vector<std::pair<double, CBaseRenderable*>> render_list;
 
   auto player_pos = player->GetPosition();
   for (auto ent : IEntitySystem->iterableList())
@@ -505,18 +515,18 @@ void CRenderer::RenderSprites(CPlayer* player)
     {
       auto entPos = ent->GetPosition();
       double distanceSqr = Vector(player_pos - entPos).LengthSqr();
-      render_list.push_back({distanceSqr, ent->GetID()});
+      render_list.push_back({distanceSqr, (CBaseRenderable*)ent});
     }
   }
-  assert(numSprites == render_list.size()); // no longer needed
+  //assert(numSprites == render_list.size()); // this never was an issue
   std::sort(render_list.begin(), render_list.end(),
-            [](const std::pair<double, uint32_t> &a, const std::pair<double, uint32_t> &b)
+            [](const std::pair<double,CBaseRenderable*> &a, const std::pair<double, CBaseRenderable*> &b)
             {
               return a.first > b.first; // Sorting in descending order based on the double value
             });
   for (const auto &entry : render_list)
   {
-    auto ent = IEntitySystem->GetEntity<CBaseRenderable>(entry.second);
+    auto ent = entry.second;
     if (!ent)
       continue;
     ent->Render(this);
@@ -526,9 +536,9 @@ void CRenderer::RenderSprites(CPlayer* player)
 
   // draw crosshair
 
-  int crosshair_x = SCREEN_WIDTH / 2;
-  int crosshair_y = SCREEN_HEIGHT / 2;
-  constexpr Color crosshair_color = Color::White();
+  static constexpr int crosshair_x = SCREEN_WIDTH / 2;
+  static constexpr int crosshair_y = SCREEN_HEIGHT / 2;
+  static constexpr Color crosshair_color = Color::White();
   SetPixel(crosshair_x, crosshair_y,  crosshair_color);
   for (int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
     for (int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)

@@ -11,7 +11,7 @@ class CBaseRenderable :  public CBaseEntity
 public:
     CBaseRenderable(int m_iID) : CBaseEntity(m_iID) {}
     virtual ~CBaseRenderable(){}
-    virtual bool IsRenderable() { return true; }
+    virtual inline bool IsRenderable() { return true; }
     virtual void CreateRenderable() = 0;
     virtual void OnRenderStart() = 0;
     virtual void OnRenderEnd() = 0;

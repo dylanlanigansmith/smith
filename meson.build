@@ -4,11 +4,13 @@ project('smith','c','cpp',
                      ],
     version : '0.0.0'
 )
+enet_lib =  meson.get_compiler('c').find_library('enet', dirs : ['/home/dylan/code/smith/thirdparty/enet/.libs/'])
+ 
 
-
-inc = include_directories('include', 'thirdparty/imgui', 'thirdparty/json/include', 'thirdparty/magic_enum/include')
+inc = include_directories('include', 'thirdparty/imgui', 'thirdparty/json/include', 'thirdparty/magic_enum/include', 'thirdparty/enet/include')
 
 subdir('thirdparty/imgui')
 subdir('thirdparty/json')
 subdir('thirdparty/magic_enum')
 subdir('src')
+subdir('server/src')

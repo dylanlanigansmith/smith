@@ -2,6 +2,8 @@
 #include <interfaces/interfaces.hpp>
 #include <imgui_impl_sdl3.h>
 #include <magic_enum/magic_enum.hpp>
+
+
 CEngine::~CEngine()
 {
 }
@@ -26,6 +28,18 @@ void CEngine::Start(const char* title)
     } else{
         log("set threadpriority -> %s", magic_enum::enum_name(priority).data() ); //+10-15fps boost with -Og  
     }
+#ifdef SMITHNETWORKED 
+    if(enet_initialize() != 0){
+        Error("failed to init network client %s", "stopping"); Shutdown();
+    }
+
+    const int maxConnections= 8, numChannels = 2, limit_in = 0, limit_out = 0;
+    client = enet_host_create(NULL,maxConnections, numChannels, limit_in, limit_out);
+    if(client == nullptr){
+        Error("failed to create network client %s", "stopping"); Shutdown();
+    }
+    status("created network client");
+#endif
     InitInterfaces();
     for(auto& element : interfaces.list())
             element.second->OnResourceLoadStart();
@@ -73,12 +87,13 @@ int CEngine::Run()
 }
 int CEngine::Shutdown()
 {
+    enet_deinitialize();
     render->Shutdown();
 
     SDL_DestroyWindow(m_SDLWindow);
     SDL_Quit();
 
-    return 0;
+    exit(0);
 }
 
 

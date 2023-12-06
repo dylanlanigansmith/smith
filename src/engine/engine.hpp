@@ -4,6 +4,10 @@
 #include <logger/logger.hpp>
 #include <renderer/renderer.hpp>
 #include <interfaces/interfaces.hpp>
+#include <enet/enet.h>
+
+//#define SMITHNETWORKED
+
 
 class CEngine : public CLogger
 {
@@ -32,7 +36,7 @@ public:
 protected:
     void InitInterfaces();
     int Shutdown();
-
+    ENetHost* client;
 
 private:
     CTextureSystem* ITextureSystem;

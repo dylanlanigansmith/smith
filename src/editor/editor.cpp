@@ -189,7 +189,7 @@ void CEditor::drawMapView()
     static SDL_Texture *previewTexture3 = NULL;
     static ImGuiTextFilter textureFilter;
     ImGui::Columns(2, "###mapedit");
-    ImVec2 tileSize(20, 20);
+    ImVec2 tileSize(32, 32);
     for (auto &row : world)
     {
         for (auto &tile : row)
@@ -244,7 +244,22 @@ void CEditor::drawMapView()
     if (ImGui::Button("Unselect"))
     {
         selectedTile = nullptr;
+    }ImGui::SameLine();
+    if (ImGui::Button("Reset"))
+    {
+        for (auto &row : world)
+        {
+            for (auto &tile : row)
+            {
+                int x = tile.m_vecPosition.x, y = tile.m_vecPosition.y;
+                if( x == 0 || y == 0 || x == MAP_SIZE - 1 || y == MAP_SIZE - 1) 
+                    continue;
+                tile.m_nType = Level::Tile_Empty;
+            }
+
+        }
     }
+    
     if (selectedTile == nullptr)
     {
         ImGui::Text("No Tile Selected");
@@ -351,8 +366,18 @@ void CEditor::drawMapView()
         ImGui::Image(paintpreviewTexture, ImVec2(64, 64));
         if (ImGui::IsKeyDown(ImGuiKey_Space))
         {
-            selectedTile->m_nType = Level::Tile_Wall;
-            selectedTile->UpdateTexture(paintTexture);
+            auto type = Level::Tile_Wall;
+            auto tex = TileTexture_Primary;
+            if(all_floor){
+                type = Level::Tile_Empty;
+                tex = TileTexture_Floor;
+            }
+            if(all_ceiling){
+                type = Level::Tile_Empty;
+                tex = TileTexture_Ceiling;
+            }
+            selectedTile->m_nType = type;
+            selectedTile->UpdateTexture(paintTexture, tex);
         }
     }
 
@@ -910,6 +935,8 @@ void CEditor::drawLightView()
     auto &world = level->world;
 
     static tile_t* selectedTile = nullptr;
+    static bool visualizeLighting = true;
+    static float visualizeAlphaMod  = 1.f;
     if(runMapView){
         for (auto &row : world)
         {
@@ -932,20 +959,30 @@ void CEditor::drawLightView()
                 //if you wanna really do this right then make a texture the size of the grid, and draw a mini lightmap on it.. or do 9 mini images with uv set and tint of avg column color
 
                  draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
-                draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP), 
-                        ImVec2(0,0), ImVec2(1,1), IM_COL32(vxvtr_clr.r(), vxvtr_clr.g(), vxvtr_clr.b(), vxvtr_clr.a()));
+                 if(visualizeLighting)
+                    draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP), 
+                            ImVec2(0,0), ImVec2(1,1), IM_COL32(vxvtr_clr.r(), vxvtr_clr.g(), vxvtr_clr.b(), vxvtr_clr.a() * visualizeAlphaMod));
                 
                 if (ImGui::InvisibleButton("##tile", {GRID_STEP, GRID_STEP}))
                 { // ImGui::ImageButton
                     engine->log("%s", name.c_str());
                     selectedTile = &tile;
-
+                    for(int dir = NORTH; dir <= WEST; ++dir){
+                        auto nbr = ILevelSystem->GetTileNeighbor(&tile, dir);
+                        const char* dn = magic_enum::enum_name((Cardinal_Directions)dir).data() ;
+                        if(!nbr) {
+                            engine->log("{%i %i} no neighbor %s",pos.x, pos.y, dn);continue;
+                        }
+                        
+                        engine->log(" {%i %i} %s", nbr->m_vecPosition.x, nbr->m_vecPosition.y, (dn) ? dn : "lol");
+                    }
+                    
                     for (int x = 0; x < TILE_SECTORS; ++x)
                         for (int y = 0; y < TILE_SECTORS; ++y)
                             for (int z = 0; z < TILE_SECTORS; ++z)
                             {
-                                Vector p = tile.getSectorCenterRelativeCoords(x, y, z) + Vector(tile.m_vecPosition.x, tile.m_vecPosition.y, 0.f);
-                                engine->log(" {%.3f %.3f %.3f } %i %i ", p.x, p.y, p.z, tile.m_vecPosition.x, tile.m_vecPosition.y );
+                               // Vector p = tile.getSectorCenterRelativeCoords(x, y, z) + Vector(tile.m_vecPosition.x, tile.m_vecPosition.y, 0.f);
+                                //engine->log(" {%.3f %.3f %.3f } %i %i ", p.x, p.y, p.z, tile.m_vecPosition.x, tile.m_vecPosition.y );
 
                             }
 
@@ -957,6 +994,7 @@ void CEditor::drawLightView()
 
 
     static CLight* selectedLight = nullptr;
+    
     static bool drawRays = true;
     static bool drawHitsOnly = false;
     static bool drawMissesOnly = false;
@@ -964,6 +1002,8 @@ void CEditor::drawLightView()
     static float minRayLength = 0.f;
     static float maxRayLength = 50.f;
     static int ray_filter = 50;
+    static ImGuiTextFilter light_filter("");
+
     if(ray_filter < 1) ray_filter = 1;
     constexpr auto rayHitClr = IM_COL32(15,245,30,100);
     constexpr auto rayMissClr = IM_COL32(245,0,30,50);
@@ -975,7 +1015,8 @@ void CEditor::drawLightView()
         float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
         auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
         int i = 0;
-        
+        std::string last{light->GetName().back()};
+        if(!light_filter.PassFilter(last.c_str())) continue; //this will break soon
         for(auto& ray : light->rays){
             if(!drawRays) continue;
             // v2 ray end  v2 ray goal b ray hit
@@ -1032,7 +1073,11 @@ void CEditor::drawLightView()
         ImGui::End();
         return;
     }
+   
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+     if(ImGui::Button("Regenerate Lighting")){
+                ILightingSystem->RegenerateLighting();
+            }
     if(ImGui::BeginTabBar("###lightmodes"))
     {
         if(ImGui::BeginTabItem("Params and properties"))
@@ -1068,12 +1113,14 @@ void CEditor::drawLightView()
                                 auto voxel = selectedTile->getVoxelAt(x,y,z);
                                 ImGui::PushID(&voxel);
                                 Editor::ColorPreview(voxel->m_light);ImGui::SameLine();
-                                ImGui::Text("{%i %i %i} %s [%i]",x,y,z, voxel->m_light.s().c_str(), voxel->m_neighborsize );
-                                if(ImGui::CollapsingHeader("neighbours")){
+                                ImGui::Text("{%i %i %i} | clr %s | [%i/6]",x,y,z, voxel->m_light.s().c_str(), voxel->m_neighborsize );
+                                static bool showNeigh = false;
+                                ImGui::Checkbox("neighbors", &showNeigh);
+                                if(showNeigh){
                                     for (int i = 0; i < voxel->m_neighborsize; ++i) {
                                         if (voxel->m_neighbors[i] != Color::None()) {
                                             Editor::ColorPreview(voxel->m_neighbors[i]); ImGui::SameLine();
-                                            ImGui::Text("%i / %s", i, voxel->m_neighbors[i].s().c_str());
+                                            ImGui::Text("nbr: %i / %s", i, voxel->m_neighbors[i].s().c_str());
                                         }
                                     }
                                 }
@@ -1100,9 +1147,15 @@ void CEditor::drawLightView()
             }
             ImGui::EndTabItem();
         }
-        if(ImGui::BeginTabItem("Rays"))
+        if(ImGui::BeginTabItem("Map"))
         {   
+            light_filter.Draw("filter", UI_W / 4.5);
              ImGui::Checkbox("Draw Points", &drawPoints);
+              ImGui::Checkbox("Visualize Light", &visualizeLighting);
+              if(visualizeLighting)
+                ImGui::InputFloat("alphamod", &visualizeAlphaMod, 0.05f, 0.2f);
+            visualizeAlphaMod = std::clamp(visualizeAlphaMod, 0.f, 1.5f);
+             ImGui::SeparatorText("Rays");
             ImGui::Checkbox("Draw Rays", &drawRays);
             ImGui::Checkbox("Hits only", &drawHitsOnly);
             ImGui::Checkbox("Misses only", &drawMissesOnly);
@@ -1113,10 +1166,8 @@ void CEditor::drawLightView()
             ImGui::EndTabItem();
         }
     } ImGui::EndTabBar();
-    ImGui::SameLine();
-     if(ImGui::Button("Regenerate Lighting")){
-                ILightingSystem->RegenerateLighting();
-            }
+
+     
     
     
     ImGui::PopStyleVar();

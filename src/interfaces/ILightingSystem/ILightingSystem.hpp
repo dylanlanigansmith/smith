@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC optimize ("O2")
 #include <common.hpp>
 #include <interfaces/CBaseInterface.hpp>
 #include <SDL3/SDL.h>
@@ -6,16 +7,16 @@
 #include <light/lights.hpp>
 #include <data/level.hpp>
 
-
+#define STEPMAGICNUM 8.f
 struct light_params
 {
-    float a = 0.17f;
+    float a = 0.14f;
     float b = 0.01f;
-    float minIntensity = 0.008;
-    float alphaFactorMod = 1.37f;
-    float brightFactorMod = 1.9f;
-    float finalAlphaMod = 1.1f;
-    float interpFraction = 0.77f;
+    float minIntensity = 0.009;
+    float alphaFactorMod = 1.67f;
+    float brightFactorMod = 0.65f;
+    float finalAlphaMod = 0.52f;
+    float interpFraction = 0.41f;
     int mergeMethod = 0; //to be added later
     
 };
@@ -40,7 +41,67 @@ public:
     virtual void CalculateLighting();
 
     virtual Color GetLightForTile(tile_t* tile);
-    virtual void ApplyLightForTile(tile_t* tile, Color src, const Vector& worldpos, int x, int y); //Z(height) scale = 0-3
+    inline Color Blend(Color color1, Color color2, uint8_t weight)
+    {
+         static constexpr Color cnull = Color::None();
+         if(color2 == cnull) return color1;
+        // Extract RGBA components
+        uint8_t r1 = (color1 >> 24) & 0xFF;
+        uint8_t g1 = (color1 >> 16) & 0xFF;
+        uint8_t b1 = (color1 >> 8) & 0xFF;
+        uint8_t a1 = color1 & 0xFF;
+
+        uint8_t r2 = (color2 >> 24) & 0xFF;
+        uint8_t g2 = (color2 >> 16) & 0xFF;
+        uint8_t b2 = (color2 >> 8) & 0xFF;
+        uint8_t a2 = color2 & 0xFF;
+
+        // Blend each component using integer arithmetic
+        uint8_t r = (r1 * (255 - weight) + r2 * weight) >> 8;
+        uint8_t g = (g1 * (255 - weight) + g2 * weight) >> 8;
+        uint8_t b = (b1 * (255 - weight) + b2 * weight) >> 8;
+        uint8_t a = (a1 * (255 - weight) + a2 * weight) >> 8;
+
+        // Combine back into uint32_t
+        return (r << 24) | (g << 16) | (b << 8) | a;
+    }
+    void inline  ApplyLightForTile(tile_t* tile, bool posRayX, bool posRayY, const Vector& worldpos, int x, int y) //Z(height) scale = 0-3
+    {
+        Vector rel_pos = tile->worldToRelative(worldpos);
+        const ivec3 vox_pos = tile->relToSector(rel_pos);
+       // static const Vector epsilon = Vector(0.01f,0.01f,0.01f);
+       // rel_pos = rel_pos + epsilon;
+       
+        //log("world{%.3f %.3f %.3f}, vox[%i %i %i], screen(%i %i) tile: [%i] @ [%i,%i]",
+         //    worldpos.x, worldpos.y, worldpos.z, vox_pos.x, vox_pos.y, vox_pos.z, x, y, tile->m_nType, tile->m_vecPosition.x, tile->m_vecPosition.y);
+
+        voxel_t* vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z); // we can probably do this unsafe w.out wrapper bc relToSector coords clamps them
+        Color& vc = vox->m_light;
+        SetPixel(x, y, vc);
+        //Color bld; //bc short names are faster right??? lol
+  
+        /*
+            posRayX = west nbr >>>
+            posRayY = north nbr >>>
+            rel_pos.z > 0.6 down nbr >>>
+       
+        uint8_t weight_x = ( (uint8_t)(rel_pos.x * 255) );
+        uint8_t weight_y = ( (uint8_t)(rel_pos.y * 255) );
+        uint8_t weight_z = ( (uint8_t)(rel_pos.z * 255) );
+        // north, east, south, west, up = 4, down = 5
+        //unrolled
+        Color clr_x = (posRayX) ? Blend(vc, vox->m_neighbors[WEST], weight_x) : Blend(vc, vox->m_neighbors[EAST], weight_x);
+        Color clr_y = (posRayX) ? Blend(vc, vox->m_neighbors[NORTH], weight_y) : Blend(vc, vox->m_neighbors[SOUTH], weight_y);
+        Color clr_z =  clr_x + clr_y;// (rel_pos.z > 0.6f) ? Blend(vc, vox->m_neighbors[5], weight_z) : Blend(vc, vox->m_neighbors[4], weight_z);
+        uint8_t r,g,b,a;
+        r = (clr_x.r() + clr_y.r() + clr_z.r()) / 3.f;
+        g = (clr_x.g() + clr_y.g() + clr_z.g()) / 3.f;
+        b = (clr_x.b() + clr_y.b() + clr_z.b()) / 3.f;
+        a = (clr_x.a() + clr_y.a() + clr_z.a()) / 3.f;
+
+        bld = Color(r,g,b,a);
+        SetPixel(x, y, bld); */
+    }
     
     template <typename T> 
     T* AddLight(const Vector& m_vecPosition, const Color& m_color = Color::White(), float m_flBrightness = 1.f, float m_flIntensity = 1.f, float m_flRange = 16.f){
@@ -78,12 +139,13 @@ protected:
     }
     virtual Color GetLightAtPoint(const Vector& point);
     virtual Color CalculateLightInfluence(CLight* light, const Vector& point);
-    virtual Color CombineWithNeighbors(voxel_t* voxel);
-
+    virtual Color CombineWithNeighbors(tile_t* tile); //set false just refreshes nbr clrs
+    virtual void CalculateWallFaces(Color dark);
+    virtual void FixWallFaces(int method = 0);
     virtual void FindNeighborColors(tile_t* tile, voxel_t* voxel, int x, int y, int z);
     virtual Color LinearInterpolate(Color start, Color end, float fraction);
     virtual void CalculateTileLightData(tile_t* tile);
-    virtual void CalculateLerpLightData(tile_t* tile);
+    virtual void CalculateLerpLightData(tile_t* tile, bool set = true);
     Color getNeighborColor(tile_t* tile, const ivec3& rel, int dir);
 private:
 

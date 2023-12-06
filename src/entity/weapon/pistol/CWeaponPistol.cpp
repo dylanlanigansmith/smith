@@ -16,8 +16,12 @@ also do something fun because enemies are frustrating
 
 void CWeaponPistol::Render(CRenderer *renderer)
 {
-    m_flash->DrawFrame(renderer, {75, -200}, 190);
-    m_anim->DrawFrame(renderer, {215, 0});
+    static constexpr float flx = SCREEN_WIDTH / 17.0667f;
+    static constexpr float fly = SCREEN_HEIGHT / -3.6f;
+    static constexpr float gx = SCREEN_WIDTH / 5.9534f;
+
+    m_flash->DrawFrame(renderer, {flx, fly}, 190);
+    m_anim->DrawFrame(renderer, {gx, 0.f});
 }
 
 void CWeaponPistol::OnUpdate()
@@ -335,13 +339,18 @@ void CWeaponPistol::OnCreate()
 
     287x285
     */
-    m_anim = new CAnimController(m_pOwner, "pistol.png", {"pistol", {360, 360}, {65, 176, 70, 255}, {65, 176, 70, 255}},
+    const float w_scale = 3.5555f;
+    const float h_scale = 2.0f;
+
+    const float w_scalefl = 5.0f;
+    const float h_scalefl = 2.82f;
+    m_anim = new CAnimController(m_pOwner, "pistol.png", {"pistol", {SCREEN_WIDTH / w_scale, SCREEN_HEIGHT / h_scale}, {65, 176, 70, 255}, {65, 176, 70, 255}},
                                  CAnimSequence("shoot0", 2,
                                                std::vector<sequence_frame>{
                                                    sequence_frame({0, 0, 80, 80}, 0), sequence_frame({80, 0, 80, 80}, 1),
                                                    sequence_frame({160, 0, 80, 80}, 2), sequence_frame({80, 0, 80, 80}, 3),
                                                    sequence_frame({0, 0, 80, 80}, 4)}));
-    m_flash = new CAnimController(m_pOwner, "flash.png", {"flash", {256, 256}, {0, 255, 255, 255}, {0, 0, 0, 255}},
+    m_flash = new CAnimController(m_pOwner, "flash.png", {"flash", {SCREEN_WIDTH / w_scalefl, SCREEN_HEIGHT / h_scalefl}, {0, 255, 255, 255}, {0, 0, 0, 255}},
                                   CAnimSequence("default", 1,
                                                 std::vector<sequence_frame>{
                                                     sequence_frame({0, 0, 1, 1}, 0),

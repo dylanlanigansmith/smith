@@ -6,7 +6,7 @@
 
 
 bool CLogger::gLogToFile = LOG_FILEGLOBAL;
-std::string CLogger::gLogFilePath = LOG_HOME_PATH + LOG_RESOURCE_PATH + LOG_SUBDIR;
+std::string CLogger::gLogFilePath = LOG_HOME_PATH + LOG_RESOURCE_PATH + LOG_SUBDIR + std::string("/");
 
 void CLogger::formatName()
 {
@@ -28,9 +28,16 @@ inline void CLogger::_instance_log(const std::string &msg)
     else  _log(msg);
 }
 
-void CLogger::_instance_logfile_(const std::string &msg)
+inline void CLogger::_instance_logfile_(const std::string &msg)
 {
     m_fsLogFile << msg << std::endl; //auto flushes 
+}
+
+inline void CLogger::_instance_logothers(const std::string &msg)
+{
+    if(!m_bFileLogging) return;
+    _instance_logfile_(msg);
+
 }
 
 CLogger::CLogger(const std::string& classname, const std::string& name)
@@ -92,6 +99,7 @@ void CLogger::info(const char *fmt, ...)
     ctxt.append(sfmt);
     
     _logfile(ctxt);
+    _instance_logothers(ctxt);
     
 }
 
@@ -100,6 +108,7 @@ void CLogger::info(const std::string &msg)
     std::string ctxt = m_szFmtName;
     ctxt.append(msg);
     _logfile(ctxt);
+     _instance_logothers(msg);
 }
 
 void CLogger::warn(const char *fmt, ...)
@@ -111,11 +120,13 @@ void CLogger::warn(const char *fmt, ...)
     va_end(args);
     ctxt.append(sfmt);
     _logclr(ctxt, 33);
+    _instance_logothers(ctxt);
 }
 
 void CLogger::warn(const std::string &msg)
 {
     _logclr(msg, 33);
+    _instance_logothers(msg);
 }
 
 void CLogger::status(const char *fmt, ...)
@@ -127,11 +138,13 @@ void CLogger::status(const char *fmt, ...)
     va_end(args);
     ctxt.append(sfmt);
     _logclr(ctxt, 32);
+    _instance_logothers(ctxt);
 }
 
 void CLogger::status(const std::string &msg)
 {
     _logclr(msg, 32);
+    _instance_logothers(msg);
 }
 
 void CLogger::error(const char* file, int line, const char* fmt, ...) 
@@ -148,12 +161,13 @@ void CLogger::error(const char* file, int line, const char* fmt, ...)
     ctxt.append(sfmt);
     
     _logclr(ctxt);
+    _instance_logothers(ctxt);
 }
 
 bool CLogger::StartLogFileForInstance(const std::string &path)
 {
-    m_szFilePath = gLogFilePath + path;
-    m_fsLogFile.open(path);
+    m_szFilePath = gLogFilePath + path +_timestr(false);
+    m_fsLogFile.open(m_szFilePath);
     if(m_fsLogFile.fail()){
         Error("failed to open logfile at %s", m_szFilePath.c_str()); return false;
     }
@@ -181,14 +195,14 @@ bool CLogger::EndLogFileForInstance()
     return true;
 }
 
-std::string CLogger::_strf(const char *fmt, va_list list)
+inline std::string CLogger::_strf(const char *fmt, va_list list)
 {
     char buf[1024];
     vsnprintf(buf, sizeof(buf), fmt, list);
     return std::string(buf);
 }
 
-std::string CLogger::_timestr(bool full)
+inline std::string CLogger::_timestr(bool full)
 {
     std::time_t t = std::time(0);
    
@@ -210,12 +224,12 @@ void CLogger::_logf(const char *fmt, ...)
     _log(s);
 }
 
-void CLogger::_log(std::string msg)
+inline void CLogger::_log(std::string msg)
 {
         std::cout << msg << std::endl; 
 }
 
-void CLogger::_logclr(std::string msg, uint8_t clr)
+inline void CLogger::_logclr(std::string msg, uint8_t clr)
 {
 
     /* https://stackoverflow.com/questions/2616906/how-do-i-output-coloured-text-to-a-linux-terminal
@@ -261,7 +275,7 @@ inverse off      27
 
 std::vector<std::string> CLogger::history = {std::string(__TIME__), std::string(__DATE__)};
 
-void CLogger::_logfile(const std::string msg)
+inline void CLogger::_logfile(const std::string msg)
 {
    history.push_back(msg);
 }

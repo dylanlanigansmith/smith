@@ -60,16 +60,22 @@ void CLevelSystem::OnEngineInitFinish()
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+     constexpr Color sun = Color(255, 165, 0, 170);
+    ILightingSystem->AddLight<CLightOverhead>({8.f, 8.4f, 1.f}, Color::CandleLight(), 0.5, 0.5f, 4.0);
+    ILightingSystem->AddLight<CLightOverhead>({19.5f, 21.5f, 2.f}, sun, 0.7, 0.7, 16.0);
+    ILightingSystem->AddLight<CLightOverhead>({21.5f, 6.5f, 2.f}, sun, 0.7, 0.7, 16.0);
 
-    ILightingSystem->AddLight<CLightOverhead>({6.f, 22.f, 1.f}, Color::CandleLight(), 0.3, 0.5f, 3.0);
-    ILightingSystem->AddLight<CLightOverhead>({18.5f, 19.f, 2.f}, Color::FluorescentLight(), 0.6, 0.6, 8.0);
+   
+     ILightingSystem->AddLight<CLightOverhead>({11.6f, 9.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
+     ILightingSystem->AddLight<CLightOverhead>({6.3f, 12.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
 
-     ILightingSystem->AddLight<CLightOverhead>({7.5f, 7.5f, 2.f}, Color::FluorescentLight(), 0.6, 0.6, 6.0);
+     ILightingSystem->AddLight<CLightOverhead>({8.6f, 22.2f, 1.9f}, Color::CoolBlueLight(), 0.6, 0.6, 4.5);
+      ILightingSystem->AddLight<CLightOverhead>({15.6f, 22.2f, 1.9f}, Color::DimRedLight(), 0.6, 0.6, 6.0);
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(12, 22);
     auto light = IEntitySystem->AddEntity<CGreenLight>();
-    light->SetPosition(18.5, 19);
+    light->SetPosition(19.5, 18.5);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
     pillar->SetPosition(2, 12);
 
@@ -90,13 +96,13 @@ tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none
     switch(dir)
     {
         case NORTH:
-            coords.y -= 1;
+            coords.y -= 1; break;
         case EAST:
-            coords.x += 1;
+            coords.x += 1;break;
         case SOUTH:
-            coords.y += 1;
+            coords.y += 1;break;
         case WEST:
-           coords.x -= 1;
+           coords.x -= 1;break;
         default:
             return nullptr;
     }

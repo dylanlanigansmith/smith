@@ -56,7 +56,7 @@ private:
     void RunImGui();
     void LoopWolf(int minX, int maxX);
 
-    void inline DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h,int minX, int maxX);
+    void  DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h,int minX, int maxX);
 
     void RenderSprites(CPlayer *player);
 

@@ -104,12 +104,31 @@ struct tile_t
         return (m_nType == Level::Tile_Empty);
     }
     inline ivec3 worldToSector(const Vector& worldpos){
-        auto &tile_pos = m_vecPosition;
+        return ivec3{
+            std::clamp(static_cast<int>(std::round((worldpos.x - m_vecPosition.x) * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(std::round((worldpos.y - m_vecPosition.y) * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(std::round(worldpos.z * 3.f)), 0, 2)
+        };   
+    }
+     inline ivec3 relToSector(const Vector& pos){
+        return ivec3{
+            std::clamp(static_cast<int>(std::round(pos.x * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(std::round(pos.y * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(std::round(pos.z * 3.f)), 0, 2)
+        };    
+    }
+    inline Vector worldToRelative(const Vector& worldpos){     
+        return Vector(
+            (worldpos.x - m_vecPosition.x),
+            (worldpos.y - m_vecPosition.y),
+            worldpos.z
+        );
+        /*
         return ivec3{
             std::clamp((worldpos.x - tile_pos.x) * 3.f, 0.f, 2.f), 
             std::clamp((worldpos.y - tile_pos.y) * 3.f, 0.f, 2.f), 
-            std::clamp(worldpos.z, 0.f, 2.f)
-        };
+            std::clamp(worldpos.z * 3.f, 0.f, 2.f)
+        };*/
         
     }
 

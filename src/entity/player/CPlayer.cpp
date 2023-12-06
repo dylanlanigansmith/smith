@@ -24,7 +24,7 @@ void CPlayer::OnCreate()
   SET_ENT_NAME();
   SET_ENT_TYPE();
 
-  m_vecPosition = {16,16,0};//Vector(22, 12, 0);
+  m_vecPosition = {19,20,0};//Vector(22, 12, 0);
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
@@ -69,6 +69,7 @@ void CPlayer::Render(CRenderer *renderer)
 
 void CPlayer::CreateMove()
 {
+  static bool noclip = false;
   static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
   //  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
@@ -86,17 +87,17 @@ void CPlayer::CreateMove()
   }
   if (m_move.w)
   {
-    if (ILevelSystem->GetMapAt(m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, int(m_vecPosition.y)) == false)
+    if (ILevelSystem->GetMapAt(m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, int(m_vecPosition.y)) == false || noclip)
       m_vecPosition.x += Camera().m_vecDir.x * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y + Camera().m_vecDir.y * moveSpeed)) == false)
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y + Camera().m_vecDir.y * moveSpeed)) == false|| noclip)
       m_vecPosition.y += Camera().m_vecDir.y * moveSpeed;
   }
   // move backwards if no wall behind you
   if (m_move.s)
   {
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x - Camera().m_vecDir.x * moveSpeed), int(m_vecPosition.y)) == false)
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x - Camera().m_vecDir.x * moveSpeed), int(m_vecPosition.y)) == false || noclip)
       m_vecPosition.x -= Camera().m_vecDir.x * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y - Camera().m_vecDir.y * moveSpeed)) == false)
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y - Camera().m_vecDir.y * moveSpeed)) == false || noclip)
       m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
   }
   if (m_move.d)
@@ -104,9 +105,9 @@ void CPlayer::CreateMove()
     float rightX = Camera().m_vecDir.y;
     float rightY = -Camera().m_vecDir.x;
 
-    if (ILevelSystem->GetMapAt(m_vecPosition.x + rightX * moveSpeed, int(m_vecPosition.y)) == false)
+    if (ILevelSystem->GetMapAt(m_vecPosition.x + rightX * moveSpeed, int(m_vecPosition.y)) == false || noclip)
       m_vecPosition.x += rightX * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + rightY * moveSpeed) == false)
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + rightY * moveSpeed) == false || noclip)
       m_vecPosition.y += rightY * moveSpeed;
   }
 
@@ -116,9 +117,9 @@ void CPlayer::CreateMove()
     float leftX = -Camera().m_vecDir.y;
     float leftY = Camera().m_vecDir.x;
 
-    if (ILevelSystem->GetMapAt(m_vecPosition.x + leftX * moveSpeed, int(m_vecPosition.y)) == false)
+    if (ILevelSystem->GetMapAt(m_vecPosition.x + leftX * moveSpeed, int(m_vecPosition.y)) == false || noclip)
       m_vecPosition.x += leftX * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + leftY * moveSpeed) == false)
+    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + leftY * moveSpeed) == false || noclip)
       m_vecPosition.y += leftY * moveSpeed;
   }
 
@@ -163,9 +164,10 @@ void CPlayer::CreateMove()
   bool isCrouching = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
   {
+    noclip = !noclip;
     // crouch
-    isCrouching = true;
-    m_vecPosition.z = -200;
+   // isCrouching = true;
+   // m_vecPosition.z = -200;
   }
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_SPACE))
   {
@@ -173,7 +175,7 @@ void CPlayer::CreateMove()
     // m_vecPosition.z = 200;
     
   }
-  if(IInputSystem->IsMouseButtonDown(0))
+  if(IInputSystem->IsMouseButtonDown(0) ) //REALLY NEED A MENU OPEN FUNCTION LIKE WTF
   {
       GetActiveWeapon()->Shoot();
   }

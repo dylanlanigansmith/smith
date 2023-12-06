@@ -40,14 +40,15 @@ public:
     virtual bool StartLogFileForInstance(const std::string& path);
     virtual bool EndLogFileForInstance();
     virtual void SetLogFileOnly(bool set) { m_bOnlyFileLogging = set; status("set onlyFileLogging: %i", m_bOnlyFileLogging); }
-    virtual void SetLogColor(int clr) {m_bColorizeEverything = (clr != -1); m_iColorizeColor = clr; } //-1 to disable, clr is ascii terminal 
+    virtual void SetLogColor(int clr) {m_bColorizeEverything = (clr != -1); m_iColorizeColor = clr; } //-1 to disable, clr is ascii terminal
+
 private:
-    static std::string _strf(const char* fmt, va_list list);
-    static std::string _timestr(bool full = false);
+    inline static std::string _strf(const char* fmt, va_list list);
+    inline static std::string _timestr(bool full = false);
     static void _logf(const char* fmt, ...) __attribute__((format(printf, 1, 2))); 
-    static void _log(std::string msg);
-    static void _logfile(const std::string msg);
-    static void _logclr(std::string msg, uint8_t clr = 31);
+    inline static void _log(std::string msg);
+    inline static void _logfile(const std::string msg);
+    inline static void _logclr(std::string msg, uint8_t clr = 31);
     static std::vector<std::string> history;
     void formatName();
     static bool gLogToFile;
@@ -55,8 +56,9 @@ private:
     static std::ofstream& __fs() { if(!gLogToFile) _logclr("Accessing gLogStream with gLogTofile Off!!!"); static std::ofstream f; return f;  }
 private:
     inline bool shouldLogFile() { return m_bFileLogging && m_fsLogFile.is_open(); }
-    void inline _instance_log(const std::string& msg);
-    void _instance_logfile_(const std::string& msg);
+    inline void _instance_log(const std::string& msg);
+    inline void _instance_logfile_(const std::string& msg);
+    inline void _instance_logothers(const std::string& msg); //basically wrapper for logfile with a check for if we are file logging
    
 private:
     bool m_bColorizeEverything = false;

@@ -12,7 +12,6 @@ void CLightingSystem::OnEngineInitFinish()
 {
     Debug(false);
     StartLogFileForInstance("lighting.log");
-
 }
 
 void CLightingSystem::SetupBlending()
@@ -42,16 +41,6 @@ void CLightingSystem::RegenerateLighting()
     }
     log("cleared color info for %i faces", lol);
     CalculateLighting();
-}
-
-void CLightingSystem::ApplyLightForTile(tile_t *tile, Color src, const Vector &worldpos, int x, int y)
-{
-    auto vox_pos = tile->worldToSector(worldpos);
-    // need to determine pos based on ray dir and mappos, and then z via  drawstart/end
-    log("world{%.3f %.3f %.3f}, vox[%i %i %i], screen(%i %i) tile: [%i] @ [%i,%i]", worldpos.x, worldpos.y, worldpos.z, vox_pos.x, vox_pos.y, vox_pos.z, x, y, tile->m_nType, tile->m_vecPosition.x, tile->m_vecPosition.y);
-    auto vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
-
-    SetPixel(x, y, vox->m_light);
 }
 
 Color CLightingSystem::GetLightForTile(tile_t *tile)
@@ -109,7 +98,8 @@ void CLightingSystem::CalculateLighting()
     SetLogFileOnly(true);
     auto &level = ILevelSystem->m_Level;
     auto &world = level->world;
-     for(auto& entry : light_list){
+    for (auto &entry : light_list)
+    {
         entry.second->rays.clear();
     }
     for (auto &row : world)
@@ -123,7 +113,6 @@ void CLightingSystem::CalculateLighting()
         }
     }
 
-         
     for (auto &row : world)
     {
         for (auto &tile : row)
@@ -132,12 +121,14 @@ void CLightingSystem::CalculateLighting()
             num++;
         }
     }
-    //just add a pass that fixes all the wall tiles??
-
+    // just add a pass that fixes all the wall tiles??
 
     gen_time.Update(IEngineTime->GetCurTime());
     auto tile_time = gen_time.Elapsed();
     log("made lightdata for %i tiles, %i voxels in %i ms", num, num * 9, tile_time.ms());
+
+    CalculateWallFaces(MaxDark());
+    FixWallFaces(0);
     for (auto &row : world)
     {
         for (auto &tile : row)
@@ -146,12 +137,51 @@ void CLightingSystem::CalculateLighting()
             num++;
         }
     }
+
+    CalculateWallFaces(Color::None());
+    FixWallFaces(1);
+    for (auto &row : world)
+    {
+        for (auto &tile : row)
+        {
+          //  CalculateLerpLightData(&tile, false);
+            num++;
+        }
+    }
+    FixWallFaces(1);
+    int numLerps = 16;
+
+    while(numLerps > 0)
+    {
+        for (auto &row : world)
+        {
+            for (auto &tile : row)
+            {
+                CalculateLerpLightData(&tile, false);
+                num++;
+            }
+        }
+        
+        for (auto &row : world)
+        {
+            for (auto &tile : row)
+            {
+                CalculateLerpLightData(&tile);
+                num++;
+            }
+        }
+       
+        log("lerp round %i / %i", numLerps, num);
+        numLerps--;
+    } 
+   
     SetLogFileOnly(false);
-    for(auto& entry : light_list){
-        log("light %s cast %i rays", entry.first.c_str(), entry.second->rays.size());
+    for (auto &entry : light_list)
+    {
+        log("light %s cast %li rays", entry.first.c_str(), entry.second->rays.size());
     }
     gen_time.Update(IEngineTime->GetCurTime());
-    log("made lerp light data for %i tiles, %i voxels & their neighbors in %i ms", num / 2, num * 9, gen_time.Elapsed().ms() - tile_time.ms());
+    log("made face/lerp light data for %i tiles, %i voxels & their neighbors in %i ms", num / 2, num * 9, gen_time.Elapsed().ms() - tile_time.ms());
 
     log("Built lighting info in %i ms for map %s with #%li lights", gen_time.Elapsed().ms(), ILevelSystem->m_Level->getName().c_str(), light_list.size());
 
@@ -159,7 +189,7 @@ void CLightingSystem::CalculateLighting()
 }
 void CLightingSystem::CalculateTileLightData(tile_t *tile)
 {
-   // if(tile->m_nType == Level::Tile_Wall) return;
+    // if(tile->m_nType == Level::Tile_Wall) return;
     // pos is NW corner
     Vector pos = {tile->m_vecPosition.x, tile->m_vecPosition.y, 0.f}; // int vector2 to float vector3
 
@@ -172,15 +202,15 @@ void CLightingSystem::CalculateTileLightData(tile_t *tile)
                 Vector world_pos = pos + rel_pos;
                 tested_points.push_back(world_pos);
                 Color vox_light = GetLightAtPoint(world_pos);
-                if(tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
+                if (tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
                     log("%s %i %i %i", vox_light.s().c_str(), x, y, z);
                 tile->sectors[x][y][z].m_light = vox_light;
             }
 }
 
-void CLightingSystem::CalculateLerpLightData(tile_t *tile)
+void CLightingSystem::CalculateLerpLightData(tile_t *tile, bool set)
 {
-   // if(tile->m_nType == Level::Tile_Wall) return;
+    // if(tile->m_nType == Level::Tile_Wall) return;
     Vector pos = {tile->m_vecPosition.x, tile->m_vecPosition.y, 0.f};
     for (int x = 0; x < TILE_SECTORS; ++x)
         for (int y = 0; y < TILE_SECTORS; ++y)
@@ -188,11 +218,13 @@ void CLightingSystem::CalculateLerpLightData(tile_t *tile)
             {
                 auto voxel = tile->getVoxelAt(x, y, z);
                 FindNeighborColors(tile, voxel, x, y, z);
-                voxel->m_light = CombineWithNeighbors(voxel);
                 
-               // if(tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
-                   // log("LERP %s %i %i %i", voxel->m_light.s().c_str(), x, y, z);
+
+                // if(tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
+                // log("LERP %s %i %i %i", voxel->m_light.s().c_str(), x, y, z);
             }
+if(set)
+    CombineWithNeighbors(tile);
 }
 
 /*
@@ -208,7 +240,7 @@ Color CLightingSystem::getNeighborColor(tile_t *tile, const ivec3 &rel, int dir)
         auto nbr_tile = ILevelSystem->GetTileNeighbor(tile, dir);
         if (nbr_tile == nullptr)
             return Color::None();
-        if(tile->m_nType != Level::Tile_Empty && nbr_tile->m_nType != Level::Tile_Empty)
+        if (tile->m_nType != Level::Tile_Empty && nbr_tile->m_nType != Level::Tile_Empty)
             return Color::None();
         ivec3 offset = {3, 3, 3};
         ivec3 nbr_pos = (rel + offset) % 3;
@@ -299,109 +331,98 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
 {
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     auto light_pos = light->GetPosition();
-    auto delta = light_pos - point;
+    auto delta = point - light_pos;
     auto light_tile = ILevelSystem->GetTileAt(IVector2::Rounded(light_pos.x, light_pos.y));
     Vector2 rayDir = delta.Normalize();
     Vector2 ray = light_pos;
     auto pttile = ILevelSystem->GetTileAt(IVector2::Rounded(point));
-    if(pttile == nullptr) return false;
-    if(!pttile->isEmpty()){
-
-        delta = point - light_pos;
+    if (pttile == nullptr)
+        return false;
+    if (!pttile->isEmpty()) //pt is in a wall
+    {
+        return false;
+       /*
+        delta = light_pos - point; //we are a point in a wall lets try and find the light
         rayDir = delta.Normalize();
-        
+
         ray = point;
-        auto rel2 = Vector2(pttile->m_vecPosition.x - point.x, pttile->m_vecPosition.y - point.y) ;
-        Vector rel = (rel2.x, rel2.y, point.z);
-         auto vox_pos = ivec3{
-            std::clamp((rel.x) * 2.f, 0.f, 2.f), 
-            std::clamp((rel.y) * 2.f, 0.f, 2.f), 
-            std::clamp(rel.z, 0.f, 2.f)
-        };
-        if(rel.x == 1 && rel.y == 1) //center point
+
+        auto vox_pos = pttile->worldToSector(point);
+        if (vox_pos.x == 1 && vox_pos.y == 1) // center point of wall gets no light
             return false;
 
-
         int hit = 0;
-        tile_t* lastTile = pttile;
-        while(hit == 0)
+        tile_t *lastTile = pttile;
+        while (hit == 0)
         {
-            ray = ray - (rayDir * step);
-            auto ray_tile = ILevelSystem->GetTileAt(IVector2::Rounded(ray)) ;
-             lastTile = ray_tile;
-            if (ray_tile == nullptr){
+            ray = ray + (rayDir * step); //step values tried: 0.5, 1.f, 0.3, 0.1, 0.01
+                        //0.8 is the most reliable for not jumping through corners, but it leads to stopping early sometimes
+            auto ray_tile = ILevelSystem->GetTileAt(IVector2::Rounded(ray)); 
+                            //note re: Rounded() for ex. (0.5,0.5), w/ rounded tile would be 1,1, w/out it would be 0,0.
+                            // i dont know which is better in this case
+            lastTile = ray_tile;
+            if (ray_tile == nullptr) //out of bounds
                 return false;
-             }
-            if(ray_tile != pttile){
-                hit = 1; break;
+            if (ray_tile != pttile) //we have ray traced out of the starting tile (which is a wall)
+            {
+                hit = 1;
+                break;
             }
-        }
-        if(lastTile->isEmpty())
+        } 
+        static int i = 0;
+        if (lastTile->isEmpty())
         {
             float len = (ray - point).Length();
-            if(len < 0.4f){
-               // log("working");
-                return true;
-            } else{
-               // log("%i %i %.f", vox_pos.x, vox_pos.y, len);
-                return false;
+                            //this modifier as 2 or 3 gives more wall illumination with less ray accuracy
+            if (len < step * 1.f) //how long was the ray to break out of the wall towards the light
+            {
+                 tested_points.erase(std::remove(tested_points.begin(), tested_points.end(), point), tested_points.end());
+                return CastRayToPoint(light, ray, maxDistance - len, step); 
             }
-        }
-
-
+            else
+                return false;
+        }*/
     }
 
-  /*
-  WALLS CANT LOOK INSIDE THEMSELVES FOR LIGHTING INFO!!!!
-  
-  
-  */
-    while (Vector(ray - light_pos ).Length2D() <= maxDistance)
+    /*
+    walls probably shouldnt look inside themselves for lighting info
+    */
+    while (Vector(ray - light_pos).Length2D() <= maxDistance)
     {
-        ray = ray - (rayDir * step);
+        ray = ray + (rayDir * step);
 
-       dbg("ray pos[%.1f %.1f] goal [%.1f %.1f] start [%.1f %.1f]", ray.x, ray.y, point.x, point.y, light_pos.x, light_pos.y);
+        dbg("ray pos[%.1f %.1f] goal [%.1f %.1f] start [%.1f %.1f]", ray.x, ray.y, point.x, point.y, light_pos.x, light_pos.y);
 
         auto tile = ILevelSystem->GetTileAt(IVector2(ray.x, ray.y));
-       // if (tile == light_tile)
-       // {
-            //light->rays.push_back( {ray, Vector2(point), (tile->m_nType == Level::Tile_Empty) });
-            //return  (tile->m_nType == Level::Tile_Empty);
+        // if (tile == light_tile)
+        // {
+        // light->rays.push_back( {ray, Vector2(point), (tile->m_nType == Level::Tile_Empty) });
+        // return  (tile->m_nType == Level::Tile_Empty);
         //}
-       
+
         if (tile != nullptr)
         {
-             
+
             if (tile->m_nType != Level::Tile_Empty)
             {
-                if(ILevelSystem->GetTileAt(IVector2::Rounded(ray + (rayDir * step)))->m_nType == Level::Tile_Empty ){ //bad exec right idea
-                    if(ILevelSystem->GetTileAt(IVector2::Rounded(point)) == tile){
-                        //light->rays.push_back( {ray, Vector2(point), true }); return true;
-                    }
+                
 
-                     
-                }
-
-
-                light->rays.push_back( {ray, Vector2(point), false });
+                light->rays.push_back({ray, Vector2(point), false});
                 return false;
-               
             }
         }
-       // if (ray.x < 0 || ray.y < 0 || ray.x > MAP_SIZE || ray.y > MAP_SIZE){
-           // light->rays.push_back( {ray, Vector2(point), false });
-          //  return false;
-       // }
-            
+        // if (ray.x < 0 || ray.y < 0 || ray.x > MAP_SIZE || ray.y > MAP_SIZE){
+        // light->rays.push_back( {ray, Vector2(point), false });
+        //  return false;
+        // }
     }
     auto tile = ILevelSystem->GetTileAt(IVector2(ray.x, ray.y));
-     if (tile->m_nType != Level::Tile_Empty)
-            {
-                light->rays.push_back( {ray, Vector2(point), false });
-                return false;
-               
-            }
-    light->rays.push_back( {ray, Vector2(point), true });
+    if (tile->m_nType != Level::Tile_Empty)
+    {
+        light->rays.push_back({ray, Vector2(point), false});
+        return false;
+    }
+    light->rays.push_back({ray, Vector2(point), true});
     tested_points.erase(std::remove(tested_points.begin(), tested_points.end(), point), tested_points.end());
     return true;
 }
@@ -431,15 +452,13 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
         // CalculateLightInfluence(light, point); //eventually raycast
         float distance = delta.Length2D();
 
-        if (distance <= range )
+        if (distance <= range)
         {
-           
 
-
-            if (distance <= 0.01f || CastRayToPoint(light, point, distance, 0.5f))
+            if (distance <= 0.01f || CastRayToPoint(light, point, distance, 0.8f))
             {
-                 
-                float attenuation = 1.0f / (1.0f + params.a * sqrt(distance) + params.b * distance); //No longer squared 
+
+                float attenuation = 1.0f / (1.0f + params.a * sqrt(distance) + params.b * distance); // No longer squared
                 attenuation = std::min(std::max(attenuation, params.minIntensity), 1.0f);
 
                 Color lightColor = light->GetColor();
@@ -465,18 +484,86 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
     return total_light;
 }
 
-Color CLightingSystem::CombineWithNeighbors(voxel_t *voxel)
+Color CLightingSystem::CombineWithNeighbors(tile_t* tile)
 {
-    Color combinedColor = voxel->m_light;
-    int count = 1; // Start with the voxel itself
-
-    for (int i = 0; i < voxel->m_neighborsize; ++i)
+    
+    for (int x = 0; x < TILE_SECTORS; ++x)
     {
-        if (voxel->m_neighbors[i] != Color::None())
+        for (int y = 0; y < TILE_SECTORS; ++y)
         {
-            combinedColor = LinearInterpolate(combinedColor, voxel->m_neighbors[i], params.interpFraction);
-            count++;
-        }
+            for (int z = 0; z < TILE_SECTORS; ++z)
+            {
+                auto voxel = tile->getVoxelAt(x,y,z);
+                if(!voxel || !tile) return 0;
+                /*
+                if(!tile->isEmpty() && false){
+                    if(x == 1 && y == 1){
+                        voxel->m_light = Color::None();
+                         continue; //no tcenters
+                    }
+                    int face_ew = -1, face_ns = -1;
+                    if(x == 0) face_ew = WEST;
+                    else if(x== 2) face_ew = EAST;
+
+                    if(y == 0) face_ns = NORTH;
+                    else if(y == 2) face_ns = SOUTH;
+
+                    //ensure that no bad influences are taking part.. this should rly be done earlier in processing
+
+                    // north, east, south, west, up = 4, down = 5
+                    if(z == 1){
+                            voxel->m_neighbors[4] = Color::None(); //up
+                            voxel->m_neighbors[5] = Color::None(); //down
+                    }
+                    if(face_ew == WEST){
+                        voxel->m_neighbors[EAST] = Color::None();
+                        if(y == 1){
+                             voxel->m_neighbors[NORTH] = Color::None();
+                             voxel->m_neighbors[SOUTH] = Color::None();
+                        }
+                    }
+                    if(face_ew == EAST){
+                        voxel->m_neighbors[WEST] = Color::None();
+                        if(y == 1){
+                             voxel->m_neighbors[NORTH] = Color::None();
+                             voxel->m_neighbors[SOUTH] = Color::None();
+                        }
+                    }
+                    if(face_ns == NORTH){
+                        voxel->m_neighbors[SOUTH] = Color::None();
+                        if(x == 1){
+                             voxel->m_neighbors[WEST] = Color::None();
+                             voxel->m_neighbors[EAST] = Color::None();
+                        }
+                    }
+                    if(face_ns == SOUTH){
+                        voxel->m_neighbors[NORTH] = Color::None();
+                        if(x == 1){
+                             voxel->m_neighbors[WEST] = Color::None();
+                             voxel->m_neighbors[EAST] = Color::None();
+                        }
+                    }
+                }
+               */
+                Color combinedColor = voxel->m_light;
+                int count = 1; // Start with the voxel itself
+
+                for (int i = 0; i < voxel->m_neighborsize; ++i)
+                {
+                    if (voxel->m_neighbors[i] != Color::None())
+                    {
+                        combinedColor = LinearInterpolate(combinedColor, voxel->m_neighbors[i], params.interpFraction);
+                        if(true){
+                            voxel->m_neighbors[i] = LinearInterpolate(combinedColor, voxel->m_light, params.interpFraction / 1.2f);
+                            voxel->m_neighbors[i] = combinedColor / static_cast<float>(count);
+                        }                       
+                        count++;
+                    }
+                }
+                voxel->m_light = combinedColor / static_cast<float>(count);
+                
+             }
+        } 
     }
 
     /*
@@ -492,9 +579,10 @@ Color CLightingSystem::CombineWithNeighbors(voxel_t *voxel)
         //log("%s", ret.s().c_str());
         return ret; */
     // Average out the colors
-    return combinedColor / static_cast<float>(count);
-}
+    //return combinedColor 
 
+    return Color::None();
+}
 Color CLightingSystem::LinearInterpolate(Color start, Color end, float fraction)
 {
 
@@ -504,4 +592,289 @@ Color CLightingSystem::LinearInterpolate(Color start, Color end, float fraction)
 
     uint8_t interpA = static_cast<uint8_t>(start.a() + fraction * (end.a() - start.a()));
     return Color(interpR, interpG, interpB, interpA);
+}
+
+
+
+static int welps = 0;
+inline void WallHelper(tile_t* tile,  int dir)
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+    auto nbr = ILevelSystem->GetTileNeighbor(tile, dir); //hopefully this function works
+  
+    if(nbr == nullptr) return;
+
+   
+    if(!nbr->isEmpty()) return;
+    if(dir == WEST || dir == EAST)
+    {
+        for (int y = 0; y < TILE_SECTORS; ++y)
+            for (int z = 0; z < TILE_SECTORS; ++z){
+                welps++;
+                switch(dir)
+                {
+                    case WEST:
+                         //WEST FACE                             //EAST FACE of neighbr
+                    tile->getVoxelAt(0,y,z)->m_light = nbr->getVoxelAt(2,y,z)->m_light; break;
+
+                    case EAST:
+                     tile->getVoxelAt(2,y,z)->m_light = nbr->getVoxelAt(0,y,z)->m_light; break;
+
+                }
+            }
+
+        return;
+    }
+    if(dir == NORTH || dir == SOUTH)
+    {
+        for (int x = 0; x < TILE_SECTORS; ++x)
+            for (int z = 0; z < TILE_SECTORS; ++z){
+                switch(dir)
+                {
+                    welps++;
+                    case NORTH:
+                               //nface                   ==               sface of nbr
+                    tile->getVoxelAt(x,0,z)->m_light = nbr->getVoxelAt(x,2,z)->m_light; break;
+
+                    case SOUTH:
+                     tile->getVoxelAt(x,2,z)->m_light = nbr->getVoxelAt(x,0,z)->m_light; break;
+
+                }
+            }
+
+        return;
+    }
+
+
+}
+
+void CLightingSystem::CalculateWallFaces(Color dark)
+{
+    
+    welps = 0;
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    auto &level = ILevelSystem->m_Level;
+    auto &world = level->world;
+    if(dark != Color::None())
+    {
+        for (auto &row : world)
+        {
+            for (auto &tile : row)
+            {
+                if(tile.isEmpty()) continue; 
+            
+                for (int x = 0; x < TILE_SECTORS; ++x)
+                    for (int y = 0; y < TILE_SECTORS; ++y)
+                        for (int z = 0; z < TILE_SECTORS; ++z)
+                            tile.sectors[x][y][z].m_light = dark;  //Reset all walls to dark
+            }
+        }
+    }
+    
+    //north face: y = 0
+    //south face y = 2
+    //west face x = 0
+    //east face x = 2
+    //top/bottom shouldnt matter 
+
+    for (auto &row : world)  for (auto &tile : row)
+    {
+        if(tile.isEmpty()) continue; //loop thru all tiles, skip air tiles
+        for(int dir = NORTH; dir <= WEST; ++dir)
+            WallHelper(&tile, dir);
+    }
+    
+    status("did %i welps", welps);
+
+}
+inline std::vector<Color> WallFixHelper(tile_t* tile,  int dir)
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+    auto nbr = ILevelSystem->GetTileNeighbor(tile, dir); //hopefully this function works
+    
+    std::vector<Color> ret;
+    if(nbr == nullptr) return ret;
+
+    
+   
+    if(!nbr->isEmpty()) return ret;
+
+    std::vector<Color> face_colors;
+
+    if(dir == WEST || dir == EAST)
+    {
+        for (int y = 0; y < TILE_SECTORS; ++y)
+            for (int z = 0; z < TILE_SECTORS; ++z){
+                
+                switch(dir)
+                {
+                    case WEST:
+                    face_colors.push_back(tile->getVoxelAt(0,y,z)->m_light );
+                    break;
+
+                    case EAST:
+                     face_colors.push_back(tile->getVoxelAt(2,y,z)->m_light); break;
+
+                }
+            }
+
+       return face_colors;
+    }
+    if(dir == NORTH || dir == SOUTH)
+    {
+        for (int x = 0; x < TILE_SECTORS; ++x)
+            for (int z = 0; z < TILE_SECTORS; ++z){
+                switch(dir)
+                {
+                   
+                    case NORTH:
+                               //nface                   ==               sface of nbr
+                    face_colors.push_back(tile->getVoxelAt(x,0,z)->m_light ); break;
+
+                    case SOUTH:
+                     face_colors.push_back(tile->getVoxelAt(x,2,z)->m_light ); break;
+
+                }
+            }
+
+        return face_colors;
+    }
+
+    return ret;
+}
+inline void WallFixSetter(tile_t* tile,  int dir, Color clr)
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+   
+  
+   
+    if(dir == WEST || dir == EAST)
+    {
+        for (int y = 0; y < TILE_SECTORS; ++y)
+            for (int z = 0; z < TILE_SECTORS; ++z){
+                welps++;
+                switch(dir)
+                {
+                    case WEST:
+                         //WEST FACE                             //EAST FACE of neighbr
+                    tile->getVoxelAt(0,y,z)->m_light = clr; break;
+
+                    case EAST:
+                     tile->getVoxelAt(2,y,z)->m_light = clr; break;
+
+                }
+            }
+
+        return;
+    }
+    if(dir == NORTH || dir == SOUTH)
+    {
+        for (int x = 0; x < TILE_SECTORS; ++x)
+            for (int z = 0; z < TILE_SECTORS; ++z){
+                switch(dir)
+                {
+                    welps++;
+                    case NORTH:
+                               //nface                   ==               sface of nbr
+                    tile->getVoxelAt(x,0,z)->m_light = clr; break;
+
+                    case SOUTH:
+                     tile->getVoxelAt(x,2,z)->m_light = clr; break;
+
+                }
+            }
+
+        return;
+    }
+
+
+}
+
+void CLightingSystem::FixWallFaces(int method)
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    auto &level = ILevelSystem->m_Level;
+    auto &world = level->world;
+
+    for (auto &row : world)  for (auto &tile : row)
+    {
+        if(tile.isEmpty()) continue; //loop thru all tiles, skip air tiles
+        for(int dir = NORTH; dir <= WEST; ++dir)
+        {
+            auto face_colors =  WallFixHelper(&tile, dir);
+            if(face_colors.empty()) continue;
+            if(method == 0)
+            {
+                 uint32_t r,g,b,a;
+                uint8_t highest_alpha = 0;
+                uint8_t lowest_alpha = 255;
+                int count = 0;
+                for(auto clr : face_colors)
+                {
+                    r += clr.r();
+                    g += clr.g();
+                    b += clr.b();
+                    a += clr.a();
+                    if(clr.a() > highest_alpha){
+                        highest_alpha = clr.a();
+                    }
+                    if(clr.a() < lowest_alpha){
+                        lowest_alpha = clr.a();
+                    }
+                    count++;
+
+                }
+                r /= count;
+                g /= count;
+                b /= count;
+                a /= count;
+                a = highest_alpha;
+                Color avg = Color(r,g,b,a);
+                WallFixSetter(&tile, dir, avg);
+            }
+           if(method == 1)
+           {
+                 uint32_t r,g,b,a;
+                uint8_t highest_alpha = 0;
+                uint8_t lowest_alpha = 255;
+                int count = 0;
+                for(auto clr : face_colors)
+                {
+                    r += clr.r();
+                    g += clr.g();
+                    b += clr.b();
+                    a += clr.a();
+                    if(clr.a() > highest_alpha){
+                        highest_alpha = clr.a();
+                    }
+                    if(clr.a() < lowest_alpha){
+                        lowest_alpha = clr.a();
+                    }
+                    count++;
+
+                }
+                r /= count;
+                g /= count;
+                b /= count;
+                a /= count;
+                a = (highest_alpha + lowest_alpha) / 2.f;
+                Color avg = Color(r,g,b,a);
+                 Color combinedColor = avg;
+                int lcount = 1; // Start with the voxel itself
+                for(auto clr : face_colors)
+                {
+                    combinedColor = LinearInterpolate(combinedColor, clr, params.interpFraction);
+                    lcount ++;
+                }
+                combinedColor = combinedColor / static_cast<float>(lcount);
+                
+                 WallFixSetter(&tile, dir, combinedColor);
+               
+           }
+        }
+           
+    }
 }

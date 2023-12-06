@@ -67,7 +67,8 @@ bool CInputSystem::IsKeyDown(SDL_Scancode code)
 
 bool CInputSystem::IsMouseButtonDown(uint8_t button)
 {
-  
+   auto mode = SDL_GetRelativeMouseMode();    
+     if(mode == SDL_FALSE ) return false;
     uint32_t buttons;
     buttons = SDL_GetMouseState(NULL, NULL);
 
