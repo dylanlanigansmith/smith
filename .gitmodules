@@ -4,3 +4,6 @@
 [submodule "thirdparty/magic_enum"]
 	path = thirdparty/magic_enum
 	url = https://github.com/Neargye/magic_enum.git
+[submodule "thirdparty/enet"]
+	path = thirdparty/enet
+	url = https://github.com/lsalzman/enet.git
