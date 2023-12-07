@@ -9,8 +9,9 @@ void CInputSystem::OnCreate()
     keyboardState = SDL_GetKeyboardState(&keyboardSize);
     m_flSensitivity = 2.0;
     m_bMouseLook = true;
+    m_bGrabCursor = true;
     m_bPitch = false;
-    if(m_bMouseLook)
+    if(m_bMouseLook && m_bGrabCursor)
         SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
@@ -58,7 +59,7 @@ WASD_t CInputSystem::GetInput()
 bool CInputSystem::IsKeyDown(SDL_Scancode code)
 {
     auto mode = SDL_GetRelativeMouseMode();    
-     if(mode == SDL_FALSE && code != SDL_SCANCODE_BACKSLASH) return false;
+    if(mode == SDL_FALSE && code != SDL_SCANCODE_BACKSLASH && m_bGrabCursor) return false;
     if(code > keyboardSize - 1)
         return false;
 
@@ -87,7 +88,7 @@ bool CInputSystem::IsMouseButtonDown(uint8_t button)
 void CInputSystem::OnMouseMotion(SDL_Event* event)
 {
     auto mode = SDL_GetRelativeMouseMode();
-    if(mode == SDL_FALSE) return;
+    if(mode == SDL_FALSE && m_bGrabCursor) return;
 
     const double flScaleFactor = 0.4;
   ///  if(abs(event->motion.xrel) < 1 && abs(event->motion.yrel) < 1)

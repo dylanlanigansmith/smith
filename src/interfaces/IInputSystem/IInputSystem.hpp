@@ -33,6 +33,7 @@ private:
     virtual void OnMouseMotion(SDL_Event* event);
     virtual void OnKeyDown(SDL_Keycode code);
 private:
+    bool m_bGrabCursor;
     Vector2 m_vecMouseMove;
     double m_flSensitivity;
     bool m_bMouseLook;

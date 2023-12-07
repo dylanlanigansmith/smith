@@ -24,9 +24,12 @@ public:
     virtual void Shutdown();
     const auto GetActiveCamera() { return m_Camera; }
 
-    double ZBufferAt(int w)
+    inline double ZBufferAt(int w)
     { /*assert(w < SCREEN_WIDTH);*/
         return ZBuffer[w];
+    }
+    inline void SetZBuffer(int idx, double val){
+        ZBuffer[idx] = val;
     }
     void SetPixel(int x, int y, SDL_Color color);
 
@@ -51,6 +54,9 @@ public:
         return Color(pixels[index]);
     }
     void OnEngineInitFinish();
+
+    
+    uint8_t Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god
 private:
     bool CreateRendererLinuxGL();
     void RunImGui();
@@ -72,6 +78,7 @@ private:
      float sigma;
     bool m_bThreadDone;
     double ZBuffer[SCREEN_WIDTH];
+    
     uint32_t *pixels;
     SDL_Renderer *m_renderer;
     SDL_RendererInfo m_RendererInfo;

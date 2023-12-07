@@ -87,28 +87,28 @@ void CPlayer::CreateMove()
   }
   if (m_move.w)
   {
-    if (ILevelSystem->GetMapAt(m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, int(m_vecPosition.y)) == false || noclip)
-      m_vecPosition.x += Camera().m_vecDir.x * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y + Camera().m_vecDir.y * moveSpeed)) == false|| noclip)
-      m_vecPosition.y += Camera().m_vecDir.y * moveSpeed;
+   
+     if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.x += Camera().m_vecDir.x * moveSpeed;
+     if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false)
+        m_vecPosition.y += Camera().m_vecDir.y * moveSpeed;
   }
   // move backwards if no wall behind you
   if (m_move.s)
   {
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x - Camera().m_vecDir.x * moveSpeed), int(m_vecPosition.y)) == false || noclip)
-      m_vecPosition.x -= Camera().m_vecDir.x * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), int(m_vecPosition.y - Camera().m_vecDir.y * moveSpeed)) == false || noclip)
-      m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x - Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.x -= Camera().m_vecDir.x * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y - Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
   }
   if (m_move.d)
   {
     float rightX = Camera().m_vecDir.y;
     float rightY = -Camera().m_vecDir.x;
-
-    if (ILevelSystem->GetMapAt(m_vecPosition.x + rightX * moveSpeed, int(m_vecPosition.y)) == false || noclip)
-      m_vecPosition.x += rightX * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + rightY * moveSpeed) == false || noclip)
-      m_vecPosition.y += rightY * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + rightX * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.x += rightX  * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + rightY * moveSpeed, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.y += rightY  * moveSpeed;
   }
 
   // move left
@@ -117,10 +117,10 @@ void CPlayer::CreateMove()
     float leftX = -Camera().m_vecDir.y;
     float leftY = Camera().m_vecDir.x;
 
-    if (ILevelSystem->GetMapAt(m_vecPosition.x + leftX * moveSpeed, int(m_vecPosition.y)) == false || noclip)
-      m_vecPosition.x += leftX * moveSpeed;
-    if (ILevelSystem->GetMapAt(int(m_vecPosition.x), m_vecPosition.y + leftY * moveSpeed) == false || noclip)
-      m_vecPosition.y += leftY * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + leftX  * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.x += leftX  * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * moveSpeed, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.y += leftY  * moveSpeed;
   }
 
   if (!IInputSystem->UseMouseMovement())
@@ -165,6 +165,7 @@ void CPlayer::CreateMove()
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
   {
     noclip = !noclip;
+    IInputSystem->log("noclip = [%i]", noclip);
     // crouch
    // isCrouching = true;
    // m_vecPosition.z = -200;

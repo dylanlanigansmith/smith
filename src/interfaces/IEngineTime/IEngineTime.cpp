@@ -1,8 +1,29 @@
 #include "IEngineTime.hpp"
 #include <SDL3/SDL.h>
+
+void CProfiler::Start() {
+        m_timer = Timer_t(IEngineTime->GetCurTime());
+    }
+    void CProfiler::End(){
+        m_timer.Update(IEngineTime->GetCurTime());
+
+        Time_t time = m_timer.Elapsed();
+        m_lastTime = time;
+        if(time > m_timeMax)
+            m_timeMax = time;
+        if(time < m_timeMin)
+            m_timeMin = time;
+
+        rolling_values.at(index) = time;
+
+       
+        index = (index + 1) % m_sampleCount;
+
+    }
+
 CEngineTime::~CEngineTime()
 {
-
+   
 }
 
 void CEngineTime::OnCreate()
@@ -14,6 +35,9 @@ void CEngineTime::OnCreate()
 
 void CEngineTime::OnShutdown()
 {
+   for(auto prof : profilers){
+      delete prof.second;
+   }
 }
 
 void CEngineTime::OnLoopStart()

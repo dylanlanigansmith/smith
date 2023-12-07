@@ -47,7 +47,7 @@ public:
     }
   inline double Length() const noexcept { return std::sqrt(x * x + y * y); }
   inline double LengthSqr() const noexcept { return (x * x + y * y); }
-  inline Vector2 Normalize() const {
+  inline Vector2      Normalize() const {
       double mag = Length();
       return Vector2(x / mag, y / mag);
   }

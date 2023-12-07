@@ -6,6 +6,7 @@
 #include <entity/dynamic/CBaseEnemy.hpp>
 #include <data/level.hpp>
 #include <util/misc.hpp>
+#include <renderer/render_helpers.hpp>
 /*
 For Editor:
 
@@ -62,9 +63,9 @@ void CLevelSystem::OnEngineInitFinish()
     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
      constexpr Color sun = Color(255, 165, 0, 170);
     ILightingSystem->AddLight<CLightOverhead>({8.f, 8.4f, 1.f}, Color::CandleLight(), 0.5, 0.5f, 4.0);
-    ILightingSystem->AddLight<CLightOverhead>({19.5f, 21.5f, 2.f}, sun, 0.7, 0.7, 16.0);
-    ILightingSystem->AddLight<CLightOverhead>({21.5f, 6.5f, 2.f}, sun, 0.7, 0.7, 16.0);
-
+    ILightingSystem->AddLight<CLightOverhead>({19.5f, 21.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
+    ILightingSystem->AddLight<CLightOverhead>({21.5f, 6.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
+    ILightingSystem->AddLight<CLightOverhead>({18.5f, 7.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
    
      ILightingSystem->AddLight<CLightOverhead>({11.6f, 9.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
      ILightingSystem->AddLight<CLightOverhead>({6.3f, 12.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
@@ -73,7 +74,7 @@ void CLevelSystem::OnEngineInitFinish()
       ILightingSystem->AddLight<CLightOverhead>({15.6f, 22.2f, 1.9f}, Color::DimRedLight(), 0.6, 0.6, 6.0);
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
-    barrel->SetPosition(12, 22);
+    barrel->SetPosition(15.7, 9.5);
     auto light = IEntitySystem->AddEntity<CGreenLight>();
     light->SetPosition(19.5, 18.5);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
@@ -128,6 +129,42 @@ IVector2 CLevelSystem::FindEmptySpace() // Random
             continue;
         return {x,y};
     }
+}
+
+bool CLevelSystem::IsCollision(const Vector& origin, const Vector& goal)
+{
+    //to raycast everything we would have to either dda or deduce direction and get face coords, or check all 4 lol
+
+    Vector delta = goal - origin;
+    auto tile = GetTileAt({goal.x, goal.y});
+    auto tile2 = GetTileAt(Vector2(goal - delta * 0.1));
+    if(!tile || !tile2) return true;
+    auto type = tile->m_nType;
+    auto type2 = tile2->m_nType;
+    if(type == Level::Tile_Empty && type == type2) return false;
+    if(type == Level::Tile_Wall) return true;
+
+    //we have a fancy wall aw shit
+    Ray_t ray = {
+        .origin = origin,
+        .direction = (goal - origin).Normalize()
+    };
+
+    auto wall = Render::GetLineForWallType(tile->m_vecPosition, type);
+    Vector2 intersect;
+    const double wall_thick = 0.1;
+                BBoxAABB thickness = {
+                .min = wall.p0,
+                .max = wall.p1
+                };
+    if(!Util::RayIntersectsLineSegment(ray, wall, intersect))
+        return false;
+   // if(!Util::RayIntersectsBox(ray, thickness))
+    //    return false;
+    if( (Vector2(goal) - intersect).Length() > 0.1)
+        return false;
+    return true;
+
 }
 
 void CLevelSystem::LoadAndFindTexturesForMap()

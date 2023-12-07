@@ -1,3 +1,4 @@
+#pragma once
 #include <common.hpp>
 #include <stdio.h>
 #include <types/Vector.hpp>

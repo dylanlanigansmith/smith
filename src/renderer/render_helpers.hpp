@@ -91,7 +91,7 @@ namespace Render
     }
 
 
-    static Line_t GetLineForWallType(const IVector2& p, int type, int* side = nullptr){
+    static inline Line_t GetLineForWallType(const IVector2& p, int type, int* side = nullptr){
 
         int pside;
          Line_t wall = {{0, 0}, {0, 0}};

@@ -101,7 +101,7 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
 
                 uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
                 SDL_Color color = Render::TextureToSDLColor(uColor);
-                if ( (color.r != 0) && (color.g != 0) && (color.b != 0))
+                if ( (color.r != 0) && (color.g != 0) && (color.b != 0) &&  renderer->Z2D[stripe][y] <= 0u)
                 {
                     renderer->SetPixel(stripe, y, color);
 

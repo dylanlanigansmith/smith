@@ -42,6 +42,7 @@ public:
     virtual void SetLogFileOnly(bool set) { m_bOnlyFileLogging = set; status("set onlyFileLogging: %i", m_bOnlyFileLogging); }
     virtual void SetLogColor(int clr) {m_bColorizeEverything = (clr != -1); m_iColorizeColor = clr; } //-1 to disable, clr is ascii terminal
 
+    inline std::string GetTime(bool full = false){ return _timestr(full); }
 private:
     inline static std::string _strf(const char* fmt, va_list list);
     inline static std::string _timestr(bool full = false);

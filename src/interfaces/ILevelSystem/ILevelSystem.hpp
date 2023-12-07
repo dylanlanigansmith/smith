@@ -45,6 +45,8 @@ public:
 
     virtual tile_t* GetTileNeighbor(tile_t* tile, int dir);
     virtual IVector2 FindEmptySpace();
+
+    bool IsCollision(const Vector& origin, const Vector& goal); //false = no collision
 private:
     void LoadAndFindTexturesForMap();
     void AddMapTexture(int id, const std::string& name);

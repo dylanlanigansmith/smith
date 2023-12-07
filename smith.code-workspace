@@ -101,6 +101,8 @@
 		"cmake.automaticReconfigure": false,
 		"cmake.autoSelectActiveFolder": false,
 		"cmake.configureOnEdit": false,
-		"cmake.loadCompileCommands": false
+		"cmake.loadCompileCommands": false,
+		"cmake.ignoreCMakeListsMissing": true,
+		"debug.allowBreakpointsEverywhere": true
 	}
 }

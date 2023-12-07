@@ -15,10 +15,10 @@ public:
     Time_t() {_ns = 0;};
     Time_t(time_ns_t ns) : _ns(ns) {}
     Time_t(time_ms_t ms) { _ns = ms * 1000000; }
-    [[nodiscard]] time_ns_t ns(){ return _ns; }
-    [[nodiscard]] time_us_t us() { return _ns / 1000; };
-    [[nodiscard]] time_ms_t ms(){ return _ns / 1000000; }
-    [[nodiscard]] time_s_t sec() { return _ns / 1000000000.0f; }
+    [[nodiscard]] time_ns_t ns() const{ return _ns; }
+    [[nodiscard]] time_us_t us() const{ return _ns / 1000; };
+    [[nodiscard]] time_ms_t ms() const{ return _ns / 1000000; }
+    [[nodiscard]] time_s_t sec() const{ return _ns / 1000000000.0f; }
     
 
     void set(time_ns_t set) { _ns = set; }

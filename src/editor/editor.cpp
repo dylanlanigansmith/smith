@@ -676,12 +676,12 @@ void CEditor::drawResourceView()
             type_preview = "Material Import";
         }
         ImGui::PopID();
-        ImGui::PushID("leveldatarscoption");
-        if (ImGui::Selectable("Level Data", &view_other))
+        ImGui::PushID("enginedatarscoption");
+        if (ImGui::Selectable("Engine Performance Data", &view_other))
         {
             view_textures = false;
             view_other = true;
-            type_preview = "Level Data";
+            type_preview = "Engine Data";
         }
         ImGui::PopID();
         ImGui::PushID("materialeditor");
@@ -699,7 +699,28 @@ void CEditor::drawResourceView()
         return drawMaterialView();
     if(view_mateditor)
         return drawMaterialEditor();
-
+    if(view_other)
+    {
+        static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+        static auto WolfProfiler = IEngineTime->GetProfiler("Render::LoopWolf()");
+       
+        float history[60];
+        auto& th = WolfProfiler->History();
+        for(int i = 0; i < th.size(); ++i){
+            history[i] = th[i].us() / 1000.f;
+        }
+       
+        std::string wolfstr = WolfProfiler->GetAvgString().c_str();
+        ImGui::Text(wolfstr.c_str()); ImGui::SameLine();
+        ImGui::Text("Max %li Min %li", WolfProfiler->GetMax().us(), WolfProfiler->GetMin().us());
+        ImGui::PlotLines("History", history, IM_ARRAYSIZE(history), 0,
+        (const char *)__null, (WolfProfiler->GetMin().us() / 1000.f), (WolfProfiler->GetMax().us() / 1000.f),{(UI_W * 0.75f), (UI_H * 0.2f)});
+        if(ImGui::Button("Copy for Wolf")){
+            wolfstr.append(" ");
+            wolfstr.append(engine->GetTime(true));
+            SDL_SetClipboardText(wolfstr.c_str());
+        }
+    }
     ImGui::Text("Level Data View Goes Here");
 }
 

@@ -205,7 +205,8 @@ bool CRenderer::CreateRendererLinuxGL()
 
 void CRenderer::Loop()
 {
-
+  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+  static auto WolfProfiler = IEngineTime->AddProfiler("Render::LoopWolf()");
   const SDL_FRect scale = {0.f,0.f, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL};
 
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
@@ -221,9 +222,9 @@ void CRenderer::Loop()
 
  // std::thread half(&CRenderer::LoopWolf,this,0, SCREEN_WIDTH / 2);
   m_bThreadDone = false;
- 
+  WolfProfiler->Start();
   LoopWolf(0, SCREEN_WIDTH);
-
+  WolfProfiler->End();
   //while(!m_bThreadDone && true){
   //  std::this_thread::sleep_for(std::chrono::microseconds(15));
  // }
