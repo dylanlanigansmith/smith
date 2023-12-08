@@ -132,7 +132,23 @@ void CLogger::warn(const std::string &msg)
     _logclr(msg, 33);
     _instance_logothers(msg);
 }
+void CLogger::note(const char *fmt, ...)
+{
+    std::string ctxt = m_szFmtName;
+    va_list args;
+    va_start(args, fmt);
+    std::string sfmt = _strf(fmt, args);
+    va_end(args);
+    ctxt.append(sfmt);
+    _logclr(ctxt, 36);
+    _instance_logothers(ctxt);
+}
 
+void CLogger::note(const std::string &msg)
+{
+    _logclr(msg, 36);
+    _instance_logothers(msg);
+}
 void CLogger::status(const char *fmt, ...)
 {
     std::string ctxt = m_szFmtName;
@@ -264,13 +280,15 @@ inverse off      27
     
     */
     std::string clrs = "\033[1;31m";
-    switch(clr){
+    switch(clr){ //redo this holy
         case 32:
             clrs = "\033[1;32m"; break;
         case 33:
             clrs = "\033[1;33m"; break;
         case 34:
             clrs = "\033[1;34m"; break;
+        case 36:
+            clrs = "\033[1;36m"; break;
         case 31:
         default:
             clrs =  "\033[1;31m";

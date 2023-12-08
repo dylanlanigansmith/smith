@@ -2,7 +2,7 @@
 #include <interfaces/interfaces.hpp>
 #include <imgui_impl_sdl3.h>
 #include <magic_enum/magic_enum.hpp>
-
+#include <audio/audio.hpp>
 
 CEngine::~CEngine()
 {
@@ -54,6 +54,8 @@ int CEngine::Run()
 {
     static auto IInputSystem = CreateInterface<CInputSystem>("IInputSystem");
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    static auto SoundSystem = CSoundSystem();
+    SoundSystem.Init(0);
     while(!shouldStopLoop)
     {
         for(auto& element : interfaces.list())
@@ -82,7 +84,7 @@ int CEngine::Run()
 
        // log("%f", 1.0 / IEngineTime->GetLastFrameTime().sec());//this is broken
     }
-    
+    SoundSystem.Shutdown();
     return Shutdown();
 }
 int CEngine::Shutdown()

@@ -39,7 +39,7 @@ bool CRenderer::Create()
   m_bBlur = true;
   m_bBlurGauss = true;
   sigma = 4.3f; // higher = softer
-  kernelSize = 3; // higher = more area
+  kernelSize = 5; // higher = more area
 
   bool ret = false;
 

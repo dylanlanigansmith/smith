@@ -394,6 +394,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+     static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
     // Text and Tree nodes are less high than framed widgets, using AlignTextToFramePadding() we add vertical spacing to make the tree lines equal high.
     ImGui::TableNextRow();
     ImGui::TableSetColumnIndex(0);
@@ -491,9 +492,17 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
                 player->m_move.m_flStrafeSpeed = f;
 
                 float r = player->m_move.m_flYawSpeed;
-                ImGui::SliderFloat("yaw Speed", &r, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
+                ImGui::SliderFloat("yaw Speed", &r, 0.0f, 1.f, "%.3f", ImGuiSliderFlags_Logarithmic ); 
                 player->m_move.m_flYawSpeed = r;
+                
+                ImGui::Text("inputsystem");
+                float scale = IInputSystem->m_flMouseScale;
+                ImGui::SliderFloat("Mouse Scale", &scale, 0.0f, 1.f, "%.6f", ImGuiSliderFlags_Logarithmic ); 
+                IInputSystem->m_flMouseScale = scale;
 
+                float sens = IInputSystem->m_flSensitivity;
+                ImGui::SliderFloat("Mouse Sens", &sens, 0.0f, 10.f, "%.6f", ImGuiSliderFlags_Logarithmic ); 
+                IInputSystem->m_flSensitivity = sens;
                 if(ImGui::Button("Set spawn to cur pos")){
                     ILevelSystem->m_Level->m_vecPlayerStart = Vector2(player->GetPosition());
                 }
@@ -1144,21 +1153,24 @@ void CEditor::drawLightView()
             light_params* p = &(ILightingSystem->params);
             ImGui::Text("Light Params");
            
-            ImGui::SliderFloat("A", &p->a, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-            ImGui::SliderFloat("B", &p->b, -0.2f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("A", &p->a, -0.2f, 5.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+            ImGui::SliderFloat("B", &p->b, -0.2f, 5.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("Min Intensity", &p->minIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-            ImGui::SliderFloat("Alpha Factor Mod", &p->alphaFactorMod, 0.0f, 4.0f, "%.4f");
-            ImGui::SliderFloat("Bright Factor Mod", &p->brightFactorMod, 0.0f, 4.0f, "%.4f");
-            ImGui::SliderFloat("Final Alpha Mod", &p->finalAlphaMod, 0.0f, 10.0f, "%.4f");
-
+            ImGui::SliderFloat("Alpha Mod", &p->alphaMod, 0.0f, 2.0f, "%.4f");
+            ImGui::SliderFloat("Color Mod", &p->colorModifier, 0.0f, 2.0f, "%.4f");
+            ImGui::SliderFloat("Final Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
+            ImGui::SliderFloat("Rolloff Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
+            ImGui::SliderFloat("Intensity Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
             ImGui::SliderFloat("InterpFrac", &p->interpFraction, 0.0f, 1.f, "%.4f");
+            ImGui::Checkbox("Neighbor Blend", &p->neighbor_interp);
+            ImGui::Checkbox("Dynamic", &p->dynamic);
             if(ImGui::Button("Toggle Debug")){
                 ILightingSystem->Debug(!ILightingSystem->Debug());
             }
 
-            ImGui::InputInt("merge method", &p->mergeMethod, 1); 
+            ImGui::InputInt("Method", &p->method, 1); 
             //if(p->mergeMethod > 1) p ->mergeMethod = 1;
-            if(p->mergeMethod < 0) p ->mergeMethod = 0;
+            if(p->method < 0) p ->method = 0;
             ImGui::SeparatorText("tile info");
 
             if(selectedTile != nullptr){

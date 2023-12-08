@@ -50,56 +50,15 @@ void CLightingSystem::RegenerateLighting()
 }
 
 
-Color CLightingSystem::GetLightForTile(tile_t *tile)
-{
-
-    Vector tile_pos = {tile->m_vecPosition.x + 0.5f, tile->m_vecPosition.y + 0.5f, 0.25f};
-
-    Color total_light = MaxDark();
-
-    for (auto &entry : light_list)
-    {
-        Color to_set = Color::None();
-        auto light = entry.second;
-
-        auto light_pos = light->GetPosition();
-        auto delta = light_pos - tile_pos;
-        float range = light->GetRange();
-
-        float distanceSquared = delta.LengthSqr();
-
-        if (distanceSquared <= range * range)
-        {
-            float attenuation = 1.0f / (1.0f + params.a * sqrt(distanceSquared) + params.b * distanceSquared);
-            attenuation = std::min(std::max(attenuation, params.minIntensity), 1.0f);
-
-            Color lightColor = light->GetColor();
-            float brightFactor = light->GetIntensity() * light->GetBrightness() * params.brightFactorMod;
-            float alphaFactor = 1.0f - pow(std::min(brightFactor, 1.0f), 2) * params.alphaFactorMod;
-            lightColor.a(static_cast<uint8_t>(lightColor.a() * attenuation * alphaFactor * params.finalAlphaMod));
-            dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
-            switch (params.mergeMethod)
-            {
-            case 1:
-                total_light = MergeLightColors(lightColor, total_light);
-                break;
-            case 0:
-            default:
-                total_light = MergeLightColors(total_light, lightColor);
-            }
-            total_light.a(lightColor.a());
-        }
-    }
-    dbg(" final %i", total_light.a());
-
-    return total_light;
-}
 
 void CLightingSystem::CalculateLighting()
 {
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     log("Building lighting info");
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+    static auto LightGenProfiler = IEngineTime->AddProfiler("CLightingSystem::CalculateLighting()");
+    LightGenProfiler->Start();
     SetLogFileOnly(true);
     LightData ld(this);
     ld.Calculate();
@@ -114,7 +73,8 @@ void CLightingSystem::CalculateLighting()
             }
         }
     SetLogFileOnly(false);
-    log("built light info");
+    LightGenProfiler->EndAndLog();
+
     return;
 
 /*
@@ -415,30 +375,6 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
 
             if ( CastRayToPoint(light, point, distance, 0.1f))
             {
-
-                //float attenuation = 1.0f / (1.0f + params.a * sqrt(distance) + params.b * distance); // No longer squared
-                float attenuation = 1.0f / (1.0f + params.a * distance + params.b * distance * distance);
-                attenuation = std::clamp(attenuation, params.minIntensity, 1.0f) * params.finalAlphaMod;
-
-                Color lightColor = light->GetColor();
-                float brightness =  (1.f - light->GetIntensity()) * attenuation;
-                float alphaFactor = (1.0 - brightness) * params.brightFactorMod;
-                lightColor.a(static_cast<uint8_t>(MaxDark().a() * alphaFactor));
-
-
-               // dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
-                uint8_t oldAlpha = total_light.a();
-                switch (params.mergeMethod)
-                {
-                case 1:
-                    total_light = MergeLightColors(lightColor, total_light);
-                    break;
-                case 0:
-                default:
-                    total_light = MergeLightColors(total_light, lightColor);
-                }
-                if(oldAlpha == MaxDark().a())
-                    total_light.a(lightColor.a());
             }
         }
     }

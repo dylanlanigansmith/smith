@@ -7,7 +7,8 @@ CInputSystem::~CInputSystem()
 void CInputSystem::OnCreate()
 {
     keyboardState = SDL_GetKeyboardState(&keyboardSize);
-    m_flSensitivity = 2.0;
+    m_flSensitivity = 5.0; //2.24;
+    m_flMouseScale = 0.04;
     m_bMouseLook = true;
     m_bGrabCursor = true;
     m_bPitch = false;
@@ -90,12 +91,12 @@ void CInputSystem::OnMouseMotion(SDL_Event* event)
     auto mode = SDL_GetRelativeMouseMode();
     if(mode == SDL_FALSE && m_bGrabCursor) return;
 
-    const double flScaleFactor = 0.4;
+
   ///  if(abs(event->motion.xrel) < 1 && abs(event->motion.yrel) < 1)
       //  return;
     m_vecMouseMove = {
-        event->motion.xrel * m_flSensitivity * flScaleFactor * -1.0,
-        event->motion.yrel * m_flSensitivity * flScaleFactor
+        m_vecMouseMove.x + event->motion.xrel * m_flSensitivity * m_flMouseScale * -1.0,
+        m_vecMouseMove.y + event->motion.yrel * m_flSensitivity * m_flMouseScale
     };
 
 }

@@ -20,7 +20,22 @@ struct light_influence
     IVector2 max;
 };
 
-
+struct light_params
+{
+    float a = 0.4f;
+    float b =  0.001; //1.81f;
+    float minIntensity = 0.01;
+    float alphaMod = 1.0f;
+    float colorModifier = 1.0f;
+    float finalModifier = 1.0f;
+    float rolloff = 1.0f;
+    float intensityModifier = 1.0f;
+    float interpFraction = 0.41f;
+    int method = 0; // to be added later
+    bool neighbor_interp = false;
+    bool use_global = true;
+    bool dynamic = false;
+};
 
 class CLight
 {
@@ -49,7 +64,7 @@ public:
     //debug
     std::vector<std::tuple<Vector2, Vector2, bool>> rays;
 
-
+    virtual Color CalculateInfluence(const Vector& point, Color& color_in, const light_params& params, const Color& MaxDark ) = 0;
 
     virtual void SetPosition(const Vector& position) { m_vecPosition = position; }
     virtual Vector GetPosition() const { return m_vecPosition; }
@@ -71,6 +86,22 @@ public:
 
     virtual std::string GetName() const { return m_szName; }
 
+
+    static Color CalculateInfluenceBase(CLight* light, const Vector& point, Color& color_in, const light_params& params, const Color& MaxDark)
+    {
+        double distance = ( point - light->GetPosition() ).Length3D();
+        float attenuation = 1.0f / (1.0f + params.a * distance + params.b * distance * distance);
+        attenuation = (1.f - std::clamp(attenuation, params.minIntensity, 1.0f)) * params.rolloff;
+
+        Color lightColor = light->GetColor();
+        float brightness =  (1.f - light->GetIntensity()) * attenuation;
+        float alphaFactor = ( brightness) * params.intensityModifier;
+        lightColor.a(static_cast<uint8_t>(MaxDark.a() * alphaFactor));
+
+        if(color_in.a() == MaxDark.a())
+            color_in.a(lightColor.a());
+        return lightColor + color_in;
+    }
 private:
     Color m_color;
     float m_flIntensity;

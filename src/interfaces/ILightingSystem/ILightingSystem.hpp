@@ -14,19 +14,7 @@
 
 typedef std::map<std::string, CLight*(*)()> light_reg_t;
 
-struct light_params
-{
-    float a = 0.4f;
-    float b =  0.001; //1.81f;
-    float minIntensity = 0.01;
-    float alphaFactorMod = 1.0f;
-    float brightFactorMod = 1.0f;
-    float finalAlphaMod = 1.0f;
-    float interpFraction = 0.41f;
-    int mergeMethod = 0; // to be added later
 
-    bool dynamic = false;
-};
 
 class CLightingSystem : public CBaseInterface
 {
@@ -56,7 +44,7 @@ public:
     virtual void CalculateLighting();
     virtual nlohmann::json ToJSON();
     virtual void FromJSON(const nlohmann::json& j);
-    virtual Color GetLightForTile(tile_t *tile);
+   
     inline Color Blend(Color color1, Color color2, uint8_t weight)
     {
 

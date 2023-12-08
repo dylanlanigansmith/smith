@@ -24,6 +24,8 @@ public:
 
     template <typename T> 
     CLogger(T* owner, const std::string& name) : CLogger(Util::getClassName<T>(owner), name) {}
+    template <typename T> 
+    CLogger(T* owner) : CLogger(Util::getClassName<T>(owner)) {}
     CLogger(const std::string& classname, const std::string& name);
 
     virtual ~CLogger();
@@ -32,6 +34,8 @@ public:
     virtual void log(const std::string& msg);
     virtual void info(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void info(const std::string& msg);
+    virtual void note(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+    virtual void note(const std::string& msg);
     virtual void warn(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void warn(const std::string& msg);
     virtual void status(const char* fmt, ...) __attribute__((format(printf, 2, 3)));

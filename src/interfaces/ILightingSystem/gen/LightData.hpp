@@ -70,13 +70,13 @@ public:
     }
     
     inline Color CalcColor(CLight* light, Color total_light, float distance){
-        auto& params = ILightingSystem->params;
-        float attenuation = 1.0f / (1.0f + ILightingSystem->params.a * distance + params.b * distance * distance);
-        attenuation = 1.f - std::clamp(attenuation, params.minIntensity, 1.0f) * params.finalAlphaMod;
+       auto& params = ILightingSystem->params;
+        float attenuation = 1.0f / (1.0f + params.a * distance + params.b * distance * distance);
+        attenuation = (1.f - std::clamp(attenuation, params.minIntensity, 1.0f)) * params.rolloff;
 
         Color lightColor = light->GetColor();
         float brightness =  (1.f - light->GetIntensity()) * attenuation;
-        float alphaFactor = ( brightness) * params.brightFactorMod;
+        float alphaFactor = ( brightness) * params.intensityModifier;
         lightColor.a(static_cast<uint8_t>(ILightingSystem->MaxDark().a() * alphaFactor));
 
         if(total_light.a() == ILightingSystem->MaxDark().a())
@@ -109,7 +109,7 @@ public:
                         std::vector<CLight*> influential_lights;
                         for(auto& entry : ILightingSystem->light_list){
                             auto light = entry.second;
-                            if((pos - light->GetPosition() ).Length3D() <= light->GetRange() )
+                            if((pos - light->GetPosition() ).Length3D() <= light->GetRange() ) //length 2d vs 3d makes a huge difference
                             {
                                 influential_lights.push_back(light);
                             }
@@ -133,7 +133,7 @@ public:
                             int walls = 0;
                             int iterations = 0;
                             int expected_iterations = dist_to_point / step + 1;
-                            
+                             auto& params = ILightingSystem->params;
                             while(1)
                             {
                                 iterations++;
@@ -142,11 +142,10 @@ public:
                                 auto ray_tile = ILevelSystem->GetTileAt(rayPos.x, rayPos.y);
                               
 
-                                if(!ray_tile ) break; //|| rayPos.x < 0.0 || rayPos.y < 0.0 || rayPos.x > MAP_SIZE || rayPos.y > MAP_SIZE
+                                if(!ray_tile ) break; 
                                 last_tile_pos = ray_tile->m_vecPosition;
                                  double rayDist = (Vector2(pos) - rayPos).Length();
-                              //  if(rayDist >  1.5 * light->GetRange()) break;
-                               // if(rayDist > dist_to_point) break;
+                             
                                 if(ray_tile->m_nType == Level::Tile_Wall)
                                 {
                                     walls++;
@@ -159,15 +158,15 @@ public:
                                 }
                                  if(tile_type == Level::Tile_Empty || (rayDist < (step * 2))){
                                     if(last_tile_pos == tile.m_vecPosition || last_tile_pos == light_tile->m_vecPosition){
-                                        total_color = CalcColor(light, total_color, dist_to_point); break;
-                                         ILightingSystem->log("Ray End Pos For Tile [%.1f %.1f] and goal {%.4f %.4f %.4f}: Success",  tile_pos.x, tile_pos.y, pos.x, pos.y,pos.z);
+                                        total_color = light->CalculateInfluence(pos, total_color, params, ILightingSystem->MaxDark()); break;
+                                        ILightingSystem->log("Ray End Pos For Tile [%.1f %.1f] and goal {%.4f %.4f %.4f}: Success",  tile_pos.x, tile_pos.y, pos.x, pos.y,pos.z);
                                     }
 
                                 }
                                  if( (rayDist < (step * 2)) && (last_tile_pos == tile.m_vecPosition ) )
                                 {
                                     ILightingSystem->log("Ray End Pos For Tile [%.1f %.1f] and goal {%.4f %.4f %.4f}: Success",  tile_pos.x, tile_pos.y, pos.x, pos.y,pos.z);
-                                    total_color = CalcColor(light, total_color, dist_to_point); break;
+                                    total_color = light->CalculateInfluence(pos, total_color, params, ILightingSystem->MaxDark()); break;
                                 }
                                
                                 

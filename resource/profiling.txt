@@ -40,6 +40,9 @@ Render::Blur(): Avg. (1045148 ns) (1045 us) (1 ms) (0.001045 sec) Fri Dec  8
 
 
 
+Render::Blur(): Avg. (986220 ns) (986 us) (0 ms) (0.000986 sec) Fri Dec  8 13:27:41 2023
+2x downscale  s4.3 k3 ~ >240+ fps
+
 /*
 Commands:
 

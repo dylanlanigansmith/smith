@@ -29,10 +29,10 @@ void CPlayer::OnCreate()
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
 
-  m_move.m_flForwardSpeed = 0.19;
-  m_move.m_flStrafeSpeed = 0.179;
+  m_move.m_flForwardSpeed = 0.20;
+  m_move.m_flStrafeSpeed = 0.169;
   m_move.m_flSpeedModifier = 1.33;
-  m_move.m_flYawSpeed = 0.176;
+  m_move.m_flYawSpeed = 0.0256;
 
   auto Pistol = new CWeaponPistol();
 

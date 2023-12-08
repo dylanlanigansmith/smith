@@ -16,7 +16,7 @@ void CResourceSystem::OnCreate()
     if (!home.empty())
         m_szHomeDir = home;
     else
-        log("Failed to find home directory");
+        warn("Failed to find home directory");
 
     m_szResourcePath = m_szHomeDir + LOG_RESOURCE_PATH;
     log("using %s as resource folder", m_szResourcePath.c_str());
@@ -37,7 +37,7 @@ std::string CResourceSystem::GetResourceSubDir(const std::string &folder)
     if (FileExists(full_path))
         return full_path;
 
-    log("resource subdir %s not found [%s]", folder.c_str(), full_path.c_str());
+    Error("resource subdir %s not found [%s]", folder.c_str(), full_path.c_str());
     return std::string();
 }
 std::vector<std::pair<std::string, std::string>> CResourceSystem::GetDirectoryStructure(const std::string& subdir)

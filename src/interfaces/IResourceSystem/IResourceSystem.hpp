@@ -4,6 +4,16 @@
 
 #include <data/level.hpp>
 
+/*
+
+Needs to be split into an IFileSystem or IPlatform sorta thing
+
+https://wiki.libsdl.org/SDL3/SDL_GetBasePath etc.
+
+*/
+
+
+
 class CResourceSystem : public CBaseInterface
 {
 public:
