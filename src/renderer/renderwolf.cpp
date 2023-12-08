@@ -170,7 +170,8 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
       // choose texture and draw the pixel
      // auto tile = ILevelSystem->GetTileSafe(cellX, cellY);
      
-      auto texture = ILevelSystem->GetTexturePlane(is_floor, cellX, cellY)->m_texture;
+      auto texture = (is_floor) ? tile->m_pTextureFloor->m_texture : tile->m_pTextureCeiling->m_texture;
+      //ILevelSystem->GetTexturePlane(is_floor, cellX, cellY)->m_texture;
       
       uint32_t *pixelsT = (uint32_t *)texture->pixels;
       Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // ABGR

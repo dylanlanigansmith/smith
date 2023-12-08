@@ -391,6 +391,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 {
     // Use object uid as identifier. Most commonly you could also use the object pointer as a base ID.
     ImGui::PushID(entity);
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
     // Text and Tree nodes are less high than framed widgets, using AlignTextToFramePadding() we add vertical spacing to make the tree lines equal high.
@@ -492,6 +493,10 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
                 float r = player->m_move.m_flYawSpeed;
                 ImGui::SliderFloat("yaw Speed", &r, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
                 player->m_move.m_flYawSpeed = r;
+
+                if(ImGui::Button("Set spawn to cur pos")){
+                    ILevelSystem->m_Level->m_vecPlayerStart = Vector2(player->GetPosition());
+                }
             }
 
             ImGui::NextColumn();
@@ -715,7 +720,7 @@ void CEditor::drawResourceView()
     {
         static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
         static auto WolfProfiler = IEngineTime->GetProfiler("Render::LoopWolf()");
-       
+        static auto BlurProfiler = IEngineTime->GetProfiler("Render::Blur()");
         float history[60];
         auto& th = WolfProfiler->History();
         for(int i = 0; i < th.size(); ++i){
@@ -731,6 +736,21 @@ void CEditor::drawResourceView()
             wolfstr.append(" ");
             wolfstr.append(engine->GetTime(true));
             SDL_SetClipboardText(wolfstr.c_str());
+        }
+       
+        auto& bh = BlurProfiler->History();
+        for(int i = 0; i < th.size(); ++i){
+            history[i] = bh[i].us() / 1000.f;
+        }
+         std::string bstr = BlurProfiler->GetAvgString().c_str();
+        ImGui::Text(bstr.c_str()); ImGui::SameLine();
+        ImGui::Text("Max %li Min %li", BlurProfiler->GetMax().us(), BlurProfiler->GetMin().us());
+        ImGui::PlotLines("Blur History", history, IM_ARRAYSIZE(history), 0,
+        (const char *)__null, (BlurProfiler->GetMin().us() / 1000.f), (BlurProfiler->GetMax().us() / 1000.f),{(UI_W * 0.75f), (UI_H * 0.2f)});
+        if(ImGui::Button("Copy for Blur")){
+            bstr.append(" ");
+            bstr.append(engine->GetTime(true));
+            SDL_SetClipboardText(bstr.c_str());
         }
     }
     ImGui::Text("Level Data View Goes Here");
@@ -1044,6 +1064,7 @@ void CEditor::drawLightView()
     constexpr auto rayMissClr = IM_COL32(245,0,30,50);
     constexpr auto rayGoalClr = IM_COL32(245,245,245,50);
     for(auto& entry : ILightingSystem->light_list){
+        if(!runMapView) continue; //bad
         auto light = entry.second;
         Vector2 pos = light->GetPosition();
         float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
@@ -1184,7 +1205,7 @@ void CEditor::drawLightView()
                      ImGui::PushID(light);
                      auto p = light->GetPosition();
                      ImGui::Text("%s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str()); ImGui::SameLine();
-                     if(ImGui::SmallButton("X")){
+                     if(ImGui::SmallButton("[*]")){
                         selectedLight = light;
                      }
                      if(selectedLight != nullptr && light == selectedLight)
@@ -1195,6 +1216,13 @@ void CEditor::drawLightView()
                         ImGui::SliderFloat("X", &light->m_vecPosition.x, 0.0f, 50.0f, "%.4f");
                         ImGui::SliderFloat("Y", &light->m_vecPosition.y, 0.0f, 50.0f, "%.4f");
                         Color s = Editor::colorPicker("Color", light->GetColor(), ImGuiColorEditFlags_DisplayRGB); light->m_color = s;
+
+                        if(ImGui::Button("warp here")){
+                            IEntitySystem->GetLocalPlayer()->SetPosition(light->m_vecPosition.x,light->m_vecPosition.y, 0.f);
+                        } ImGui::SameLine();
+                        if(ImGui::Button("set to pos")){
+                            light->SetPosition(IEntitySystem->GetLocalPlayer()->GetPosition()); light->m_vecPosition.z = 1.0f; //Z is so messed up
+                        } 
                      }
                     
 

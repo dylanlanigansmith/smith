@@ -63,6 +63,8 @@ void CLevelSystem::OnEngineInitFinish()
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+    auto pstart =GetPlayerStart();
+    IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, 0);
   //   constexpr Color sun = Color(255, 195, 0, 170);
    // ILightingSystem->AddLight<CLightOverhead>({9.1f, 9.4f, 1.f}, Color::CandleLight(), 0.5, 0.6f, 4.0);
   //  ILightingSystem->AddLight<CLightOverhead>({17.5f, 19.3f, 1.9f}, sun, 0.7, 0.7, 16.0);

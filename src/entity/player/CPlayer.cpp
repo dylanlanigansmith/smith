@@ -23,7 +23,7 @@ void CPlayer::OnCreate()
 {
   SET_ENT_NAME();
   SET_ENT_TYPE();
-
+  
   m_vecPosition = {19,20,0};//Vector(22, 12, 0);
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};

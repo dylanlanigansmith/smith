@@ -221,10 +221,14 @@ namespace Render
         return 1.f - ((float) (y - draw.drawStart) /  (float) (draw.drawEnd - draw.drawStart ));
     }
 
-    inline Vector WorldPositionFromDrawInfo(const raycast_data_t& ray, const raycast_draw_t& draw, int y, const float magic = 8.f){
+    inline Vector WorldPositionFromDrawInfo(const raycast_data_t& ray, const raycast_draw_t& draw, int y, const float magic = 1.f){
+    
+          Vector2 bt = ray.playerPos + ray.rayDir * ray.perpDist;
+
+
         return Vector(
-            (ray.mapPos.x + draw.wallX) - (ray.rayDir.x / magic),
-            (ray.mapPos.y) - (ray.rayDir.y / magic),
+            (bt.x  ),          //+ std::max(draw.wallX, 1.0) ), //- (ray.rayDir.x / magic),
+            (bt.y ),         //- (ray.rayDir.y / magic),
              CalculateHeightForLighting(draw, y)
         );
     }

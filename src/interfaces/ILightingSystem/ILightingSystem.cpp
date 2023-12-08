@@ -1,7 +1,7 @@
 #include "ILightingSystem.hpp"
 #include <interfaces/ILevelSystem/ILevelSystem.hpp>
 #include <engine/engine.hpp>
-
+#include "gen/LightData.hpp"
 light_reg_t* CLightingSystem::light_class = nullptr;
 CLightingSystem *CLightingSystem::_interface()
 {
@@ -100,6 +100,24 @@ void CLightingSystem::CalculateLighting()
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     log("Building lighting info");
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    SetLogFileOnly(true);
+    LightData ld(this);
+    ld.Calculate();
+    auto &level = ILevelSystem->m_Level;
+    auto &world = level->world;
+    for (auto &row : world)
+        {
+            for (auto &tile : row)
+            {
+                //CalculateLerpLightData(&tile, false);
+               
+            }
+        }
+    SetLogFileOnly(false);
+    log("built light info");
+    return;
+
+/*
     Timer_t gen_time(IEngineTime->GetCurTime());
     int num = 0;
     SetLogFileOnly(true);
@@ -135,46 +153,15 @@ void CLightingSystem::CalculateLighting()
     log("made lightdata for %i tiles, %i voxels in %i ms", num, num * 9, tile_time.ms());
 
 
-    CalculateWallFaces(MaxDark());
-   // FixWallFaces(0);
-    for (auto &row : world)
-    {
-        for (auto &tile : row)
-        {
-            CalculateLerpLightData(&tile);
-            num++;
-        }
-    }
-
-    //CalculateWallFaces(Color::None());
-   // FixWallFaces(1);
-    for (auto &row : world)
-    {
-        for (auto &tile : row)
-        {
-          //  CalculateLerpLightData(&tile, false);
-            num++;
-        }
-    }
-   // FixWallFaces(1);
-    int numLerps = 8;
+    int numLerps = 1;
 
     while(numLerps > 0)
-    {
+    {    
         for (auto &row : world)
         {
             for (auto &tile : row)
             {
-              //  CalculateLerpLightData(&tile, false);
-                num++;
-            }
-        }
-        
-        for (auto &row : world)
-        {
-            for (auto &tile : row)
-            {
-                CalculateLerpLightData(&tile);
+                CalculateLerpLightData(&tile, false);
                 num++;
             }
         }
@@ -182,7 +169,7 @@ void CLightingSystem::CalculateLighting()
         log("lerp round %i / %i", numLerps, num);
         numLerps--;
     } 
-   
+
     SetLogFileOnly(false);
     for (auto &entry : light_list)
     {
@@ -194,6 +181,7 @@ void CLightingSystem::CalculateLighting()
     log("Built lighting info in %i ms for map %s with #%li lights", gen_time.Elapsed().ms(), ILevelSystem->m_Level->getName().c_str(), light_list.size());
 
     SetLogFileOnly(true);
+*/
 }
 
 void CLightingSystem::CalculateTileLightData(tile_t *tile)
@@ -208,11 +196,12 @@ void CLightingSystem::CalculateTileLightData(tile_t *tile)
             {
                 Vector rel_pos = tile->getSectorCenterRelativeCoords(x, y, z);
 
-                Vector world_pos = pos + rel_pos;
+                Vector world_pos =  pos + rel_pos;
+                assert(floor(world_pos.x) == (double)tile->m_vecPosition.x);
                 tested_points.push_back(world_pos);
                 Color vox_light = GetLightAtPoint(world_pos);
-                if (tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
-                    log("%s %i %i %i", vox_light.s().c_str(), x, y, z);
+                //if (tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
+                //    log("%s %i %i %i", vox_light.s().c_str(), x, y, z);
                 tile->sectors[x][y][z].m_light = vox_light;
             }
 }
@@ -227,7 +216,8 @@ void CLightingSystem::CalculateLerpLightData(tile_t *tile, bool set)
             {
                 auto voxel = tile->getVoxelAt(x, y, z);
                 FindNeighborColors(tile, voxel, x, y, z);
-                
+                if(!set)
+                    CombineWithNeighbors(voxel);
 
                 // if(tile->m_vecPosition.x == 13 && tile->m_vecPosition.y == 22)
                 // log("LERP %s %i %i %i", voxel->m_light.s().c_str(), x, y, z);
@@ -345,92 +335,53 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
     auto light_tile = ILevelSystem->GetTileAt(IVector2::Rounded(light_pos.x, light_pos.y));
     Vector2 rayDir = delta.Normalize();
     Vector2 ray = light_pos;
-    auto pttile = ILevelSystem->GetTileAt(IVector2::Rounded(point));
+    auto pttile = ILevelSystem->GetTileAt(point.x, point.y);
     if (pttile == nullptr)
         return false;
-    if (!pttile->isEmpty() && !pttile->m_pTexture->isTransparent()) //pt is in a wall
+    double distToLight = Vector2(ray - light_pos).Length();
+
+    double distToPoint = (point - ray).Length2D();
+    int walls = 0;
+    while ((ray - light_pos).Length() <= maxDistance)
     {
-        return false;
-       /*
-        delta = light_pos - point; //we are a point in a wall lets try and find the light
-        rayDir = delta.Normalize();
-
-        ray = point;
-
-        auto vox_pos = pttile->worldToSector(point);
-        if (vox_pos.x == 1 && vox_pos.y == 1) // center point of wall gets no light
-            return false;
-
-        int hit = 0;
-        tile_t *lastTile = pttile;
-        while (hit == 0)
-        {
-            ray = ray + (rayDir * step); //step values tried: 0.5, 1.f, 0.3, 0.1, 0.01
-                        //0.8 is the most reliable for not jumping through corners, but it leads to stopping early sometimes
-            auto ray_tile = ILevelSystem->GetTileAt(IVector2::Rounded(ray)); 
-                            //note re: Rounded() for ex. (0.5,0.5), w/ rounded tile would be 1,1, w/out it would be 0,0.
-                            // i dont know which is better in this case
-            lastTile = ray_tile;
-            if (ray_tile == nullptr) //out of bounds
-                return false;
-            if (ray_tile != pttile) //we have ray traced out of the starting tile (which is a wall)
-            {
-                hit = 1;
-                break;
-            }
-        } 
-        static int i = 0;
-        if (lastTile->isEmpty())
-        {
-            float len = (ray - point).Length();
-                            //this modifier as 2 or 3 gives more wall illumination with less ray accuracy
-            if (len < step * 1.f) //how long was the ray to break out of the wall towards the light
-            {
-                 tested_points.erase(std::remove(tested_points.begin(), tested_points.end(), point), tested_points.end());
-                return CastRayToPoint(light, ray, maxDistance - len, step); 
-            }
-            else
-                return false;
-        }*/
-    }
-
-    /*
-    walls probably shouldnt look inside themselves for lighting info
-    */
-    while (Vector(ray - light_pos).Length2D() <= maxDistance)
-    {
+        
         ray = ray + (rayDir * step);
-
+        distToLight = Vector2(ray - light_pos).Length();
+        distToPoint = (point - ray).Length2D();
+       
         dbg("ray pos[%.1f %.1f] goal [%.1f %.1f] start [%.1f %.1f]", ray.x, ray.y, point.x, point.y, light_pos.x, light_pos.y);
 
         auto tile = ILevelSystem->GetTileAt(IVector2(ray.x, ray.y));
-        // if (tile == light_tile)
-        // {
-        // light->rays.push_back( {ray, Vector2(point), (tile->m_nType == Level::Tile_Empty) });
-        // return  (tile->m_nType == Level::Tile_Empty);
-        //}
-
         if (tile != nullptr)
         {
+             auto tile2 = ILevelSystem->GetTileAt(IVector2(ray - (rayDir * 1.f/3.f )));
             if (tile->m_nType != Level::Tile_Empty && !tile->m_pTexture->isTransparent())
             { 
-                light->rays.push_back({ray, Vector2(point), false});
-                return false;
+                walls++;
+                if(tile2->m_nType == Level::Tile_Empty || tile2->m_pTexture->isTransparent() ){
+                    if(distToPoint < 1.f){
+                         tested_points.erase(std::remove(tested_points.begin(), tested_points.end(), point), tested_points.end());
+                        light->rays.push_back({ray - (rayDir * 2 * step), Vector2(point), true}); return true;
+                    }
+                    
+                }
+
+               //light->rays.push_back({ray, Vector2(point), false});
+                //return false;
             }
-        }
-        // if (ray.x < 0 || ray.y < 0 || ray.x > MAP_SIZE || ray.y > MAP_SIZE){
-        // light->rays.push_back( {ray, Vector2(point), false });
-        //  return false;
-        // }
+        }      
+         if(distToPoint < step)
+            break;
     }
-    auto tile = ILevelSystem->GetTileAt(IVector2(ray.x, ray.y));
+    auto tile = ILevelSystem->GetTileAt(IVector2::Rounded(ray - (rayDir * step)));
     if (tile->m_nType != Level::Tile_Empty)
     {
-        light->rays.push_back({ray, Vector2(point), false});
+        light->rays.push_back({ray - (rayDir * 2 * step), Vector2(point), false});
+
         return false;
     }
     light->rays.push_back({ray, Vector2(point), true});
-    tested_points.erase(std::remove(tested_points.begin(), tested_points.end(), point), tested_points.end());
+   
     return true;
 }
 
@@ -454,25 +405,28 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
         auto light = entry.second;
 
         auto light_pos = light->GetPosition();
-        auto delta = light_pos - point;
+        Vector2 delta = point - light_pos;
         float range = light->GetRange();
         // CalculateLightInfluence(light, point); //eventually raycast
-        float distance = delta.Length2D();
+        float distance = delta.Length();
 
         if (distance <= range)
         {
 
-            if (distance <= 0.01f || CastRayToPoint(light, point, distance, 0.8f))
+            if ( CastRayToPoint(light, point, distance, 0.1f))
             {
 
-                float attenuation = 1.0f / (1.0f + params.a * sqrt(distance) + params.b * distance); // No longer squared
-                attenuation = std::min(std::max(attenuation, params.minIntensity), 1.0f);
+                //float attenuation = 1.0f / (1.0f + params.a * sqrt(distance) + params.b * distance); // No longer squared
+                float attenuation = 1.0f / (1.0f + params.a * distance + params.b * distance * distance);
+                attenuation = std::clamp(attenuation, params.minIntensity, 1.0f) * params.finalAlphaMod;
 
                 Color lightColor = light->GetColor();
-                float brightFactor = light->GetIntensity() * light->GetBrightness() * params.brightFactorMod;
-                float alphaFactor = 1.0f - pow(std::min(brightFactor, 1.0f), 2) * params.alphaFactorMod;
-                lightColor.a(static_cast<uint8_t>(lightColor.a() * attenuation * alphaFactor * params.finalAlphaMod));
-                dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
+                float brightness =  (1.f - light->GetIntensity()) * attenuation;
+                float alphaFactor = (1.0 - brightness) * params.brightFactorMod;
+                lightColor.a(static_cast<uint8_t>(MaxDark().a() * alphaFactor));
+
+
+               // dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
                 uint8_t oldAlpha = total_light.a();
                 switch (params.mergeMethod)
                 {
@@ -492,7 +446,35 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
 
     return total_light;
 }
+Color CLightingSystem::CombineWithNeighbors(voxel_t *voxel)
+{
+    Color combinedColor = voxel->m_light;
+    int count = 1; // Start with the voxel itself
 
+    for (int i = 0; i < voxel->m_neighborsize; ++i)
+    {
+        if (voxel->m_neighbors[i] != Color::None())
+        {
+            combinedColor = LinearInterpolate(combinedColor, voxel->m_neighbors[i], params.interpFraction);
+            count++;
+        }
+    }
+
+    /*
+        //combinedColor = combinedColor +  voxel->m_neighbors[i];
+
+     // Average out the colors by dividing each component
+        uint8_t avgR = ((combinedColor >> 24) & 0xFF) / count;
+        uint8_t avgG = ((combinedColor >> 16) & 0xFF) / count;
+        uint8_t avgB = ((combinedColor >> 8) & 0xFF) / count;
+        uint8_t avgA = (combinedColor & 0xFF) / count;
+
+        Color ret = Color(avgR, avgG, avgB, avgA);
+        //log("%s", ret.s().c_str());
+        return ret; */
+    // Average out the colors
+    return combinedColor / static_cast<float>(count);
+}
 Color CLightingSystem::CombineWithNeighbors(tile_t* tile)
 {
     

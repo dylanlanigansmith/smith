@@ -1,5 +1,5 @@
 #pragma once
-#pragma GCC optimize("O2")
+//#pragma GCC optimize("O2")
 #include <common.hpp>
 #include <interfaces/CBaseInterface.hpp>
 #include <SDL3/SDL.h>
@@ -16,12 +16,12 @@ typedef std::map<std::string, CLight*(*)()> light_reg_t;
 
 struct light_params
 {
-    float a = 0.14f;
-    float b = 0.01f;
-    float minIntensity = 0.009;
-    float alphaFactorMod = 1.67f;
-    float brightFactorMod = 0.65f;
-    float finalAlphaMod = 0.52f;
+    float a = 0.4f;
+    float b =  0.001; //1.81f;
+    float minIntensity = 0.01;
+    float alphaFactorMod = 1.0f;
+    float brightFactorMod = 1.0f;
+    float finalAlphaMod = 1.0f;
     float interpFraction = 0.41f;
     int mergeMethod = 0; // to be added later
 
@@ -32,7 +32,7 @@ class CLightingSystem : public CBaseInterface
 {
     friend class CRenderer;
     friend class CEditor;
-
+    friend class LightData;
 public:
     CLightingSystem() : CBaseInterface("ILightingSystem") {}
     ~CLightingSystem() override {}
@@ -82,19 +82,35 @@ public:
         // Combine back into uint32_t
         return (r << 24) | (g << 16) | (b << 8) | a;
     }
+   
+   float inline posToWeight(float pos){
+    constexpr double minWeight = 0.1;
+        return std::clamp(pow(pos, 4), 1.0, minWeight);
+       // return std::max(  pow( std::fabs(pos ),3 ),  minWeight );
+   }
     void inline ApplyLightForTile(tile_t *tile, bool posRayX, bool posRayY, const Vector &worldpos, int x, int y)
     {
+        const ivec3 vox_pos = tile->worldToSector(worldpos);
+          voxel_t *vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
+         SetPixel(x, y, vox->m_light); return; /*
         Vector rel_pos = tile->worldToRelative(worldpos);
+       // if(x > 630)
+          //  log("rel{%.4f %.4f %.4f} world{%.4f %.4f %.4f}", rel_pos.x, rel_pos.y, rel_pos.z, worldpos.x, worldpos.y, worldpos.z);
+
         const ivec3 vox_pos = tile->relToSector(rel_pos);
+
         voxel_t *vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
+        auto vcenter = tile->getSectorCenterRelativeCoords(vox_pos.x, vox_pos.y, vox_pos.z);
+        rel_pos = rel_pos - vcenter;
         Color &vc = vox->m_light;
         if(!params.dynamic) {
-             SetPixel(x, y, vc);
+             SetPixel(x, y, vc); return;
         }
         // Calculate weights for each direction
-        float weight_x = Util::InvSqrt(rel_pos.x);// * ( params.interpFraction * params.mergeMethod);
-        float weight_y = Util::InvSqrt(rel_pos.y) ;//*  (params.interpFraction * params.mergeMethod);
-        float weight_z = Util::InvSqrt(rel_pos.z) ;// ( params.interpFraction * params.mergeMethod);
+        
+        float weight_x = posToWeight(rel_pos.x);
+        float weight_y = posToWeight(rel_pos.y);
+        float weight_z = posToWeight(rel_pos.z);
 
         // Blend colors from each direction
         Color clr_x = LinearInterpolate(vc, vox->m_neighbors[posRayX ? WEST : EAST], weight_x);
@@ -102,8 +118,8 @@ public:
         Color clr_z = LinearInterpolate(vc, vox->m_neighbors[rel_pos.z > 0.64f ? 4 : 5], weight_z);
 
         // Combine the blended colors
-        Color blendedColor = CombineBlendedColors(clr_x, clr_y, clr_z);
-        SetPixel(x, y, LinearInterpolate(vc, blendedColor, params.interpFraction));
+        Color blendedColor = CombineBlendedColors(clr_x, clr_y, clr_z); 
+        SetPixel(x, y, LinearInterpolate(vc, blendedColor, params.interpFraction));*/
     }
 
     inline Color LinearInterpolate(const Color &start, const Color &end, float fraction)
@@ -201,6 +217,7 @@ protected:
     virtual Color GetLightAtPoint(const Vector &point);
     virtual Color CalculateLightInfluence(CLight *light, const Vector &point);
     virtual Color CombineWithNeighbors(tile_t *tile); // set false just refreshes nbr clrs
+    virtual Color CombineWithNeighbors(voxel_t *voxel);
     virtual void CalculateWallFaces(Color dark);
     virtual void FixWallFaces(int method = 0);
     virtual void FindNeighborColors(tile_t *tile, voxel_t *voxel, int x, int y, int z);

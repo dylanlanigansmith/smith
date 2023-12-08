@@ -9,7 +9,7 @@ class CLevelSystem : public CBaseInterface
 {
     friend class CResourceSystem;
     friend class CEditor;
-    friend class CLightingSystem;
+    friend class CLightingSystem; friend class LightData;
 public:
 
     CLevelSystem() : CBaseInterface("ILevelSystem") { }
@@ -22,21 +22,24 @@ public:
     virtual void OnRenderEnd() override;
     virtual void OnEngineInitFinish() override;
 
-    virtual int GetMapAt(const IVector2& w) const { return GetMapAt(w.x, w.y); }
-    inline virtual int GetMapAt(int x, int y) const{ //type
+    int GetMapAt(const IVector2& w) const { return GetMapAt(w.x, w.y); }
+    inline int GetMapAt(int x, int y) const{ //type
         return m_Level->GetTileAt(x,y)->m_nType;
     }
-    virtual tile_t* GetTileAt(const IVector2& w) { return GetTileAt(w.x, w.y); }
-    inline virtual tile_t* GetTileAt(int x, int y){
+    tile_t* GetTileAt(const IVector2& w) { return GetTileAt(w.x, w.y); }
+    inline tile_t* GetTileAt(int x, int y){
         return m_Level->GetTileAt(x,y);
     }
-    inline virtual tile_t* GetTileSafe(int x, int y){
+    inline tile_t* GetTileAtFast(int x, int y){
+        return m_Level->GetTileAtFast(x,y);
+    }
+    inline  tile_t* GetTileSafe(int x, int y){
         x = std::clamp(x, 0, MAP_SIZE - 1); 
         y = std::clamp(y, 0, MAP_SIZE - 1); 
           return m_Level->GetTileAt(x,y);
     }
     inline virtual bool ValidTilePosition(const IVector2& w) { return ValidTilePosition(w.x, w.y); }
-    inline virtual bool ValidTilePosition(int x, int y){
+    inline  bool ValidTilePosition(int x, int y){
       return (std::clamp(x, 0, MAP_SIZE - 1) == x &&  y == std::clamp(y, 0, MAP_SIZE - 1)); 
     }
     virtual texture_t* GetTextureAt(int x, int y, uint8_t type = 0); //main0, floor1, ceiling2
@@ -47,6 +50,8 @@ public:
     virtual IVector2 FindEmptySpace();
 
     bool IsCollision(const Vector& origin, const Vector& goal); //false = no collision
+
+    auto GetPlayerStart() const { return m_Level->m_vecPlayerStart; }
 private:
     void LoadAndFindTexturesForMap();
     void AddMapTexture(int id, const std::string& name);

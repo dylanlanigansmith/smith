@@ -16,7 +16,7 @@
 #define MSAA_SAMPLES 2
 
 //0 nearest pixel sampling 1 linear filter 2 anisotropic 
-#define TEXTURE_SCALE_QUALITY "1"
+#define TEXTURE_SCALE_QUALITY "2"
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 360

@@ -103,18 +103,26 @@ struct tile_t
     inline bool isEmpty(){
         return (m_nType == Level::Tile_Empty);
     }
+    inline int round(float x){
+        return f(x + 0.5f);
+    }
+    inline int f(float x)
+    {
+        return (int) x - (x < (int) x); // as dgobbi above, needs less than for floor
+    }
     inline ivec3 worldToSector(const Vector& worldpos){
         return ivec3{
-            std::clamp(static_cast<int>(std::round((worldpos.x - m_vecPosition.x) * 3.f)), 0, 2), 
-            std::clamp(static_cast<int>(std::round((worldpos.y - m_vecPosition.y) * 3.f)), 0, 2), 
-            std::clamp(static_cast<int>(std::round(worldpos.z * 3.f)), 0, 2)
+            std::clamp(static_cast<int>(round((worldpos.x - m_vecPosition.x) * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(round((worldpos.y - m_vecPosition.y) * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(round(worldpos.z * 3.f)), 0, 2)
         };   
     }
+    
      inline ivec3 relToSector(const Vector& pos){
         return ivec3{
-            std::clamp(static_cast<int>(std::round(pos.x * 3.f)), 0, 2), 
-            std::clamp(static_cast<int>(std::round(pos.y * 3.f)), 0, 2), 
-            std::clamp(static_cast<int>(std::round(pos.z * 3.f)), 0, 2)
+            std::clamp(static_cast<int>(round(pos.x * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(round(pos.y * 3.f)), 0, 2), 
+            std::clamp(static_cast<int>(round(pos.z * 3.f)), 0, 2)
         };    
     }
     inline Vector worldToRelative(const Vector& worldpos){     
@@ -202,7 +210,7 @@ class CLevel : public CBaseSerializable //i sortof hate this whole implementatio
 public:
     friend class CLevelSystem;
     friend class CEditor;
-    friend class CLightingSystem;
+    friend class CLightingSystem; friend class LightData;
     CLevel(IVector2 bounds = IVector2(0,0)) : CBaseSerializable(Util::getClassName(this)), m_vecBounds(bounds) {
       m_flCeilingHeight = m_flFloorHeight = 0.0;
       m_szLevelName = "default";
@@ -235,12 +243,18 @@ public:
                 ).c_str()); 
     }
 
-    inline virtual tile_t* GetTileAt(int x, int y){
+    inline tile_t* GetTileAt(int x, int y){
      //   log("%i %i", x, y);
         if(x >= 0  && y >= 0 && (x < m_vecBounds.x) && (y < m_vecBounds.y))
-            return &(world.at(y).at(x));
+            return &(world[y][x]);
         else
             return nullptr;
+    }
+    inline tile_t* GetTileAtFast(int x, int y){
+     //   log("%i %i", x, y);
+        
+        return &(world[y][x]);
+       
     }
     virtual void AddTile(const tile_t& tile){
         world.at(tile.m_vecPosition.y).at(tile.m_vecPosition.x)

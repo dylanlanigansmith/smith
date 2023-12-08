@@ -13,7 +13,7 @@
 #include <imgui_impl_sdlrenderer3.h>
 #include <imgui_impl_sdl3.h>
 #include <editor/editor.hpp>
-#define BLUR_SCALE 4
+#define BLUR_SCALE 2
 void CRenderer::Shutdown()
 {
   ImGui_ImplSDLRenderer3_Shutdown();
@@ -36,10 +36,10 @@ CRenderer::~CRenderer()
 bool CRenderer::Create()
 {
 
-  m_bBlur = false;
+  m_bBlur = true;
   m_bBlurGauss = true;
-  sigma = 12.3f; // higher = softer
-  kernelSize = 7; // higher = more area
+  sigma = 4.3f; // higher = softer
+  kernelSize = 3; // higher = more area
 
   bool ret = false;
 
@@ -101,7 +101,7 @@ void CRenderer::UpdateLighting()
 void CRenderer::BlurTexture()
 {
 
-   int blurRadius = 3; // You can adjust this for a more or less blurred effect
+   int blurRadius = 1; // You can adjust this for a more or less blurred effect
  SDL_Surface* surf = m_lightsurface;
   int width = SCREEN_WIDTH / BLUR_SCALE;
   int height = SCREEN_HEIGHT / BLUR_SCALE;
@@ -139,7 +139,7 @@ void CRenderer::BlurTexture()
     }
 }
 void CRenderer::GaussianBlurPass(bool horizontal) {
-    SDL_Surface* surf = m_downscale;
+    SDL_Surface* surf = (BLUR_SCALE != 1 ) ? m_downscale : m_lightsurface;
     int width = SCREEN_WIDTH / BLUR_SCALE;
     int height = SCREEN_HEIGHT / BLUR_SCALE;
    
@@ -213,6 +213,10 @@ void CRenderer::Loop()
 {
   static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto WolfProfiler = IEngineTime->AddProfiler("Render::LoopWolf()");
+
+  static auto BlurProfiler = IEngineTime->AddProfiler("Render::Blur()");
+
+  static auto SDLProfiler = IEngineTime->AddProfiler("Render::SDLRenderer");
   const SDL_FRect scale = {0.f,0.f, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL};
 
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
@@ -231,20 +235,20 @@ void CRenderer::Loop()
   LoopWolf(0, SCREEN_WIDTH);
   WolfProfiler->End();
  
- 
+  BlurProfiler->Start();
   if(m_bBlur){
-    SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL);
-  //  GaussBlurTexture();
-    //BlurTexture();
+   if(BLUR_SCALE != 1) SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL);
+    GaussBlurTexture();
+   // BlurTexture();
   } 
- 
+  BlurProfiler->End();
   
 
   SDL_UnlockTexture(m_blurTexture);
   SDL_UnlockTexture(m_renderTexture);
 
   
- 
+  SDLProfiler->Start();
   if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);  
   else SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
   
@@ -256,6 +260,7 @@ void CRenderer::Loop()
   RunImGui();
  
   SDL_RenderPresent(get());
+  SDLProfiler->End();
 }
 
 

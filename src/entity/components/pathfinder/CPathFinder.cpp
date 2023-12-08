@@ -143,8 +143,9 @@ IVector2 CPathFinder::GetNextPoint(IVector2 pos)
     auto cur = std::find(path.begin(), path.end(), pos);
     if(cur == path.end()){
         log("strayed {%i %i} from the path {%i %i } in %li/%li moves", pos.x, pos.y, path.at(m_iPathIndex).x, path.at(m_iPathIndex).y, m_iPathIndex, m_iPathSize);
+        auto prev = path.at(m_iPathIndex);
         Reset();
-        return path.at(m_iPathIndex);
+        return prev;
     }  
 
     
