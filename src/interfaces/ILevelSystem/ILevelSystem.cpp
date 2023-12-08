@@ -7,6 +7,8 @@
 #include <data/level.hpp>
 #include <util/misc.hpp>
 #include <renderer/render_helpers.hpp>
+
+#include <light/lights.hpp>
 /*
 For Editor:
 
@@ -61,17 +63,17 @@ void CLevelSystem::OnEngineInitFinish()
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-     constexpr Color sun = Color(255, 165, 0, 170);
-    ILightingSystem->AddLight<CLightOverhead>({8.f, 8.4f, 1.f}, Color::CandleLight(), 0.5, 0.5f, 4.0);
-    ILightingSystem->AddLight<CLightOverhead>({19.5f, 21.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
-    ILightingSystem->AddLight<CLightOverhead>({21.5f, 6.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
-    ILightingSystem->AddLight<CLightOverhead>({18.5f, 7.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
+  //   constexpr Color sun = Color(255, 195, 0, 170);
+   // ILightingSystem->AddLight<CLightOverhead>({9.1f, 9.4f, 1.f}, Color::CandleLight(), 0.5, 0.6f, 4.0);
+  //  ILightingSystem->AddLight<CLightOverhead>({17.5f, 19.3f, 1.9f}, sun, 0.7, 0.7, 16.0);
+   // ILightingSystem->AddLight<CLightOverhead>({21.8f, 4.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
+   // ILightingSystem->AddLight<CLightOverhead>({17.2f, 7.8f, 1.9f}, sun, 0.7, 0.7, 16.0);
    
-     ILightingSystem->AddLight<CLightOverhead>({11.6f, 9.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
-     ILightingSystem->AddLight<CLightOverhead>({6.3f, 12.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
+    // ILightingSystem->AddLight<CLightOverhead>({11.6f, 9.3f, 1.zzzz9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
+   //  ILightingSystem->AddLight<CLightOverhead>({6.3f, 12.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
 
-     ILightingSystem->AddLight<CLightOverhead>({8.6f, 22.2f, 1.9f}, Color::CoolBlueLight(), 0.6, 0.6, 4.5);
-      ILightingSystem->AddLight<CLightOverhead>({15.6f, 22.2f, 1.9f}, Color::DimRedLight(), 0.6, 0.6, 6.0);
+   //  ILightingSystem->AddLight<CLightOverhead>({8.6f, 22.2f, 1.9f}, Color::CoolBlueLight(), 0.6, 0.6, 4.5);
+   //   ILightingSystem->AddLight<CLightOverhead>({15.6f, 22.2f, 1.9f}, Color::DimRedLight(), 0.6, 0.6, 6.0);
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(15.7, 9.5);

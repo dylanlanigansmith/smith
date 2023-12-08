@@ -23,7 +23,7 @@ struct dev_tools
 {
     bool ent_info = false;
     bool fps = true;
-    bool show_cam = false;
+    bool show_cam = true;
     bool show_pos = true;
 };
 

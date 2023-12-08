@@ -29,6 +29,11 @@ void CPlayer::OnCreate()
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
 
+  m_move.m_flForwardSpeed = 0.19;
+  m_move.m_flStrafeSpeed = 0.179;
+  m_move.m_flSpeedModifier = 1.33;
+  m_move.m_flYawSpeed = 0.176;
+
   auto Pistol = new CWeaponPistol();
 
   m_inventory.push_back(Pistol);
@@ -74,18 +79,20 @@ void CPlayer::CreateMove()
   //  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
   // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
-  double frameTime = 0.008;
-  double moveSpeed = frameTime * 5.0;  // the constant value is in squares/second
-  double rotSpeed = frameTime * 2.5;   // the constant value is in radians/second
-  double pitchSpeed = frameTime * 3.5; // the constant value is in radians/second
+  static constexpr double tickTime = 1.000 / TICKS_PER_S ;
+  double moveSpeed = m_move.m_flForwardSpeed;  // the constant value is in squares/ tick
+  double strafeSpeed = m_move.m_flStrafeSpeed;
+  double rotSpeed = m_move.m_flYawSpeed;   // the constant value is in radians/ tick
+  double pitchSpeed = m_move.m_flYawSpeed; //pitch not used currently
 
-  WASD_t m_move = IInputSystem->GetInput();
+  double speedMod = 1.0;
+  WASD_t in_move = IInputSystem->GetInput();
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
   {
     // sprint
-    moveSpeed *= 1.75f;
+    speedMod = m_move.m_flSpeedModifier;
   }
-  if (m_move.w)
+  if (in_move.w)
   {
    
      if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
@@ -94,33 +101,33 @@ void CPlayer::CreateMove()
         m_vecPosition.y += Camera().m_vecDir.y * moveSpeed;
   }
   // move backwards if no wall behind you
-  if (m_move.s)
+  if (in_move.s)
   {
     if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x - Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
         m_vecPosition.x -= Camera().m_vecDir.x * moveSpeed;
     if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y - Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false || noclip)
         m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
   }
-  if (m_move.d)
+  if (in_move.d)
   {
     float rightX = Camera().m_vecDir.y;
     float rightY = -Camera().m_vecDir.x;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + rightX * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.x += rightX  * moveSpeed;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + rightY * moveSpeed, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.y += rightY  * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + rightX * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.x += rightX  * strafeSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + rightY * strafeSpeed, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.y += rightY  * strafeSpeed;
   }
 
   // move left
-  if (m_move.a)
+  if (in_move.a)
   {
     float leftX = -Camera().m_vecDir.y;
     float leftY = Camera().m_vecDir.x;
 
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + leftX  * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.x += leftX  * moveSpeed;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * moveSpeed, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.y += leftY  * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + leftX  * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.x += leftX  * strafeSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * strafeSpeed, m_vecPosition.z}) == false || noclip)
+        m_vecPosition.y += leftY  * strafeSpeed;
   }
 
   if (!IInputSystem->UseMouseMovement())

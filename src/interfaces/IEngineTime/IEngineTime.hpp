@@ -3,18 +3,21 @@
 #include <interfaces/CBaseInterface.hpp>
 #include <types/CTime.hpp>
 #include <util/misc.hpp>
-#define TICKS_PER_S 32
+
 
 class CEngineTime;
 
+
 class CProfiler : public CLogger
 {
+    friend class CEngineTime;
 public: 
-    CProfiler(CEngineTime* IEngineTime, const std::string& m_szProfilerName) : 
-        CLogger(this, m_szProfilerName), IEngineTime(IEngineTime),m_sampleCount(60), m_szProfilerName(m_szProfilerName) {
+    CProfiler(CEngineTime* IEngineTime, const std::string& m_szProfilerName, const std::size_t samples = 60) : 
+        CLogger(this, m_szProfilerName),IEngineTime(IEngineTime), m_sampleCount(samples), m_szProfilerName(m_szProfilerName) {
             m_timeMin.set(0xFFFFFFFFFFFFFFFFull);
             m_timeMax.set(0);
              index = 0;
+             
         }
     
     void Start();
@@ -56,8 +59,9 @@ public:
     }
 
     const auto& History() const { return rolling_values; }
-    const auto SampleCount() const { return m_sampleCount;} //not even used bc array 
+    const auto SampleCount() const { return rolling_values.size();} //not even used bc array 
 private:
+    
     const int m_sampleCount;
     int index;
     CEngineTime* IEngineTime;

@@ -1,14 +1,32 @@
 Pre-Refactor: ~120 fps stable, usually 123-127
 Render::LoopWolf(): Avg. (5922770 ns) (5922 us) (5 ms) (0.005923 sec) Wed Dec  6 18:32:49 2023 @ start
-Render::LoopWolf(): Avg. (5905513 ns) (5905 us) (5 ms) (0.005906 sec) Wed Dec  6 18:41:33 2023 @ column towards grass
+Render::LoopWolf(): Avg. (5905513 ns) (5905 us) (5 ms) (0.005906 sec)  @ column towards grass
 
 high: ~20000 low 5800
 
 Post-Refactor 130fps
 
-Render::LoopWolf(): Avg. (5638629 ns) (5638 us) (5 ms) (0.005639 sec) Wed Dec  6 20:59:43 2023 @ start 
-Render::LoopWolf(): Avg. (5681567 ns) (5681 us) (5 ms) (0.005682 sec) Wed Dec  6 21:00:39 2023 @ column towards grass
+Render::LoopWolf(): Avg. (5638629 ns) (5638 us) (5 ms) (0.005639 sec)  @ start 
+Render::LoopWolf(): Avg. (5681567 ns) (5681 us) (5 ms) (0.005682 sec)  @ column towards grass
 
 high ~9000 low 5600 
 way less variation on graph (line near flat vs heart rate monitor before)
 
+with lighting
+
+
+Render::LoopWolf(): Avg. (9825168 ns) (9825 us) (9 ms) (0.009825 sec) @ start
+
+
+
+/*
+Commands:
+
+ perf stat -M TopdownL1  ./smith     
+  perf stat ./smith     
+  perf stat -M tma_backend_bound_group   ./smith  
+
+  perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations ./smith      
+
+   perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations ./smith                                                                                                                                                         
+*/

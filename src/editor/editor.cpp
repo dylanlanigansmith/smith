@@ -480,6 +480,18 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             }
             else if (entity->IsLocalPlayer())
             {
+                auto player = (CPlayer*)entity;
+                float f = player->m_move.m_flForwardSpeed;
+                ImGui::SliderFloat("ForwardSpeed", &f, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
+                player->m_move.m_flForwardSpeed = f;
+
+                float s = player->m_move.m_flStrafeSpeed;
+                ImGui::SliderFloat("StrafeSpeed", &s, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
+                player->m_move.m_flStrafeSpeed = f;
+
+                float r = player->m_move.m_flYawSpeed;
+                ImGui::SliderFloat("yaw Speed", &r, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
+                player->m_move.m_flYawSpeed = r;
             }
 
             ImGui::NextColumn();
@@ -1025,6 +1037,8 @@ void CEditor::drawLightView()
     static int ray_filter = 50;
     static ImGuiTextFilter light_filter("");
 
+    
+
     if(ray_filter < 1) ray_filter = 1;
     constexpr auto rayHitClr = IM_COL32(15,245,30,100);
     constexpr auto rayMissClr = IM_COL32(245,0,30,50);
@@ -1036,6 +1050,7 @@ void CEditor::drawLightView()
         float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
         auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
         int i = 0;
+        if(selectedLight != nullptr && light != selectedLight) continue;
         std::string last{light->GetName().back()};
         if(!light_filter.PassFilter(last.c_str())) continue; //this will break soon
         for(auto& ray : light->rays){
@@ -1064,7 +1079,9 @@ void CEditor::drawLightView()
            // draw_list->AddLine(ui_pos, ImVec2(ray_aim.x + offset_x, ray_aim.y + offset_y), rayMissClr);
             
         }
-
+        if(selectedLight != nullptr && light == selectedLight){
+            draw_list->AddCircle(ui_pos, 3.f, Editor::ColorToIU32(light->GetColor()), 8, 3.f);
+        }
         draw_list->AddCircle(ui_pos, 18.f, Editor::ColorToIU32(light->GetColor()), 8, 3.f);
         draw_list->AddCircle(ui_pos, light->GetRange() * GRID_STEP, Editor::ColorToIU32(light->GetColor(), true), 32, 0.5f);
     }
@@ -1119,7 +1136,7 @@ void CEditor::drawLightView()
             }
 
             ImGui::InputInt("merge method", &p->mergeMethod, 1); 
-            if(p->mergeMethod > 1) p ->mergeMethod = 1;
+            //if(p->mergeMethod > 1) p ->mergeMethod = 1;
             if(p->mergeMethod < 0) p ->mergeMethod = 0;
             ImGui::SeparatorText("tile info");
 
@@ -1152,16 +1169,35 @@ void CEditor::drawLightView()
         } 
         if(ImGui::BeginTabItem("Lights"))
         {   
+            if(ImGui::Button("Add Light")){
+               auto light = ILightingSystem->AddLightByClassname("CLightOverhead");
+               light->SetPosition({13.f,13.f,2.f});
+               light->SetColor(Color::FluorescentLight());
+               light->SetRange(3.f);
+            }ImGui::SameLine();
+            if(ImGui::Button("clr")){
+                selectedLight = nullptr;
+            }
+            static float clr[4];
             for(auto& entry : ILightingSystem->light_list){
                      auto light = entry.second;
                      ImGui::PushID(light);
                      auto p = light->GetPosition();
-                     ImGui::Text("%s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
-                     ImGui::SliderFloat("Brightness", &light->m_flBrightness, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-                     ImGui::SliderFloat("Intensity", &light->m_flIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-                     ImGui::SliderFloat("Range", &light->m_flRange, 0.0f, 50.0f, "%.4f");
-                     ImGui::SliderFloat("X", &light->m_vecPosition.x, 0.0f, 50.0f, "%.4f");
-                     ImGui::SliderFloat("Y", &light->m_vecPosition.y, 0.0f, 50.0f, "%.4f");
+                     ImGui::Text("%s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str()); ImGui::SameLine();
+                     if(ImGui::SmallButton("X")){
+                        selectedLight = light;
+                     }
+                     if(selectedLight != nullptr && light == selectedLight)
+                     {
+                         ImGui::SliderFloat("Brightness", &light->m_flBrightness, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::SliderFloat("Intensity", &light->m_flIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+                        ImGui::SliderFloat("Range", &light->m_flRange, 0.0f, 50.0f, "%.4f");
+                        ImGui::SliderFloat("X", &light->m_vecPosition.x, 0.0f, 50.0f, "%.4f");
+                        ImGui::SliderFloat("Y", &light->m_vecPosition.y, 0.0f, 50.0f, "%.4f");
+                        Color s = Editor::colorPicker("Color", light->GetColor(), ImGuiColorEditFlags_DisplayRGB); light->m_color = s;
+                     }
+                    
+
                      ImGui::PopID();
                      ImGui::Separator();
 

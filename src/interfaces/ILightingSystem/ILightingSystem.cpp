@@ -2,6 +2,12 @@
 #include <interfaces/ILevelSystem/ILevelSystem.hpp>
 #include <engine/engine.hpp>
 
+light_reg_t* CLightingSystem::light_class = nullptr;
+CLightingSystem *CLightingSystem::_interface()
+{
+    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+    return ILightingSystem;
+}
 Color CLightingSystem::CalculateLightInfluence(CLight *light, const Vector &point)
 {
 
@@ -11,7 +17,7 @@ Color CLightingSystem::CalculateLightInfluence(CLight *light, const Vector &poin
 void CLightingSystem::OnEngineInitFinish()
 {
     Debug(false);
-    StartLogFileForInstance("lighting.log");
+    StartLogFileForInstance("lighting.log", false);
 }
 
 void CLightingSystem::SetupBlending()
@@ -42,6 +48,7 @@ void CLightingSystem::RegenerateLighting()
     log("cleared color info for %i faces", lol);
     CalculateLighting();
 }
+
 
 Color CLightingSystem::GetLightForTile(tile_t *tile)
 {
@@ -127,8 +134,9 @@ void CLightingSystem::CalculateLighting()
     auto tile_time = gen_time.Elapsed();
     log("made lightdata for %i tiles, %i voxels in %i ms", num, num * 9, tile_time.ms());
 
+
     CalculateWallFaces(MaxDark());
-    FixWallFaces(0);
+   // FixWallFaces(0);
     for (auto &row : world)
     {
         for (auto &tile : row)
@@ -138,8 +146,8 @@ void CLightingSystem::CalculateLighting()
         }
     }
 
-    CalculateWallFaces(Color::None());
-    FixWallFaces(1);
+    //CalculateWallFaces(Color::None());
+   // FixWallFaces(1);
     for (auto &row : world)
     {
         for (auto &tile : row)
@@ -148,8 +156,8 @@ void CLightingSystem::CalculateLighting()
             num++;
         }
     }
-    FixWallFaces(1);
-    int numLerps = 16;
+   // FixWallFaces(1);
+    int numLerps = 8;
 
     while(numLerps > 0)
     {
@@ -157,7 +165,7 @@ void CLightingSystem::CalculateLighting()
         {
             for (auto &tile : row)
             {
-                CalculateLerpLightData(&tile, false);
+              //  CalculateLerpLightData(&tile, false);
                 num++;
             }
         }
@@ -187,6 +195,7 @@ void CLightingSystem::CalculateLighting()
 
     SetLogFileOnly(true);
 }
+
 void CLightingSystem::CalculateTileLightData(tile_t *tile)
 {
     // if(tile->m_nType == Level::Tile_Wall) return;
@@ -263,6 +272,7 @@ Color CLightingSystem::getNeighborColor(tile_t *tile, const ivec3 &rel, int dir)
 
     return Color::None();
 }
+
 void CLightingSystem::FindNeighborColors(tile_t *tile, voxel_t *voxel, int x, int y, int z)
 {
     ivec3 coords = {x, y, z};
@@ -338,7 +348,7 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
     auto pttile = ILevelSystem->GetTileAt(IVector2::Rounded(point));
     if (pttile == nullptr)
         return false;
-    if (!pttile->isEmpty()) //pt is in a wall
+    if (!pttile->isEmpty() && !pttile->m_pTexture->isTransparent()) //pt is in a wall
     {
         return false;
        /*
@@ -402,11 +412,8 @@ bool CLightingSystem::CastRayToPoint(CLight *light, const Vector &point, float m
 
         if (tile != nullptr)
         {
-
-            if (tile->m_nType != Level::Tile_Empty)
-            {
-                
-
+            if (tile->m_nType != Level::Tile_Empty && !tile->m_pTexture->isTransparent())
+            { 
                 light->rays.push_back({ray, Vector2(point), false});
                 return false;
             }
@@ -466,6 +473,7 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
                 float alphaFactor = 1.0f - pow(std::min(brightFactor, 1.0f), 2) * params.alphaFactorMod;
                 lightColor.a(static_cast<uint8_t>(lightColor.a() * attenuation * alphaFactor * params.finalAlphaMod));
                 dbg(" lightA %i bf %.3f af %.3f, atn %.3f", lightColor.a(), brightFactor, alphaFactor, attenuation);
+                uint8_t oldAlpha = total_light.a();
                 switch (params.mergeMethod)
                 {
                 case 1:
@@ -475,7 +483,8 @@ Color CLightingSystem::GetLightAtPoint(const Vector &point)
                 default:
                     total_light = MergeLightColors(total_light, lightColor);
                 }
-                total_light.a(lightColor.a());
+                if(oldAlpha == MaxDark().a())
+                    total_light.a(lightColor.a());
             }
         }
     }
@@ -554,7 +563,7 @@ Color CLightingSystem::CombineWithNeighbors(tile_t* tile)
                     {
                         combinedColor = LinearInterpolate(combinedColor, voxel->m_neighbors[i], params.interpFraction);
                         if(true){
-                            voxel->m_neighbors[i] = LinearInterpolate(combinedColor, voxel->m_light, params.interpFraction / 1.2f);
+                            voxel->m_neighbors[i] = LinearInterpolate(combinedColor, voxel->m_light, 1.0 - params.interpFraction );
                             voxel->m_neighbors[i] = combinedColor / static_cast<float>(count);
                         }                       
                         count++;
@@ -583,16 +592,7 @@ Color CLightingSystem::CombineWithNeighbors(tile_t* tile)
 
     return Color::None();
 }
-Color CLightingSystem::LinearInterpolate(Color start, Color end, float fraction)
-{
 
-    uint8_t interpR = static_cast<uint8_t>(start.r() + fraction * (end.r() - start.r()));
-    uint8_t interpG = static_cast<uint8_t>(start.g() + fraction * (end.g() - start.g()));
-    uint8_t interpB = static_cast<uint8_t>(start.b() + fraction * (end.b() - start.b()));
-
-    uint8_t interpA = static_cast<uint8_t>(start.a() + fraction * (end.a() - start.a()));
-    return Color(interpR, interpG, interpB, interpA);
-}
 
 
 
@@ -877,4 +877,44 @@ void CLightingSystem::FixWallFaces(int method)
         }
            
     }
+}
+
+
+nlohmann::json CLightingSystem::ToJSON()
+{
+    auto lights =  json::object();
+    
+
+    for(auto& entry : light_list){
+        auto light = entry.second;
+        auto pos = light->GetPosition();
+        auto light_json = json::array({light->GetName(),  (uint32_t)light->GetColor(), light->GetBrightness(), light->GetIntensity(), light->GetRange(), json::array({pos.x, pos.y, pos.z}), (uint64_t)0u, 1.f, 1.f });
+        lights.emplace(entry.first, light_json);
+    }
+    
+    return lights;
+}
+
+void CLightingSystem::FromJSON(const nlohmann::json& j)
+{
+   for(auto& ltj : j)
+   {
+        auto light = AddLightByClassname(ltj.at(0));
+        //we can just crash if this nullptrs
+
+        light->SetColor(Color(uint32_t(ltj.at(1))));
+        light->SetBrightness((float)ltj.at(2)  );
+        light->SetIntensity((float)ltj.at(3)  );
+        light->SetRange((float)ltj.at(4)  );
+
+        auto j_pos = nlohmann::json::array();
+        j_pos = ltj.at(5);
+        light->SetPosition({(float)j_pos.at(0), (float)j_pos.at(1), (float)j_pos.at(2),});
+
+        log("Added light from file: %s, %s, pos{%.1f, %.1f, %.1f}, brt %.3f, int %.3f, rng%.3f",
+               light->GetName().c_str(), light->GetColor().s().c_str(),light->GetPosition().x, light->GetPosition().y, light->GetPosition().z, light->GetBrightness(), light->GetIntensity(), light->GetRange());
+
+   }
+
+   status("added %li lights from json", light_list.size());
 }

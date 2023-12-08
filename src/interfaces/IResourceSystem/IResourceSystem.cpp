@@ -150,7 +150,7 @@ bool CResourceSystem::LoadTextureDefinition()
                 amt++;
         }
     }
-    log("loaded %i texture definitions for a db size of  %i ", amt, ITextureSystem->texture_db.size());
+    status("loaded %i texture definitions for a db size of  %i ", amt, ITextureSystem->texture_db.size());
     return (amt > 0);
 }
 
@@ -174,7 +174,7 @@ bool CResourceSystem::SaveTextureDefinition()
 
    WriteJSONToFile(tex_def, path);
 
-    log("saved definitions for %i textures", amt);
+    warn("saved definitions for %i textures", amt);
 
     return (amt > 0);
 }
@@ -231,7 +231,7 @@ bool CResourceSystem::LoadLevel(const std::string &name)
     ILevelSystem->m_Level = new CLevel();
 
     if(ILevelSystem->m_Level->FromJSON(j)){
-        log("loaded level %s from file", name.c_str());
+        status("loaded level %s from file", name.c_str());
         return true;
     }
 
@@ -250,7 +250,7 @@ bool CResourceSystem::SaveLevel()
     auto path = MergePathAndFileName(dir, AddExtension(level->getName()));
 
     if( WriteJSONToFile(j, path)){
-        log("wrote level %s to file", level->getName().c_str()); return true;
+        warn("wrote level %s to file", level->getName().c_str()); return true;
     }
 
     log("error writing %s", path.c_str()); return false;

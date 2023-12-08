@@ -10,14 +10,18 @@ std::string CLogger::gLogFilePath = LOG_HOME_PATH + LOG_RESOURCE_PATH + LOG_SUBD
 
 void CLogger::formatName()
 {
-    m_szFmtName.append(" > ");
+    m_szFmtName = formatName(m_szFmtName);
+   
     m_bDebug = true;
 }
 
 inline void CLogger::_instance_log(const std::string &msg)
 {
-    if(!m_bFileLogging && !m_bColorizeEverything)
+    if(!m_bFileLogging && !m_bColorizeEverything){
         _log(msg);
+        return;
+    }
+        
 
     if(shouldLogFile())
         _instance_logfile_(msg);
@@ -164,9 +168,11 @@ void CLogger::error(const char* file, int line, const char* fmt, ...)
     _instance_logothers(ctxt);
 }
 
-bool CLogger::StartLogFileForInstance(const std::string &path)
+bool CLogger::StartLogFileForInstance(const std::string &path,  bool unique )
 {
-    m_szFilePath = gLogFilePath + path +_timestr(false);
+    m_szFilePath = gLogFilePath + path;
+    if(unique)
+        m_szFilePath.append(_timestr(false));
     m_fsLogFile.open(m_szFilePath);
     if(m_fsLogFile.fail()){
         Error("failed to open logfile at %s", m_szFilePath.c_str()); return false;

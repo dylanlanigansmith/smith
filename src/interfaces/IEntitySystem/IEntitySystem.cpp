@@ -23,8 +23,9 @@ void CEntitySystem::OnLoopStart()
 void CEntitySystem::OnLoopEnd()
 {
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-    auto update = IEngineTime->GetUpdateTimer();
-    if(update.Elapsed().ms() <= 1000/32)
+    auto& update = IEngineTime->GetUpdateTimer();
+    static constexpr double timeStep = 1000/TICKS_PER_S;
+    if(update.Elapsed().ms() <= timeStep)
         return;
     
     update.Reset(IEngineTime->GetCurTime());

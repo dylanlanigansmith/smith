@@ -35,6 +35,12 @@ CRenderer::~CRenderer()
 
 bool CRenderer::Create()
 {
+
+  m_bBlur = false;
+  m_bBlurGauss = true;
+  sigma = 12.3f; // higher = softer
+  kernelSize = 7; // higher = more area
+
   bool ret = false;
 
 #ifdef __linux__
@@ -54,6 +60,7 @@ bool CRenderer::Create()
   //m_lightTexture = SDL_CreateTexture(get(), SMITH_PIXELFMT, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
   m_lightsurface = SDL_CreateSurface(SCREEN_WIDTH, SCREEN_HEIGHT, SMITH_PIXELFMT);
   m_downscale = SDL_CreateSurface(SCREEN_WIDTH / BLUR_SCALE, SCREEN_HEIGHT / BLUR_SCALE, SMITH_PIXELFMT);
+
   m_blurTexture = SDL_CreateTexture(get(), SMITH_PIXELFMT, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH / BLUR_SCALE, SCREEN_HEIGHT / BLUR_SCALE);
 
   SDL_SetTextureScaleMode(m_renderTexture, SDL_SCALEMODE_BEST);
@@ -68,19 +75,19 @@ void CRenderer::OnEngineInitFinish()
   ILightingSystem->SetupBlending();
 
   ILightingSystem->CalculateLighting();
+  SDL_SetTextureBlendMode(m_blurTexture, SDL_BLENDMODE_BLEND);
+  SDL_SetSurfaceBlendMode(m_downscale, SDL_BLENDMODE_NONE); 
+  SDL_SetSurfaceBlendMode(m_lightsurface, SDL_BLENDMODE_NONE);
+
+  
+  GenerateGaussKernel();
 }
 
 void CRenderer::SetLightingRenderInfo()
 {
   static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-  SDL_SetTextureBlendMode(m_blurTexture, SDL_BLENDMODE_BLEND);
-  SDL_SetSurfaceBlendMode(m_downscale, SDL_BLENDMODE_NONE); 
-  SDL_SetSurfaceBlendMode(m_lightsurface, SDL_BLENDMODE_NONE);
-
-  sigma = 14.f; // higher = softer
-  kernelSize = 10; // higher = more area
-  GenerateGaussKernel();
-  ILightingSystem->m_lightsurface = m_lightsurface;
+  
+  ILightingSystem->m_lightsurface =(m_bBlur) ? m_lightsurface : m_blur;
  // ILightingSystem->m_lighttexture = m_lightTexture;
   
 }
@@ -88,7 +95,7 @@ void CRenderer::SetLightingRenderInfo()
 void CRenderer::UpdateLighting()
 {
   static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-  ILightingSystem->m_lightsurface = m_lightsurface;
+  
 }
 
 void CRenderer::BlurTexture()
@@ -199,8 +206,7 @@ bool CRenderer::CreateRendererLinuxGL()
 }
 
 
-#define mapWidth 24
-#define mapHeight 24
+
 
 
 void CRenderer::Loop()
@@ -212,53 +218,32 @@ void CRenderer::Loop()
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
   // SDL_LockTextureToSurface(m_lightTexture, NULL, &m_lightsurface); //https://wiki.libsdl.org/SDL3/SDL_LockTextureToSurface
 
+  SDL_LockTextureToSurface(m_blurTexture, NULL, &m_blur);
+  SetLightingRenderInfo();
 
-   SetLightingRenderInfo();
-  if(SDL_MUSTLOCK(m_surface)) //seems to not need to
-    SDL_LockSurface(m_surface);
 
   pixels = (uint32_t *)m_surface->pixels;
 
 
- // std::thread half(&CRenderer::LoopWolf,this,0, SCREEN_WIDTH / 2);
-  m_bThreadDone = false;
+
+ 
   WolfProfiler->Start();
   LoopWolf(0, SCREEN_WIDTH);
   WolfProfiler->End();
-  //while(!m_bThreadDone && true){
-  //  std::this_thread::sleep_for(std::chrono::microseconds(15));
- // }
-  //if(half.joinable())
-  //  half.join();
-  
-  
-
-  if(m_surface->locked == SDL_TRUE)
-    SDL_UnlockSurface(m_surface);
-
-   
-
-   
  
-  bool blur = true;
- // SDL_LockSurface(m_lightsurface);
- SDL_LockTextureToSurface(m_blurTexture, NULL, &m_blur);
-  if(blur){
+ 
+  if(m_bBlur){
     SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL);
-    GaussBlurTexture();
-   // BlurTexture();
-  } else{
-     SDL_BlitSurface(m_lightsurface, NULL, m_blur, NULL);
-  }
- // SDL_UnlockSurface(m_lightsurface);
- // 
+  //  GaussBlurTexture();
+    //BlurTexture();
+  } 
  
   
 
   SDL_UnlockTexture(m_blurTexture);
   SDL_UnlockTexture(m_renderTexture);
 
-  //SDL_UnlockTexture(m_lightTexture);
+  
  
   if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_renderTexture, NULL, NULL);  
   else SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);

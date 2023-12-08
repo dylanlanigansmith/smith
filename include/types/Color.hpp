@@ -14,7 +14,9 @@ public:
               
     constexpr Color(uint32_t m_uColor) : m_uColor(m_uColor) {}
     constexpr  Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255  )
-         {  m_uColor = (r << 24) | (g << 16) | (b << 8) | a; }
+    {  m_uColor = (r << 24) | (g << 16) | (b << 8) | a; }
+
+    constexpr Color(float x, float y, float z, float w, uint8_t s) : Color( (uint8_t)( x * s), (uint8_t)( y * s), (uint8_t)( z * s), (uint8_t)( w *s) )  {    }
     Color(SDL_Color color) { m_uColor = (color.r << 24) | (color.g << 16) | (color.b << 8) | color.a; }
 
     constexpr inline uint8_t r() const { return ((m_uColor >> 24) & 0xFF);   } 
@@ -52,6 +54,9 @@ public:
 
     inline bool operator==(const Color& rhs) const {
         return m_uColor == rhs.m_uColor;
+    }
+    inline bool operator==(const uint32_t& rhs) const {
+        return m_uColor == rhs;
     }
     inline Color operator+(const Color& rhs) const {
         const uint32_t alpha = a();  

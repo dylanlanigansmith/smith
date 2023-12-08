@@ -28,6 +28,8 @@ CEngineTime::~CEngineTime()
 
 void CEngineTime::OnCreate()
 {
+   
+   log("set profiler");
    m_loopticks = 0;
    m_loopStart = GetCurTime();
    m_updateTimer.start_time = GetCurTime();

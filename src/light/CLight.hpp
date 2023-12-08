@@ -4,7 +4,15 @@
 #include <types/Vector.hpp>
 #include <util/rtti.hpp>
 #include <types/Color.hpp>
-
+#include <magic_enum/magic_enum.hpp>
+#include <logger/logger.hpp>
+enum class LightTypes : uint32_t //this is a bit of a hack buttt
+{
+    CLight = 0,
+    CLightOverhead,
+    CLightSun,
+    LightTypesSize,
+};
 
 struct light_influence
 {
@@ -13,13 +21,27 @@ struct light_influence
 };
 
 
+
 class CLight
 {
 friend class CLightingSystem; friend class CEditor;
 public:
-    CLight() :  m_flIntensity(1.0f), m_flRange(1.0f), m_flBrightness(1.0f), m_iType(0), m_szName("CLight") {}
+    CLight() :  m_flIntensity(1.0f), m_flRange(1.0f), m_flBrightness(1.0f), m_iType(LightTypes::CLight), m_szName("CLight") {}
     template <typename T> 
-    CLight(T* ptr) : CLight() { m_szName = Util::getClassName<T>(ptr); }
+    CLight(T* ptr ) : CLight() {
+        m_szName = Util::getClassName<T>(ptr);
+
+        auto find_type = magic_enum::enum_cast<LightTypes>(m_szName);
+        if(find_type.has_value()){
+            m_iType = find_type.value();
+           // gLog("found %u from %s", m_iType, m_szName.c_str());
+        }
+        else{
+           gError("Could not deduce lighttype %s", m_szName.c_str());
+            m_iType = LightTypes::CLight;
+        }
+         
+    }
     virtual ~CLight(){}
 
 
@@ -44,8 +66,8 @@ public:
     virtual void SetBrightness(float brightness) { m_flBrightness = brightness; }
     virtual float GetBrightness() const { return m_flBrightness; }
 
-    virtual void SetType(uint32_t type) { m_iType = type; }
-    virtual uint32_t GetType() const { return m_iType; }
+    virtual void SetType(LightTypes type) { m_iType = type; }
+    virtual LightTypes GetType() const { return m_iType; }
 
     virtual std::string GetName() const { return m_szName; }
 
@@ -56,6 +78,6 @@ private:
     float m_flBrightness;
 
     Vector m_vecPosition;
-    uint32_t m_iType;
+    LightTypes m_iType;
     std::string m_szName;
 };

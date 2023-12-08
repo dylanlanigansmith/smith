@@ -6,11 +6,11 @@
 #include "CCamera.hpp"
 #include <entity/weapon/CBaseWeapon.hpp>
 #include <entity/weapon/pistol/CWeaponPistol.hpp>
-
+#include "../CMove.hpp"
 
 class CPlayer : public CBaseRenderable
 {
-    friend class CRenderer;
+    friend class CRenderer; friend class CEditor;
 public:
     CPlayer(int m_iID);
     virtual ~CPlayer();
@@ -27,7 +27,7 @@ public:
     CCamera* m_pCamera() { return &m_camera; } //not a good system
 private:
     virtual void CreateMove();
-
+    CMove m_move;
     CBaseWeapon* GetActiveWeapon() { return m_inventory.at(m_nActiveWeapon); }
 private:
     uint8_t m_nActiveWeapon = 0;

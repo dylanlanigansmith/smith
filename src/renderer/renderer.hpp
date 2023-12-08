@@ -74,6 +74,8 @@ private:
     void GenerateGaussKernel();
 private:
     std::vector<float> kernel;
+    bool m_bBlur = false;
+    bool m_bBlurGauss = true;
     int kernelSize;
      float sigma;
     bool m_bThreadDone;

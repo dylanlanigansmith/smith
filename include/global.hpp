@@ -24,7 +24,7 @@
 #define SCREEN_WIDTH_FULL 1920
 #define SCREEN_HEIGHT_FULL 1080
 
-
+#define TICKS_PER_S 32
 //todo: make a non interface system / semi platform specific class that is a level below IResourceManager and handles raw FS / homedir stuff
 //these are only used by logger for global file
 #define LOG_FILEGLOBAL false

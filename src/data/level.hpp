@@ -248,45 +248,8 @@ public:
 
     }
 
-    virtual json ToJSON()
-    {
-        auto meta = json::array();
-        meta = {m_szLevelName, m_vecBounds.x, m_vecBounds.y, m_flCeilingHeight, m_flFloorHeight};
-
-        auto j = json::object();
-        j.emplace("metadata", meta);
-
-        auto tile_data = json::object();
-        for(const auto& row : world)
-        {
-            for(const auto& tile : row)
-            {
-                auto t = TileToJson(tile);
-                tile_data.emplace(std::string(tile.m_vecPosition.str()) +  std::to_string(tile.m_nType), t);
-            }
-        }
-        j.emplace("tile", tile_data);
-        return j;
-    }
-    virtual bool FromJSON(const json& j ) //entire file
-    {
-       auto meta = j.at("metadata");
-       m_szLevelName = meta.at(0);
-       m_vecBounds.x = meta.at(1); m_vecBounds.y = meta.at(2);
-       m_flCeilingHeight = meta.at(3); m_flFloorHeight = meta.at(4);
-       
-        MakeEmptyLevel(HTEXTURE_INVALID); //now that we have bounds
-       auto tile_data = j.at("tile");
-        int amt = 0;
-       for(const auto& key : tile_data)
-       {
-            auto tile = JsonToTile(key);
-            AddTile(tile);
-            amt ++;
-       }
-
-       return (amt > 0);
-    }
+   virtual bool FromJSON(const json& j );
+    virtual json ToJSON();
     virtual bool Validate()
     {
         return false;
@@ -330,10 +293,15 @@ protected:
             //.m_nFlags = 0 //j.at(11)
         };
     }
+
+protected:
+
     IVector2 m_vecBounds;
     std::vector<std::vector<tile_t>> world;
     std::string m_szLevelName;
     
+    Vector2 m_vecPlayerStart;
+    uint64_t m_nPlayerInfo;
     double m_flCeilingHeight;
     double m_flFloorHeight;
 };
