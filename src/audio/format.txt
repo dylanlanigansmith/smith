@@ -2,6 +2,11 @@ right now:
 
 only float32 wav at 48khz, 2 channel
 
+-> dont use f32 wav but
+
 commands:
 
-sox dev_testf32.wav -r 48000 dev_testf32re.wav 
+sox dev_testf32.wav -r 48000 -b32 dev_testf32re.wav 
+
+sox van_Wiese_bass_beat.mp3 -r48000 -e floating-point -b32  van_Wiese_bass_beat.wav
+https://linux.die.net/man/1/sox

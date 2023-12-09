@@ -38,8 +38,8 @@ bool CRenderer::Create()
 
   m_bBlur = true;
   m_bBlurGauss = true;
-  sigma = 4.3f; // higher = softer
-  kernelSize = 5; // higher = more area
+  sigma = 24.3f; // higher = softer
+  kernelSize = 15; // higher = more area
 
   bool ret = false;
 
@@ -140,13 +140,13 @@ void CRenderer::BlurTexture()
         }
     }
 }
-void CRenderer::GaussianBlurPass(bool horizontal) {
+void CRenderer::GaussianBlurPass(bool horizontal, int startX, int endX) {
     SDL_Surface* surf = (BLUR_SCALE != 1 ) ? m_downscale : m_lightsurface;
     int width = SCREEN_WIDTH / BLUR_SCALE;
     int height = SCREEN_HEIGHT / BLUR_SCALE;
    
     for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+        for (int x = startX; x < endX; ++x) {
             float r = 0, g = 0, b = 0, a = 0;
 
             for (int k = -kernelSize / 2; k <= kernelSize / 2; ++k) {
@@ -165,10 +165,10 @@ void CRenderer::GaussianBlurPass(bool horizontal) {
     }
 }
 
-void CRenderer::GaussBlurTexture() {
+void CRenderer::GaussBlurTexture(int startX, int endX) {
    
-    GaussianBlurPass(true);  // Horizontal pass
-    GaussianBlurPass(false); // Vertical pass
+    GaussianBlurPass(true, startX, endX);  // Horizontal pass
+    GaussianBlurPass(false, startX, endX); // Vertical pass
 }
 void CRenderer::GenerateGaussKernel()
 {
@@ -192,7 +192,7 @@ void CRenderer::SetupThreads()
             workers.emplace_back([this, i] {
                 this->log("thread %d (%d -> % d)",i, 0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), (SCREEN_WIDTH / NUM_THREADS) * (i + 1) );
                 while (!stopThread.load()) {
-                   while (!this->startRender.load()) {
+                   while (!this->startRender.load() ) {
                         if(this->stopThread.load()) return;
                         
                         std::this_thread::yield(); // Avoid busy-waiting
@@ -204,8 +204,14 @@ void CRenderer::SetupThreads()
 
                     doneCount.fetch_add(1);
                    
-                     while (this->startRender.load()) {
+                     while (this->startRender.load() || !this->startBlur.load()) {
                         std::this_thread::yield();
+                    }
+
+                    this->GaussBlurTexture( 0 + ( i * ((SCREEN_WIDTH / BLUR_SCALE)) / NUM_THREADS)  , (((SCREEN_WIDTH / BLUR_SCALE))/ NUM_THREADS) * (i + 1) );
+                     doneCount.fetch_add(1);
+                    while(this->startBlur.load()){
+                      std::this_thread::yield();
                     }
                 }
             });
@@ -276,8 +282,7 @@ void CRenderer::Loop()
      std::this_thread::yield();
     
   }
-  startRender.store(false);
-
+  
   auto player = IEntitySystem->GetLocalPlayer();
   RenderSprites(player);
   WolfProfiler->End();
@@ -285,7 +290,18 @@ void CRenderer::Loop()
   BlurProfiler->Start();
   if(m_bBlur){
    if(BLUR_SCALE != 1) SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL);
-    GaussBlurTexture();
+    
+    doneCount.store(0);
+    startRender.store(false);
+    startBlur.store(true);
+    while(doneCount.load() < NUM_THREADS)
+  {
+      
+     std::this_thread::yield();
+    
+  }
+   startBlur.store(false);
+    //GaussBlurTexture( 0, SCREEN_WIDTH / BLUR_SCALE);
    // BlurTexture();
   } 
   BlurProfiler->End();

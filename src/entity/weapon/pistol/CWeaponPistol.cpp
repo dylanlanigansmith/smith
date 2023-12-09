@@ -48,7 +48,7 @@ void CWeaponPistol::Shoot()
     auto cam = owner->Camera();
     auto pos = owner->GetPosition();
 
-
+    engine->SoundSystem()->PlaySound("dev_gunshot0");
 
 
     //collision detection

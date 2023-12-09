@@ -233,12 +233,12 @@ void CRenderer::RenderSprites(CPlayer* player)
   static constexpr int crosshair_x = SCREEN_WIDTH / 2;
   static constexpr int crosshair_y = SCREEN_HEIGHT / 2;
   static constexpr Color crosshair_color = Color::White();
-  SetPixel(crosshair_x, crosshair_y,  crosshair_color);
+  SetPixel(crosshair_x, crosshair_y,  Color::Red());
   for (int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
     for (int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)
       SetPixel( x, y,  crosshair_color);
   for (int y = crosshair_y - 4; y <= crosshair_y + 4; ++y)
     for (int x = crosshair_x - 1; x <= crosshair_x + 1; ++x)
       SetPixel(x, y,  crosshair_color);
-
+   SetPixel(crosshair_x, crosshair_y,  Color::Red());
 }

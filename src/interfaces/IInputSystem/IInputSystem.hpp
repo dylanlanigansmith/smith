@@ -28,7 +28,7 @@ public:
     virtual bool IsKeyDown(SDL_Scancode code);
     virtual bool IsMouseButtonDown(uint8_t button );
     [[nodiscard]] virtual bool UseMouseMovement() const { return m_bMouseLook; }
-    virtual Vector2 GetLastMouseMove() { Vector2 lastMove = m_vecMouseMove; m_vecMouseMove = {0.f, 0.f};   return lastMove; }
+    virtual Vector2 GetLastMouseMove();
     const auto AllowPitch() { return m_bPitch; }
 private:
     virtual void OnMouseMotion(SDL_Event* event);
@@ -38,6 +38,7 @@ private:
     Vector2 m_vecMouseMove;
     double m_flSensitivity;
     double m_flMouseScale;
+    double m_flMouseAccel;
     bool m_bMouseLook;
     bool m_bPitch;
     WASD_t m_wasd;

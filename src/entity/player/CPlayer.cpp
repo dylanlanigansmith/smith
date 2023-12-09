@@ -29,10 +29,10 @@ void CPlayer::OnCreate()
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
 
-  m_move.m_flForwardSpeed = 0.20;
-  m_move.m_flStrafeSpeed = 0.169;
-  m_move.m_flSpeedModifier = 1.33;
-  m_move.m_flYawSpeed = 0.0256;
+  m_move.m_flForwardSpeed = 0.130;
+  m_move.m_flStrafeSpeed = 0.1;
+  m_move.m_flSpeedModifier = 1.38;
+  m_move.m_flYawSpeed = 0.100;
 
   auto Pistol = new CWeaponPistol();
 
@@ -80,18 +80,20 @@ void CPlayer::CreateMove()
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
   // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
   static constexpr double tickTime = 1.000 / TICKS_PER_S ;
-  double moveSpeed = m_move.m_flForwardSpeed;  // the constant value is in squares/ tick
-  double strafeSpeed = m_move.m_flStrafeSpeed;
+ 
   double rotSpeed = m_move.m_flYawSpeed;   // the constant value is in radians/ tick
   double pitchSpeed = m_move.m_flYawSpeed; //pitch not used currently
 
-  double speedMod = 1.0;
+  double speedMod = (noclip ) ? 1.5 : 1.0;
   WASD_t in_move = IInputSystem->GetInput();
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
   {
     // sprint
     speedMod = m_move.m_flSpeedModifier;
   }
+   double moveSpeed = m_move.m_flForwardSpeed *  speedMod;
+  double strafeSpeed = m_move.m_flStrafeSpeed *  speedMod;
+
   if (in_move.w)
   {
    
@@ -156,8 +158,9 @@ void CPlayer::CreateMove()
   else
   {
     auto mouseMove = IInputSystem->GetLastMouseMove();
-
-    m_camera.Rotate(mouseMove.x * rotSpeed);
+    //if(mouseMove.x != 0.0 || mouseMove.x != -0.0)
+     // engine->log("Out %f", mouseMove.x);
+    m_camera.Rotate(mouseMove.x );
 
     if (IInputSystem->AllowPitch())
       m_camera.m_flPitch += mouseMove.y * pitchSpeed * 500;
@@ -169,14 +172,21 @@ void CPlayer::CreateMove()
   }
 
   bool isCrouching = false;
+  static bool downLast = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
   {
-    noclip = !noclip;
-    IInputSystem->log("noclip = [%i]", noclip);
+    if(!downLast){
+       IInputSystem->log("set noclip -> [%i]", noclip);
+      noclip = !noclip;
+    }
+      
+    downLast = true;
+   
     // crouch
    // isCrouching = true;
    // m_vecPosition.z = -200;
   }
+  else downLast = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_SPACE))
   {
     // jump

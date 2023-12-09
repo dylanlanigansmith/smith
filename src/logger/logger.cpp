@@ -12,6 +12,9 @@ void CLogger::formatName()
 {
     m_szFmtName = formatName(m_szFmtName);
    
+    //just bc every constructor calls this
+     m_bColorizeEverything = false;
+    m_bFileLogging = false;
     m_bDebug = true;
 }
 
@@ -48,6 +51,7 @@ CLogger::CLogger(const std::string& classname, const std::string& name)
 {
     m_szFmtName = classname + "::" + name;
     formatName();
+   
 }
 
 CLogger::~CLogger()

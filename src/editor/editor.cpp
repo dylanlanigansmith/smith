@@ -72,7 +72,7 @@ void CEditor::render(CRenderer *renderer)
         {
             auto c = player->Camera().m_vecPlane;
             auto d = player->Camera().m_vecDir;
-            std::string str_camplane = Util::stringf("(%.1f, %.1f) | (%.1f, %.1f)", c.x, c.y, d.x, d.y);
+            std::string str_camplane = Util::stringf("p(%.3f, %.3f) | d(%.3f, %.3f)", c.x, c.y, d.x, d.y);
             auto camtextSize = ImGui::CalcTextSize(str_camplane.c_str());
             static const ImVec2 camposition(SCREEN_WIDTH_FULL - 10, SCREEN_HEIGHT_FULL - 25);
             draw->AddText(camposition - camtextSize, text_color, str_camplane.c_str());
@@ -489,15 +489,20 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
                 float s = player->m_move.m_flStrafeSpeed;
                 ImGui::SliderFloat("StrafeSpeed", &s, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
-                player->m_move.m_flStrafeSpeed = f;
+                player->m_move.m_flStrafeSpeed = s;
 
-                float r = player->m_move.m_flYawSpeed;
-                ImGui::SliderFloat("yaw Speed", &r, 0.0f, 1.f, "%.3f", ImGuiSliderFlags_Logarithmic ); 
-                player->m_move.m_flYawSpeed = r;
+                float m = player->m_move.m_flSpeedModifier;
+                ImGui::SliderFloat("SpeedModifier", &m, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp); 
+                player->m_move.m_flSpeedModifier = m;
+                
+                
                 
                 ImGui::Text("inputsystem");
+                float accel = IInputSystem->m_flMouseAccel;
+                ImGui::SliderFloat("Accel", &accel, 0.0f, 15.f, "%.6f", ImGuiSliderFlags_Logarithmic ); 
+                IInputSystem->m_flMouseAccel = accel;
                 float scale = IInputSystem->m_flMouseScale;
-                ImGui::SliderFloat("Mouse Scale", &scale, 0.0f, 1.f, "%.6f", ImGuiSliderFlags_Logarithmic ); 
+                ImGui::SliderFloat("Mouse Scale", &scale, 0.0f, 0.5f, "%.6f", ImGuiSliderFlags_Logarithmic ); 
                 IInputSystem->m_flMouseScale = scale;
 
                 float sens = IInputSystem->m_flSensitivity;

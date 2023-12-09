@@ -54,6 +54,10 @@ char > thread 5 (400 ->  480)
 char > thread 6 (480 ->  560)
 char > thread 7 (560 ->  640)
 
+Render::Blur(): Avg. (224922 ns) (224 us) (0 ms) (0.000225 sec) Sat Dec  9 13:54:43 2023
+
+2x downscale  s4.3 k3 ~ >700 fps
+
 
 /*
 Commands:

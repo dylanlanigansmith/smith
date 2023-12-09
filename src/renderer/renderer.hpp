@@ -15,7 +15,7 @@ class CPlayer;
 class CRenderer : public CLogger
 {
 public:
-    CRenderer(SDL_Window *win) : CLogger("Render"), m_SDLWindow(win) {}
+    CRenderer(SDL_Window *win) : CLogger(std::string("Render")), m_SDLWindow(win) {}
     virtual ~CRenderer();
     virtual bool Create();
     [[nodiscard]] auto get() const { return m_renderer; }
@@ -69,13 +69,14 @@ private:
     void SetLightingRenderInfo();
     void UpdateLighting();
     void BlurTexture();
-    void GaussianBlurPass(bool horizontal);
-    void GaussBlurTexture();
+    void GaussianBlurPass(bool horizontal, int startX, int endX);
+    void GaussBlurTexture(int startX, int endX);
     void GenerateGaussKernel();
 
     void SetupThreads();
 private:
     std::atomic<bool> startRender{false};
+    std::atomic<bool> startBlur{false};
     std::atomic<bool> stopThread{false};
     std::atomic<int> doneCount{0};
     

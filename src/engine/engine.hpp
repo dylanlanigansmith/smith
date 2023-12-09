@@ -5,14 +5,14 @@
 #include <renderer/renderer.hpp>
 #include <interfaces/interfaces.hpp>
 #include <enet/enet.h>
-
+#include <audio/audio.hpp>
 //#define SMITHNETWORKED
 
 
 class CEngine : public CLogger
 {
 public:
-    CEngine() : CLogger("Engine") {shouldStopLoop = SDL_TRUE; }
+    CEngine() : CLogger(std::string("Engine")) {shouldStopLoop = SDL_TRUE; }
     virtual ~CEngine();
 
     void Start(const char* title);
@@ -32,13 +32,14 @@ public:
     }
 
     auto TextureSystem() { return ITextureSystem; }
-
+    auto SoundSystem() { return &m_SoundSystem; }
 protected:
     void InitInterfaces();
     int Shutdown();
     ENetHost* client;
 
 private:
+    CSoundSystem m_SoundSystem;
     CTextureSystem* ITextureSystem;
     SDL_Window* m_SDLWindow;
     CRenderer* render;

@@ -93,6 +93,7 @@ public:
     virtual Time_t GetCurTime();
     virtual Time_t GetLastFrameTime();
     virtual looptick_t GetCurLoopTick();
+    virtual looptick_t GetCurRenderTick() const { return m_renderticks; }
     virtual Timer_t& GetUpdateTimer() { return m_updateTimer; }
 
     CProfiler* AddProfiler(const std::string& m_szProfilerName){
@@ -109,6 +110,7 @@ public:
     auto& ProfilerList() const { return profilers;} //editor only ofc
 private:
     looptick_t m_loopticks;
+    looptick_t m_renderticks;
     Timer_t m_updateTimer;
     Timer_t m_loopTimer;
     Time_t m_lastFrameTime;

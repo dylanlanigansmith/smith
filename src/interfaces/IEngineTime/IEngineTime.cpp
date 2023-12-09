@@ -31,6 +31,7 @@ void CEngineTime::OnCreate()
    
    log("set profiler");
    m_loopticks = 0;
+   m_renderticks = 0;
    m_loopStart = GetCurTime();
    m_updateTimer.start_time = GetCurTime();
 }
@@ -54,6 +55,7 @@ void CEngineTime::OnLoopEnd()
    m_loopTimer.cur_time = GetCurTime();
    m_updateTimer.cur_time = GetCurTime();
    m_lastFrameTime = m_loopTimer.Elapsed();
+   m_renderticks++;
 }
 
 float CEngineTime::GetFPS()

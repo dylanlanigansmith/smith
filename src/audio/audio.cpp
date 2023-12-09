@@ -34,7 +34,13 @@ void CSoundSystem::Shutdown()
     SDL_DetachThread(m_mainThread);
     m_bShouldQuit = true;
 }
-//https://github.com/libsdl-org/SDL_mixer/blob/main/src/mixer.c#L343
+bool CSoundSystem::PlaySound(const std::string &name)
+{
+    SoundCommand cmd(name);
+    m_cmdQueue.pushCommand(cmd);
+    return false;
+}
+// https://github.com/libsdl-org/SDL_mixer/blob/main/src/mixer.c#L343
 int CSoundSystem::Loop(void *sndsys)
 {
     m_bShouldQuit = false;
@@ -48,23 +54,35 @@ int CSoundSystem::Loop(void *sndsys)
     log("audio driver: %s", SDL_GetCurrentAudioDriver());
     SetupAudioDevice();
     LogAudioDevice();
-    LoadAudioFile("dev_testf32.wav");
+    LoadAudioFile("dev_tests16.wav");
     LoadAudioFile("dev_test_scores.wav");
-    LogAudioData("dev_testf32");
+    LoadAudioFile("van_Wiese_bass_beat.wav");
+    LoadAudioFile("dev_gunshot0.wav");
+    LogAudioData("van_Wiese_bass_beat");
+    LogAudioData("dev_tests16");
     LogAudioData("dev_test_scores");
-    auto test = GetAudioByName("dev_testf32");
+  
+    auto test = GetAudioByName("van_Wiese_bass_beat");
     auto scores = GetAudioByName("dev_test_scores");
     while(!m_bShouldQuit)
     {
+        SoundCommand command;
+        if(m_cmdQueue.popCommand(command) && command.m_nType != SoundCmd_Invalid)
+        {
+            auto cmd_data = GetAudioByName(command.m_szName);
+            if(cmd_data == nullptr) continue;
+            SDL_PutAudioStreamData(m_streams[0], cmd_data->m_buf, cmd_data->m_len);
+        }
         //SDL_memset(m_device.m_stream, SDL_GetSilenceValueForFormat(m_device.m_spec.format), (size_t)m_device.m_stream
-        SDL_PutAudioStreamData(m_device.m_stream, test->m_buf, test->m_len);//queue system next
-        //how the fuck do channels work
-         SDL_PutAudioStreamData(m_device.m_stream, scores->m_buf, scores->m_len);
-        SDL_Delay(4000);
+     //queue system next
+      
+      //  SDL_PutAudioStreamData(m_streams[1], scores->m_buf, scores->m_len);
+        SDL_Delay(1);
     }
     log("shutting down..");
     
     SDL_DestroyAudioStream(m_device.m_stream);
+    SDL_CloseAudioDevice(m_device.m_deviceID); 
     return 0;
 }
 
@@ -90,7 +108,7 @@ void CSoundSystem::SetupAudioDevice()
 {
     m_device = audiodevice_t();
     m_device.m_spec ={
-        .format = SDL_AUDIO_F32,
+        .format = SDL_AUDIO_S16,
         .channels = 2,
         .freq = 48000
     };
@@ -98,18 +116,27 @@ void CSoundSystem::SetupAudioDevice()
 
     //https://wiki.libsdl.org/SDL3/SDL_OpenAudioDeviceStream
     
-    m_device.m_stream = SDL_OpenAudioDeviceStream(m_device.m_deviceID, &m_device.m_spec, NULL, NULL);
-    m_device.m_deviceID = SDL_GetAudioStreamDevice(m_device.m_stream);
-    if(m_device.m_stream == NULL || m_device.m_deviceID == 0){
+    m_device.m_deviceID = SDL_OpenAudioDevice(m_device.m_deviceID, &m_device.m_spec);
+
+    if( m_device.m_deviceID == 0){
         Error("failed to open audio device %d, %s", m_device.m_deviceID, SDL_GetError());
     }
-    
+   
+    const int numStreams = 3;
+    for(int i = 0; i < numStreams; ++i){
+         m_streams[i] =  SDL_CreateAudioStream(&m_device.m_spec, &m_device.m_spec);
+         if(m_streams[i] == NULL){
+            Error("failed to create stream %d, %s",i, SDL_GetError());
+         }
+    }
+    if(SDL_BindAudioStreams(m_device.m_deviceID, m_streams, numStreams) != 0){
+        Error("failed to bind %d streams to device, %s", numStreams, SDL_GetError());
+    }
+
     SDL_ResumeAudioDevice(m_device.m_deviceID);
     //https://wiki.libsdl.org/SDL3/Tutorials-AudioStream
 }
 
-void CSoundSystem::AudioCallback(void *userdata, uint8_t *stream, int len) //https://wiki.libsdl.org/SDL3/SDL_AudioSpec#callback
-{} //not using 
 
 
 
@@ -151,7 +178,19 @@ void CSoundSystem::LoadAudioFile(const std::string &name, uint8_t format)
 
 audiodata_t* CSoundSystem::GetAudioByName(const std::string &name)
 {
-    return soundboard.at(name); //todo handle excepts
+    audiodata_t* ret = nullptr;
+    try
+    {
+        ret = soundboard.at(name);
+        
+    }
+    catch(const std::exception& e)
+    {
+       Error("no audio found for %s, [%s]", name.c_str(), e.what());
+      
+    }
+    
+    return ret;
 }
 
 void CSoundSystem::LogAudioData(const std::string& name)
