@@ -60,7 +60,7 @@ public:
 private:
     bool CreateRendererLinuxGL();
     void RunImGui();
-    void LoopWolf(int minX, int maxX);
+    void LoopWolf(int minX, int maxX, bool sprites = true);
 
     void  DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h,int minX, int maxX);
 
@@ -72,7 +72,19 @@ private:
     void GaussianBlurPass(bool horizontal);
     void GaussBlurTexture();
     void GenerateGaussKernel();
+
+    void SetupThreads();
 private:
+    std::atomic<bool> startRender{false};
+    std::atomic<bool> stopThread{false};
+    std::atomic<int> doneCount{0};
+    
+    std::vector<std::thread> workers;
+    std::mutex mutex;
+    std::mutex doneMutex;
+    
+
+
     std::vector<float> kernel;
     bool m_bBlur = false;
     bool m_bBlurGauss = true;

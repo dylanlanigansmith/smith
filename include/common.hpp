@@ -17,7 +17,10 @@
 #include <limits.h>
 #include <float.h>
 #include <tuple>
-
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 #define M_PI		3.14159265358979323846f
 #define M_RADPI		57.295779513082f
 #define M_PI_F		((float)(M_PI))	

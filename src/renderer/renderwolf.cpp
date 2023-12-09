@@ -33,7 +33,7 @@ in general events and callbacks are gonna be needed soon
 
 
 
-void CRenderer::LoopWolf(int minX, int maxX)
+void CRenderer::LoopWolf(int minX, int maxX, bool sprites)
 {
   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
   static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
@@ -71,8 +71,8 @@ void CRenderer::LoopWolf(int minX, int maxX)
     return;
   }*/
     
-
- RenderSprites(player);
+ //if(sprites)
+  
   
 }
 
@@ -129,7 +129,7 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
     float floorX = playerPos.x + rowDistance * rayDirX0;
     float floorY = playerPos.y + rowDistance * rayDirY0;
 
-    for (int x = 0; x < w; ++x)
+    for (int x = 0; x < maxX; ++x)
     {
       if(x < minX) {
         floorX += floorStepX;

@@ -65,6 +65,8 @@ bool CRenderer::Create()
 
   SDL_SetTextureScaleMode(m_renderTexture, SDL_SCALEMODE_BEST);
  // SDL_SetTextureScaleMode(m_blurTexture, SDL_SCALEMODE_BEST);
+
+ SetupThreads();
   return ret;
 }
 
@@ -180,6 +182,36 @@ void CRenderer::GenerateGaussKernel()
     }
     for (float &value : kernel) value /= sum;
 }
+
+#define NUM_THREADS 8
+void CRenderer::SetupThreads()
+{
+
+  for (int i = 0; i < NUM_THREADS; ++i) {
+          
+            workers.emplace_back([this, i] {
+                this->log("thread %d (%d -> % d)",i, 0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), (SCREEN_WIDTH / NUM_THREADS) * (i + 1) );
+                while (!stopThread.load()) {
+                   while (!this->startRender.load()) {
+                        if(this->stopThread.load()) return;
+                        
+                        std::this_thread::yield(); // Avoid busy-waiting
+                    }
+                    
+                    // Perform rendering work for the assigned segment
+                    
+                    this->LoopWolf(0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), (SCREEN_WIDTH / NUM_THREADS) * (i + 1), i == 0 );
+
+                    doneCount.fetch_add(1);
+                   
+                     while (this->startRender.load()) {
+                        std::this_thread::yield();
+                    }
+                }
+            });
+        }
+
+}
 bool CRenderer::CreateRendererLinuxGL()
 {
   int numRenderers = SDL_GetNumRenderDrivers();
@@ -213,7 +245,7 @@ void CRenderer::Loop()
 {
   static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto WolfProfiler = IEngineTime->AddProfiler("Render::LoopWolf()");
-
+  static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
   static auto BlurProfiler = IEngineTime->AddProfiler("Render::Blur()");
 
   static auto SDLProfiler = IEngineTime->AddProfiler("Render::SDLRenderer");
@@ -232,7 +264,22 @@ void CRenderer::Loop()
 
  
   WolfProfiler->Start();
-  LoopWolf(0, SCREEN_WIDTH);
+ 
+  doneCount.store(0);
+  startRender.store(true, std::memory_order_release);
+
+
+  // Wait for all threads to finish
+  while(doneCount.load() < NUM_THREADS)
+  {
+      
+     std::this_thread::yield();
+    
+  }
+  startRender.store(false);
+
+  auto player = IEntitySystem->GetLocalPlayer();
+  RenderSprites(player);
   WolfProfiler->End();
  
   BlurProfiler->Start();
