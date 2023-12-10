@@ -7,3 +7,6 @@
 [submodule "thirdparty/enet"]
 	path = thirdparty/enet
 	url = https://github.com/lsalzman/enet.git
+[submodule "thirdparty/glm"]
+	path = thirdparty/glm
+	url = https://github.com/g-truc/glm.git
