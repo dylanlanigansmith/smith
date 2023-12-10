@@ -93,7 +93,8 @@
 			"ranges": "cpp",
 			"bitset": "cpp",
 			"sdl_opengles2.h": "c",
-			"sdl_opengl.h": "c"
+			"sdl_opengl.h": "c",
+			"queue": "cpp"
 		},
 		"C_Cpp.default.compileCommands": "/home/dylan/code/smith/builddir/compile_commands.json",
 		"C_Cpp.default.compilerPath": "/usr/bin/gcc",

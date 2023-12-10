@@ -127,6 +127,26 @@ void CEditor::render(CRenderer *renderer)
     // the code here can be a bit greasy because it is a dev tool but try not to make it too singletrack
     if (ImGui::BeginTabBar("###mode"))
     {
+        if (ImGui::BeginTabItem("Dev View"))
+        {
+            ImGui::SeparatorText("sound test");
+            auto snd = engine->SoundSystem();
+            static float vol = 1.f;
+            ImGui::SliderFloat("volume", &vol, 0.0f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+            if(ImGui::Button("sound 1")){   
+                engine->SoundSystem()->PlaySound("dev_gunshot0", vol);
+            }
+             if(ImGui::Button("sound 2")){   
+                engine->SoundSystem()->PlaySound("dev_tests16", vol);
+            }
+              if(ImGui::Button("sound 3")){   
+                engine->SoundSystem()->PlaySound("dev_test_scores", vol);
+            }
+             if(ImGui::Button("music")){   
+                engine->SoundSystem()->PlaySound("van_Wiese_bass_beat", vol);
+            } //
+            ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Map View"))
         {
             drawMapView();

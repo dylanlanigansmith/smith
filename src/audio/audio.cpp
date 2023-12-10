@@ -1,4 +1,5 @@
 #include "audio.hpp"
+#include "streamgroup.hpp"
 #include <engine/engine.hpp>
 //https://github.com/libsdl-org/SDL_mixer/blob/main/include/SDL3_mixer/SDL_mixer.h
 
@@ -34,12 +35,16 @@ void CSoundSystem::Shutdown()
     SDL_DetachThread(m_mainThread);
     m_bShouldQuit = true;
 }
-bool CSoundSystem::PlaySound(const std::string &name)
+bool CSoundSystem::PlaySound(const std::string &name, float m_flVolume, bool m_bLoop)
 {
-    SoundCommand cmd(name);
+    SoundCommand cmd(name, m_flVolume, m_bLoop);
     m_cmdQueue.pushCommand(cmd);
     return false;
 }
+
+//aren't you glad you chose SDL3 
+//(yes its more fun without documentation)
+//https://wiki.libsdl.org/SDL3/CategoryAudio
 // https://github.com/libsdl-org/SDL_mixer/blob/main/src/mixer.c#L343
 int CSoundSystem::Loop(void *sndsys)
 {
@@ -53,17 +58,31 @@ int CSoundSystem::Loop(void *sndsys)
     }
     log("audio driver: %s", SDL_GetCurrentAudioDriver());
     SetupAudioDevice();
-    LogAudioDevice();
+
+  
+    CStreamGroup<SMITH_AUDIOSTREAMS> streams(&m_device);
+    streams.Create();
+
+    SDL_ResumeAudioDevice(m_device.m_deviceID);
+
+    //LogAudioDevice();
+
+    //should just load the whole folder
     LoadAudioFile("dev_tests16.wav");
     LoadAudioFile("dev_test_scores.wav");
     LoadAudioFile("van_Wiese_bass_beat.wav");
     LoadAudioFile("dev_gunshot0.wav");
-    LogAudioData("van_Wiese_bass_beat");
-    LogAudioData("dev_tests16");
-    LogAudioData("dev_test_scores");
+   // LogAudioData("van_Wiese_bass_beat");
+   // LogAudioData("dev_tests16");
+   // LogAudioData("dev_test_scores");
   
     auto test = GetAudioByName("van_Wiese_bass_beat");
-    auto scores = GetAudioByName("dev_test_scores");
+    auto shot = GetAudioByName("dev_gunshot0");
+
+    size_t buf_len = shot->m_len; //idk
+   
+    uint8_t* buf =  (uint8_t*) SDL_malloc(buf_len);
+    
     while(!m_bShouldQuit)
     {
         SoundCommand command;
@@ -71,17 +90,28 @@ int CSoundSystem::Loop(void *sndsys)
         {
             auto cmd_data = GetAudioByName(command.m_szName);
             if(cmd_data == nullptr) continue;
-            SDL_PutAudioStreamData(m_streams[0], cmd_data->m_buf, cmd_data->m_len);
+            if(buf_len < cmd_data->m_len){
+                SDL_free(buf);
+                buf = nullptr;
+                dbg("resizing buffer from %li bytes to %i bytes ", buf_len, cmd_data->m_len);
+                buf_len = cmd_data->m_len;
+                buf =  (uint8_t*) SDL_malloc(buf_len); //sdlmix3 uses simd alligned buffer
+            }
+            
+            SDL_memset(buf, SDL_GetSilenceValueForFormat(m_device.m_spec.format), cmd_data->m_len); //silence
+            SDL_MixAudioFormat(buf, cmd_data->m_buf, SMITH_AUDIOFMT, cmd_data->m_len, (SDL_MIX_MAXVOLUME / 2) * command.m_flVolume);
+
+            if(!streams.PutStreamData(cmd_data, buf, cmd_data->m_len)){
+                Error("soundcmd %s failed to send to stream", command.m_szName.c_str());
+            }
+          //  SDL_PutAudioStreamData(m_streams[stream_to_use], buf, cmd_data->m_len);
+          
         }
-        //SDL_memset(m_device.m_stream, SDL_GetSilenceValueForFormat(m_device.m_spec.format), (size_t)m_device.m_stream
-     //queue system next
-      
-      //  SDL_PutAudioStreamData(m_streams[1], scores->m_buf, scores->m_len);
-        SDL_Delay(1);
+        SDL_DelayNS(4000);
     }
     log("shutting down..");
-    
-    SDL_DestroyAudioStream(m_device.m_stream);
+    SDL_free(buf);
+ 
     SDL_CloseAudioDevice(m_device.m_deviceID); 
     return 0;
 }
@@ -108,7 +138,7 @@ void CSoundSystem::SetupAudioDevice()
 {
     m_device = audiodevice_t();
     m_device.m_spec ={
-        .format = SDL_AUDIO_S16,
+        .format = SMITH_AUDIOFMT,
         .channels = 2,
         .freq = 48000
     };
@@ -121,19 +151,6 @@ void CSoundSystem::SetupAudioDevice()
     if( m_device.m_deviceID == 0){
         Error("failed to open audio device %d, %s", m_device.m_deviceID, SDL_GetError());
     }
-   
-    const int numStreams = 3;
-    for(int i = 0; i < numStreams; ++i){
-         m_streams[i] =  SDL_CreateAudioStream(&m_device.m_spec, &m_device.m_spec);
-         if(m_streams[i] == NULL){
-            Error("failed to create stream %d, %s",i, SDL_GetError());
-         }
-    }
-    if(SDL_BindAudioStreams(m_device.m_deviceID, m_streams, numStreams) != 0){
-        Error("failed to bind %d streams to device, %s", numStreams, SDL_GetError());
-    }
-
-    SDL_ResumeAudioDevice(m_device.m_deviceID);
     //https://wiki.libsdl.org/SDL3/Tutorials-AudioStream
 }
 
@@ -170,9 +187,9 @@ void CSoundSystem::LoadAudioFile(const std::string &name, uint8_t format)
         soundboard.erase(added.first); //should automatically SDL_free
         log("removed %s from soundboard", name_noext.c_str()); return;
     }
-
+    audiodata->m_duration_ms = GetSoundDuration(audiodata).ms();
     dbg("added %s to soundboard, new size (%li)", added.first->first.c_str(), soundboard.size());
-  
+    
 
 }
 
@@ -197,10 +214,12 @@ void CSoundSystem::LogAudioData(const std::string& name)
 {
     auto& ad = soundboard.at(name);
     note("audiodata for %s: ", name.c_str());
+    auto dur = GetSoundDuration(ad);
+    log(">duration [%.4f s] (%d ms)", dur.sec(), dur.ms());
+
     float size_kb = (float)ad->m_len / 1000.f ;
     if(size_kb < 1000.f) log(">buffer size: %0.4f KB ", size_kb);
-    else log(">buffer size: %0.4f MB ", size_kb / 1000.f);
-        
+    else log(">buffer size: %0.4f MB ", size_kb / 1000.f);  
     log(">sample rate: %d Hz ", ad->m_spec.freq );
     log(">channels: %d ", ad->m_spec.channels);
     log(">format %x", ad->m_spec.format);
@@ -213,4 +232,21 @@ void CSoundSystem::LogAudioDevice()
     log(">sample rate: %d Hz ",  m_device.m_spec.freq );
     log(">channels: %d ",  m_device.m_spec.channels);
     log(">format %x ",  m_device.m_spec.format);
+}
+
+Time_t CSoundSystem::GetSoundDuration(audiodata_t *audio)
+{
+
+    uint32_t samplesize = SDL_AUDIO_BITSIZE(audio->m_spec.format) / 8;
+    uint32_t sampleCount = audio->m_len / samplesize;
+    if(audio->m_len % samplesize != 0){
+        warn("audioLen / samplesize has a remainder");
+    }
+    uint32_t sampleLen = sampleCount;
+    if(audio->m_spec.channels){
+        sampleLen = sampleCount / audio->m_spec.channels;
+    }
+    double seconds = (double)sampleLen / (double)audio->m_spec.freq;
+
+    return Time_t(seconds);
 }

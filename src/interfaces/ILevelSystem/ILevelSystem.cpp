@@ -93,6 +93,8 @@ void CLevelSystem::OnEngineInitFinish()
     auto enemy3 = IEntitySystem->AddEntity<CBaseEnemy>();
     enemy3->SetPosition(8, 2);
     // enemy3->Freeze(true);
+
+    engine->SoundSystem()->PlaySound("van_Wiese_bass_beat", 0.2f);
 }
 
 tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none

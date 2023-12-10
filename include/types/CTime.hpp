@@ -15,6 +15,7 @@ public:
     Time_t() {_ns = 0;};
     Time_t(time_ns_t ns) : _ns(ns) {}
     Time_t(time_ms_t ms) { _ns = ms * 1000000; }
+    Time_t(time_s_t s) { _ns = 1000000000.0 * s; }
     [[nodiscard]] time_ns_t ns() const{ return _ns; }
     [[nodiscard]] time_us_t us() const{ return _ns / 1000; };
     [[nodiscard]] time_ms_t ms() const{ return _ns / 1000000; }

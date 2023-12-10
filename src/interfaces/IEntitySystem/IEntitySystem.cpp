@@ -31,6 +31,9 @@ void CEntitySystem::OnLoopEnd()
     update.Reset(IEngineTime->GetCurTime());
 
     for(auto& ent : entity_list){
+        if(ent == nullptr){
+            Error("we have a nullptr in the entity list {%li}", entity_list.size()); break;
+        }
         ent->OnUpdate();
     }
     IEngineTime -> m_loopticks++;

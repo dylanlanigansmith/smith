@@ -177,6 +177,7 @@ void CPlayer::CreateMove()
   {
     if(!downLast){
        IInputSystem->log("set noclip -> [%i]", noclip);
+       
       noclip = !noclip;
     }
       
