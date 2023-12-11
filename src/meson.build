@@ -30,7 +30,7 @@ executable('smith', sources, include_directories : inc,
         magic_enum_dep,
         [enet_lib]
     ],
-    cpp_args : [ '-Og','-Wno-unused'
+    cpp_args : [ '-Og','-Wno-unused', #'-fopt-info-vec-all'
     ]
 
 )

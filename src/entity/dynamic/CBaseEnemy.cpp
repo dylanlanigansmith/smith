@@ -292,7 +292,8 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
     IVector2 drawStart,drawEnd, renderSize, screen;
     Vector2 transform;
     CalculateDrawInfo(&drawStart,&drawEnd, &renderSize, &screen, &transform, camera, wScale, vScale, vOffset);
-
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
     auto texture = m_Texture->m_texture;
     uint32_t *pixelsT = (uint32_t *)texture->pixels;
     for (int stripe = drawStart.x; stripe < drawEnd.x; stripe++)
@@ -325,7 +326,8 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
                 else if(m_iHealth < 20) color /= 3.5f;
                
                 renderer->SetPixel(stripe, y, color);
-
+                 
+                ILightingSystem->ApplyLightForTile(ILevelSystem->GetTileAtFast(m_vecPosition.x, m_vecPosition.y), true, true, m_vecPosition, stripe, y);
             }
         }
     }

@@ -1,6 +1,6 @@
 #pragma GCC optimize ("O2")
 #include "renderer.hpp"
-
+#include "render2/render2.hpp"
 #include <types/Vector.hpp>
 #include <thread>
 #include <chrono>
@@ -16,6 +16,15 @@
 #define BLUR_SCALE 2
 void CRenderer::Shutdown()
 {
+  startRender.store(false);
+  startBlur.store(false);
+  stopThread.store(true);
+
+  for(auto& t : workers){
+    t.join();
+   
+  }
+  log("killed threads");
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
@@ -66,7 +75,10 @@ bool CRenderer::Create()
   SDL_SetTextureScaleMode(m_renderTexture, SDL_SCALEMODE_BEST);
  // SDL_SetTextureScaleMode(m_blurTexture, SDL_SCALEMODE_BEST);
 
+  thread_count = engine->GetSysInfo().render_threads_to_use;
+  
  SetupThreads();
+ note("using %d threads for {%d x %d} blur: (%0.4f %d)", thread_count, SCREEN_WIDTH, SCREEN_HEIGHT, sigma, kernelSize);
   return ret;
 }
 
@@ -183,14 +195,14 @@ void CRenderer::GenerateGaussKernel()
     for (float &value : kernel) value /= sum;
 }
 
-#define NUM_THREADS 8
+#define NUM_THREADS this->thread_count
 void CRenderer::SetupThreads()
 {
 
   for (int i = 0; i < NUM_THREADS; ++i) {
           
             workers.emplace_back([this, i] {
-                this->log("thread %d (%d -> % d)",i, 0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), (SCREEN_WIDTH / NUM_THREADS) * (i + 1) );
+                this->dbg("thread %d (%d -> % d)",i, 0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), (SCREEN_WIDTH / NUM_THREADS) * (i + 1) );
                 while (!stopThread.load()) {
                    while (!this->startRender.load() ) {
                         if(this->stopThread.load()) return;
@@ -198,17 +210,17 @@ void CRenderer::SetupThreads()
                         std::this_thread::yield(); // Avoid busy-waiting
                     }
                     
-                    // Perform rendering work for the assigned segment
-                    
-                    this->LoopWolf(0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), (SCREEN_WIDTH / NUM_THREADS) * (i + 1), i == 0 );
+                    // make sure we make it to the end if it isnt an even number
+                    const int end = (i == NUM_THREADS - 1) ? (SCREEN_WIDTH) :  (SCREEN_WIDTH / NUM_THREADS) * (i + 1);
+                    this->LoopWolf(0 + ( i * (SCREEN_WIDTH / NUM_THREADS)), end, i == 0 );
 
                     doneCount.fetch_add(1);
                    
                      while (this->startRender.load() || !this->startBlur.load()) {
                         std::this_thread::yield();
                     }
-
-                    this->GaussBlurTexture( 0 + ( i * ((SCREEN_WIDTH / BLUR_SCALE)) / NUM_THREADS)  , (((SCREEN_WIDTH / BLUR_SCALE))/ NUM_THREADS) * (i + 1) );
+                    const int endblur = (i == NUM_THREADS - 1) ? (SCREEN_WIDTH / BLUR_SCALE): (((SCREEN_WIDTH / BLUR_SCALE))/ NUM_THREADS) * (i + 1);
+                    this->GaussBlurTexture( 0 + ( i * ((SCREEN_WIDTH / BLUR_SCALE)) / NUM_THREADS)  ,  endblur );
                      doneCount.fetch_add(1);
                     while(this->startBlur.load()){
                       std::this_thread::yield();
@@ -284,12 +296,13 @@ void CRenderer::Loop()
   }
   
   auto player = IEntitySystem->GetLocalPlayer();
-  RenderSprites(player);
+  RenderSprites(player); //yk it might b cool to render the viewmodel at full res
+  player->RenderView(this);
   WolfProfiler->End();
  
   BlurProfiler->Start();
   if(m_bBlur){
-   if(BLUR_SCALE != 1) SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL);
+   if(BLUR_SCALE != 1) SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL); // SDL_SoftStretchLinear
     
     doneCount.store(0);
     startRender.store(false);
@@ -320,6 +333,7 @@ void CRenderer::Loop()
   if(SCREEN_HEIGHT == SCREEN_HEIGHT_FULL) SDL_RenderTexture(get(), m_blurTexture, NULL, NULL);  
   else SDL_RenderTexture(get(), m_blurTexture, NULL, &scale);
  
+   //R2::render_frame(this);
   RunImGui();
  
   SDL_RenderPresent(get());

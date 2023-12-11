@@ -330,7 +330,7 @@ void CWeaponPistol::OnCreate()
 {
     // setup data
     this->m_nNextShot = 0;
-    this->m_nFireRate = 16;
+    this->m_nFireRate = 12;
 
     /*
     [ default 80x80] [ shoot1 80x80]  [ shoot2 80x80]
@@ -345,8 +345,8 @@ void CWeaponPistol::OnCreate()
     const float w_scalefl = 5.0f;
     const float h_scalefl = 2.82f;
     m_anim = new CAnimController(m_pOwner, "pistol.png", {"pistol", {SCREEN_WIDTH / w_scale, SCREEN_HEIGHT / h_scale}, {65, 176, 70, 255}, {65, 176, 70, 255}},
-                                 CAnimSequence("shoot0", 2,
-                                               std::vector<sequence_frame>{
+                                 CAnimSequence("shoot0", 1,
+                                                std::vector<sequence_frame>{
                                                    sequence_frame({0, 0, 80, 80}, 0), sequence_frame({80, 0, 80, 80}, 1),
                                                    sequence_frame({160, 0, 80, 80}, 2), sequence_frame({80, 0, 80, 80}, 3),
                                                    sequence_frame({0, 0, 80, 80}, 4)}));

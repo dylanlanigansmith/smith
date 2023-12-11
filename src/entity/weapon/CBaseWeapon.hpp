@@ -9,7 +9,7 @@
 
 #include <entity/CBaseRenderable.hpp>
 
-
+#define SMITH_PLAYER_INV_SLOTS 6
 
 
 //https://forum.zdoom.org/viewtopic.php?t=71476
@@ -34,6 +34,8 @@ public:
     virtual void OnUpdate() = 0;
     virtual void Shoot() = 0;
     virtual void SetOwnerEntity(hEntity m_iOwnerID) { this->m_iOwnerID = m_iOwnerID; OnSetOwnerEntity();}
+
+    auto& GetName() const { return m_szName; }
     CAnimController* m_anim;
 private: 
 

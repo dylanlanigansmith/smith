@@ -30,16 +30,16 @@ struct texture_t
             m_handle = HTEXTURE_INVALID; return;  }
         m_size = { m_texture->w, m_texture->h };
     }
-    uint32_t getColorAtPoint(IVector2 t){
+    inline uint32_t getColorAtPoint(IVector2 t){
         return getColorAtPoint(t.x, t.y);
     }
-    uint32_t getColorAtPoint(int x, int y){
+    inline uint32_t getColorAtPoint(int x, int y){
         if(m_texture == NULL) return 0;
          uint32_t *pixelsT = (uint32_t *)m_texture->pixels;
         return pixelsT[(m_texture->pitch / 4 * y) + x]; // ABGR
     }
 
-    bool SetColorAtPoint(int x, int y, uint32_t color){
+    inline bool SetColorAtPoint(int x, int y, uint32_t color){
         if(m_texture == NULL) return false;
         if(SDL_MUSTLOCK(m_texture)) return false;
         uint32_t *pixelsT = (uint32_t *)m_texture->pixels;
@@ -47,7 +47,7 @@ struct texture_t
         return true;
     }
 
-    bool isTransparent(){
+    inline bool isTransparent(){
         return m_clrKey > 0u;
     }
 };

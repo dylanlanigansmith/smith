@@ -2,7 +2,7 @@
 #include <engine/engine.hpp>
 #include <interfaces/IInputSystem/IInputSystem.hpp>
 
-CPlayer::CPlayer(int m_iID) : CBaseRenderable(m_iID)
+CPlayer::CPlayer(int m_iID) : CBaseRenderable(m_iID), m_viewmodel(this)
 {
 }
 
@@ -12,9 +12,7 @@ CPlayer::~CPlayer()
 
 void CPlayer::OnUpdate()
 {
-  for(auto& item : m_inventory){
-    item->OnUpdate();
-  }
+  m_inventory->OnUpdate();
   CreateMove();
 
 }
@@ -34,21 +32,29 @@ void CPlayer::OnCreate()
   m_move.m_flSpeedModifier = 1.38;
   m_move.m_flYawSpeed = 0.100;
 
+  m_inventory = new inventory_t();
+
   auto Pistol = new CWeaponPistol();
 
-  m_inventory.push_back(Pistol);
-  for(auto& item : m_inventory){
+  m_inventory->AddItem( Pistol);
+
+  //MOVE THIS
+  for(auto& item : m_inventory->contents()){
+    if(item == nullptr) continue;
     item->SetOwnerEntity(m_iID);
     item->OnCreate();
   }
-    
+  m_viewmodel.Setup(m_inventory);
+  m_viewmodel.Settings().m_crosshairColor = Color::White();
+  m_viewmodel.Settings().m_crosshairWidth = 0;
+  m_viewmodel.Settings().m_crosshairLength = 2;
+  m_viewmodel.Settings().m_crosshairDot = false;
+  m_viewmodel.Settings().m_crosshairAltColor = Color::Black();
 }
 
 void CPlayer::OnDestroy()
 {
-  for(auto& item : m_inventory){
-    delete item;
-  }
+  delete m_inventory;
 }
 
 void CPlayer::CreateRenderable()
@@ -69,7 +75,13 @@ void CPlayer::OnRenderEnd()
 
 void CPlayer::Render(CRenderer *renderer)
 {
-    GetActiveWeapon()->Render(renderer);
+   // GetActiveWeapon()->Render(renderer);
+
+}
+
+void CPlayer::RenderView(CRenderer *renderer)
+{
+  m_viewmodel.Render(renderer);
 }
 
 void CPlayer::CreateMove()
@@ -176,9 +188,10 @@ void CPlayer::CreateMove()
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
   {
     if(!downLast){
+       noclip = !noclip;
        IInputSystem->log("set noclip -> [%i]", noclip);
        
-      noclip = !noclip;
+     
     }
       
     downLast = true;

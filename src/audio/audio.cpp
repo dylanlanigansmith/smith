@@ -32,8 +32,10 @@ bool CSoundSystem::Init(int plat)
 
 void CSoundSystem::Shutdown()
 {
-    SDL_DetachThread(m_mainThread);
+    
     m_bShouldQuit = true;
+
+    SDL_WaitThread(m_mainThread, NULL);
 }
 bool CSoundSystem::PlaySound(const std::string &name, float m_flVolume, bool m_bLoop)
 {
@@ -110,9 +112,17 @@ int CSoundSystem::Loop(void *sndsys)
         SDL_DelayNS(4000);
     }
     log("shutting down..");
+    streams.Destroy();
     SDL_free(buf);
- 
+    for(auto& snd : soundboard){
+        if(snd.second)
+            delete snd.second;
+    }
+    
     SDL_CloseAudioDevice(m_device.m_deviceID); 
+
+    
+   
     return 0;
 }
 

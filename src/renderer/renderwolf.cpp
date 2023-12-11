@@ -12,15 +12,20 @@
 /*
 Goals :
 
+
+rewrite resourcesystem for platform spec file sys -> use sdl stuff
+
 tile and texture flags 
 -use voxels for col detection, and pathfinding
+also a flag for istransparent for 000 alpha clr 
 
- also a flag for istransparent for 000 alpha clr 
+make sure timestep isnt broken
 
-timestep is so fucking broken
+overhaul entity system
+- serialization based, callbacks, events
 
-add more lights and classes for them (eg if sun avg out everything more)
-
+overhaul animations
+- relative coords, seperate viewmodel
 
 muzzle flash
 lighting queue within pixel radius and ray dist gets a boost while anim plays
@@ -228,17 +233,5 @@ void CRenderer::RenderSprites(CPlayer* player)
   // render localplayer stuff
   player->Render(this);
 
-  // draw crosshair
-
-  static constexpr int crosshair_x = SCREEN_WIDTH / 2;
-  static constexpr int crosshair_y = SCREEN_HEIGHT / 2;
-  static constexpr Color crosshair_color = Color::White();
-  SetPixel(crosshair_x, crosshair_y,  Color::Red());
-  for (int x = crosshair_x - 4; x <= crosshair_x + 4; ++x)
-    for (int y = crosshair_y - 1; y <= crosshair_y + 1; ++y)
-      SetPixel( x, y,  crosshair_color);
-  for (int y = crosshair_y - 4; y <= crosshair_y + 4; ++y)
-    for (int x = crosshair_x - 1; x <= crosshair_x + 1; ++x)
-      SetPixel(x, y,  crosshair_color);
-   SetPixel(crosshair_x, crosshair_y,  Color::Red());
+  
 }

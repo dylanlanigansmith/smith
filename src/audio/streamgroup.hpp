@@ -11,9 +11,15 @@ public:
         Debug(false);
     }
     ~CStreamGroup(){
+        
+    }
+    void Destroy(){
+
+         //SDL3 bug?
         for(int i = 0; i < m_iNumStreams; ++i)
         {
-            SDL_DestroyAudioStream( m_streams[i] ); 
+            if(m_group[i].stream != nullptr)
+                SDL_DestroyAudioStream(m_group[i].stream  ); 
         }
         log("destroyed %li streams", m_iNumStreams);
     }

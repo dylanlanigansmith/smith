@@ -228,7 +228,7 @@ inline std::string CLogger::_strf(const char *fmt, va_list list)
     return std::string(buf);
 }
 
-inline std::string CLogger::_timestr(bool full)
+ std::string CLogger::_timestr(bool full)
 {
     std::time_t t = std::time(0);
    

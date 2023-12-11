@@ -55,6 +55,7 @@ public:
     }
     void OnEngineInitFinish();
 
+ 
     
     uint8_t Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god
 private:
@@ -75,6 +76,7 @@ private:
 
     void SetupThreads();
 private:
+    int thread_count;
     std::atomic<bool> startRender{false};
     std::atomic<bool> startBlur{false};
     std::atomic<bool> stopThread{false};

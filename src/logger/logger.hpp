@@ -58,7 +58,7 @@ public:
     static void TypedLog(T* thrower, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
 private:
     inline static std::string _strf(const char* fmt, va_list list);
-    inline static std::string _timestr(bool full = false);
+    static std::string _timestr(bool full = false);
     static void _logf(const char* fmt, ...) __attribute__((format(printf, 1, 2))); 
     inline static void _log(std::string msg);
     inline static void _logfile(const std::string msg);

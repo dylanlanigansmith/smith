@@ -12,7 +12,10 @@ void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t al
 
     int start_x = SCREEN_WIDTH / 2 - frame_width / 2 + m_vecOffset.x;
     int start_y = SCREEN_HEIGHT - frame_height + m_vecOffset.y;
-
+    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+      static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+        auto worldPos = m_pParent->GetPosition();
+       auto tile = ILevelSystem->GetTileAtFast(worldPos.x, worldPos.y);
     // greasy
     texture_t t;
     t.m_texture = animd->m_surface;
@@ -40,7 +43,7 @@ void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t al
                 auto fixed  = clr; fixed.a = alpha;
                 auto behind = renderer->GetPixel(start_x + x, start_y + y);
                // log("%i %i %i", behind.r, behind.g, behind.g);
-
+                 ILightingSystem->ApplyLightForTile(tile, true, true, worldPos, start_x + x, start_y + y);
                  renderer->SetPixel(start_x + x, start_y + y, Render::MergeColorsFast(fixed, behind)); //i have to do this manually...
             }
             
