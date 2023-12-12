@@ -5,7 +5,7 @@
 #include <entity/CBaseEntity.hpp>
 #include "CCamera.hpp"
 #include <entity/weapon/CBaseWeapon.hpp>
-#include <entity/weapon/pistol/CWeaponPistol.hpp>
+#include <entity/weapon/weapons.hpp>
 #include "../CMove.hpp"
 #include "CViewmodel.hpp"
 #include "CInventory.hpp"

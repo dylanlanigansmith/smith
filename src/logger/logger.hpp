@@ -26,6 +26,11 @@ public:
     CLogger(T* owner, const std::string& name) : CLogger(Util::getClassName<T>(owner), name) {}
     template <typename T> 
     CLogger(T* owner) : CLogger(Util::getClassName<T>(owner)) {}
+
+    template <typename T> 
+    CLogger(const std::string& owner, T* comp, const std::string& name) 
+        : CLogger(owner + std::string("::") +  Util::getClassName<T>(comp)  + std::string("::") + name) {}
+
     CLogger(const std::string& classname, const std::string& name);
 
     virtual ~CLogger();

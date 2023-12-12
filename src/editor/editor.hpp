@@ -44,6 +44,8 @@ private:
     void drawMaterialView();
     void drawMaterialEditor();
     void drawLightView();
+
+    void drawAnimView();
     void Init();
 private:
     void InitTextureInfo();

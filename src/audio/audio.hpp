@@ -8,7 +8,7 @@
 #include "soundcommand.hpp"
 
 #define SMITH_AUDIOFMT SDL_AUDIO_S16
-#define SMITH_AUDIOSTREAMS 8
+#define SMITH_AUDIOSTREAMS 18 //hack
 
 //not an interface but it might have one for a queue maybe.. this is the seperate thread for it
 
@@ -74,7 +74,7 @@ private:
     std::string m_szAudioResourcePath;
     const size_t m_iNumStreams;
 
-    SDL_AudioStream* m_streams[3];
+
     std::unordered_map<std::string, audiodata_t*> soundboard;
     audiodevice_t m_device;
     SDL_Thread* m_mainThread;

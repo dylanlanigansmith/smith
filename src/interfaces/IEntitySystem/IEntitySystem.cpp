@@ -7,7 +7,7 @@ CEntitySystem::~CEntitySystem()
 }
 void CEntitySystem::OnCreate()
 {
-    CreateLocalPlayer();
+   
 }
 
 void CEntitySystem::OnShutdown()

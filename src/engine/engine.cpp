@@ -124,13 +124,16 @@ void CEngine::InitInterfaces()
     ITextureSystem = interfaces.AddInterface<CTextureSystem>();
 
     //GameSystems
+    interfaces.AddInterface<CAnimationSystem>();
     interfaces.AddInterface<CEntitySystem>();
-
+     
     //Users of GameSystems
     interfaces.AddInterface<CLevelSystem>();
 
     
     interfaces.AddInterface<CLightingSystem>();
+
+   
 }
 
 

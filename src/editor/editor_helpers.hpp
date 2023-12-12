@@ -50,7 +50,7 @@ namespace Editor
             v.x, v.y, v.z, v.w, 255
         );
     }
-   inline ImVec4 ColorToIm4(const Color& clr, bool alpha = false)
+   inline ImVec4 ColorToIm4(const Color clr, bool alpha = false)
     {
         return ImVec4(clr.r() / 255.f, clr.g() / 255.f, clr.b() / 255.f, (alpha) ? clr.a() /255.f : 1.f);
     }
@@ -59,11 +59,20 @@ namespace Editor
         return IM_COL32(c.r(),c.g(),c.b(), (alpha) ? c.a() : 255);
     }
 
-    inline Color colorPicker(const char* label, Color in, int flags){
-        auto c = ColorToIm4(in, true);
+    inline void colorPicker2(const char* label, Color& in, int flags){
+        ImVec4 c = ColorToIm4(in, true);
 
         ImGui::ColorEdit4(label, &c.x, flags);
 
-        return Im4ToColor(c);
+        in =  Im4ToColor(c);
+       
+    }
+    inline Color colorPicker(const char* label, Color in, int flags){
+        ImVec4 c = ColorToIm4(in, true);
+
+        ImGui::ColorEdit4(label, &c.x, flags);
+
+        return  Im4ToColor(c);
+        
     }
 }

@@ -16,6 +16,7 @@ https://wiki.libsdl.org/SDL3/SDL_GetBasePath etc.
 
 class CResourceSystem : public CBaseInterface
 {
+    friend class CEditor;
 public:
     CResourceSystem() : CBaseInterface("IResourceSystem") { }
     ~CResourceSystem() override;
@@ -34,6 +35,8 @@ public:
 
     virtual bool LoadTextureDefinition();
     virtual bool SaveTextureDefinition();
+    virtual bool LoadAnimations();
+    virtual bool SaveAnimations();
     virtual bool LoadLevel(const std::string& name);
     virtual bool SaveLevel();
 

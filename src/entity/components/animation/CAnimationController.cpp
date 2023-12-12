@@ -127,7 +127,7 @@ bool CAnimController::SwitchFrames(CAnimSequence *seq)
     int code = SDL_BlitSurfaceScaled(m_draw.m_sourceTexture->m_texture, &(cur->rect), m_draw.m_surface, NULL); //mess here is for future position moving
      // auto& dr = *result;
    //  dbg("blit rect {%i %i %i %i}",dr.x,dr.y,dr.w,dr.h );
-   m_draw.m_curRect =  SDL_Rect(0,0,m_draw.m_surface->w, m_draw.m_surface->h);
+   m_draw.m_curRect =  {0,0,m_draw.m_surface->w, m_draw.m_surface->h};
    // m_draw.m_curRect = cur->rect; // (destRect == NULL) ? SDL_Rect(0,0,m_draw.m_surface->w, m_draw.m_surface->h) :  *destRect;
     if(code  == 0)
         return true;

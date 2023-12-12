@@ -31,3 +31,6 @@
 #define LOG_HOME_PATH std::string("/home/dylan")
 #define LOG_RESOURCE_PATH std::string("/code/smith/resource")
 #define LOG_SUBDIR std::string("/logs")
+
+
+#define SMITH_PIXELFMT SDL_PIXELFORMAT_RGBA8888

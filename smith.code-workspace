@@ -104,6 +104,7 @@
 		"cmake.configureOnEdit": false,
 		"cmake.loadCompileCommands": false,
 		"cmake.ignoreCMakeListsMissing": true,
-		"debug.allowBreakpointsEverywhere": true
+		"debug.allowBreakpointsEverywhere": true,
+		"terminal.integrated.scrollback": 10000
 	}
 }

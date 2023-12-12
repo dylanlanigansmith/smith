@@ -130,6 +130,7 @@ void CResourceSystem::OnEngineInitFinish()
 void CResourceSystem::OnResourceLoadStart()
 {
     LoadTextureDefinition();
+    LoadAnimations();
 }
 
 bool CResourceSystem::LoadTextureDefinition()
@@ -254,5 +255,39 @@ bool CResourceSystem::SaveLevel()
     }
 
     log("error writing %s", path.c_str()); return false;
+
+}
+
+bool CResourceSystem::SaveAnimations()
+{
+    static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
+    auto dir = GetResourceSubDir("definition");
+    auto path = MergePathAndFileName(dir, AddExtension("animation"));
+
+    auto j = IAnimationSystem->ListToJson();
+
+     if( WriteJSONToFile(j, path)){
+        warn("wrote anim data to file"); return true;
+    }
+
+    Error("error writing animdata %s", path.c_str()); return false;
+
+}
+
+bool CResourceSystem::LoadAnimations()
+{
+     static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
+    auto dir = GetResourceSubDir("definition");
+    auto path = MergePathAndFileName(dir, AddExtension("animation"));
+
+    json j = ReadJSONFromFile(path);
+    if(j.empty()) {
+        Error("json object for animdata %s empty", path.c_str());   
+        return false;
+    }
+    note("loading animations from file");
+    IAnimationSystem->ListFromJson(j);
+
+    return true;
 
 }

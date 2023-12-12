@@ -26,6 +26,7 @@ public:
     virtual void OnRenderEnd() override;
     virtual int NumRenderables() const { return m_iRenderableEntities; }
 
+    virtual void OnResourceLoadEnd() {  CreateLocalPlayer();}
     virtual CPlayer* GetLocalPlayer();
 
     template <typename T> 

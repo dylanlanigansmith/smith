@@ -6,11 +6,11 @@
 #include <anim/viewmodel/AnimViewmodel.hpp>
 class CPlayer;
 
-class CWeaponPistol : public CBaseWeapon
+class CWeaponSMG : public CBaseWeapon
 {
 public:
-    CWeaponPistol(CBaseRenderable* m_pOwner) : CBaseWeapon(m_pOwner, Util::getClassName(this)), anim_pistol(m_pOwner, "pistol"), anim_flash(m_pOwner, "muzzleflash")  {}
-    virtual ~CWeaponPistol(){}
+    CWeaponSMG(CBaseRenderable* m_pOwner) : CBaseWeapon(m_pOwner, Util::getClassName(this)), anim_smg(m_pOwner, "smg"){}
+    virtual ~CWeaponSMG(){}
     virtual void OnCreate();
     virtual void Render(CRenderer* renderer);
     virtual void OnUpdate();
@@ -21,6 +21,6 @@ protected:
 private:
    CAnimController* m_flash;
 
-   CAnimViewmodel anim_pistol;
-   CAnimViewmodel anim_flash;
+   CAnimViewmodel anim_smg;
+  
 };

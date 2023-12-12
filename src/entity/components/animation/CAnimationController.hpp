@@ -7,6 +7,7 @@
 #include <logger/logger.hpp>
 #include <renderer/renderer.hpp>
 #include <entity/components/CBaseEntityComponent.hpp>
+#include <entity/CBaseRenderable.hpp>
 /*
 http://www.doomlegends.com/emporium/tutorials/sprite_basics.html
 
@@ -33,7 +34,7 @@ struct anim_params_t
 class CAnimController : public CBaseEntityComponent, public CLogger
 {
 public:
-    CAnimController(CBaseEntity *m_pParent, const std::string& m_szTextureName, const anim_params_t& params, const CAnimSequence& defseq) 
+    CAnimController(CBaseRenderable *m_pParent, const std::string& m_szTextureName, const anim_params_t& params, const CAnimSequence& defseq) 
         :  CBaseEntityComponent(m_pParent), CLogger(this, params.m_szName), m_params(params)  {
         m_draw.m_defaultRect = {0,0, m_params.m_surfaceSize.w(), m_params.m_surfaceSize.h()};
         m_draw.m_clrKey = m_params.m_clrKey;

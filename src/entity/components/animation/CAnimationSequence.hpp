@@ -28,9 +28,9 @@ struct sequence_frame
 class CAnimSequence
 {
 public:
-    CAnimSequence(const std::string& m_szName) : m_szName(m_szName){
-        m_hSequence = Anim::GetSequenceHandle(m_szName.c_str()); m_curFrame = 0; m_frameTime = 30;
-    }
+   /// CAnimSequence(const std::string& m_szName) : m_szName(m_szName){
+   //     m_hSequence = Anim::GetSequenceHandle(m_szName.c_str()); m_curFrame = 0; m_frameTime = 30;
+  //  }
     CAnimSequence(const std::string& m_szName, uint32_t m_frameTime, const std::vector<sequence_frame>& frames)
      :  m_frames(frames),  m_frameTime(m_frameTime), m_szName(m_szName) {
         m_hSequence = Anim::GetSequenceHandle(m_szName.c_str()); m_curFrame = 0; 

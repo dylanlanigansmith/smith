@@ -8,7 +8,7 @@
 #include <entity/player/CCamera.hpp>
 // #include <entity/player/CPlayer.hpp>
 #include "render_helpers.hpp"
-#define SMITH_PIXELFMT SDL_PIXELFORMAT_RGBA8888
+
 
 class CPlayer;
 

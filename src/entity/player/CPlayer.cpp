@@ -34,10 +34,10 @@ void CPlayer::OnCreate()
 
   m_inventory = new inventory_t();
 
-  auto Pistol = new CWeaponPistol();
-
-  m_inventory->AddItem( Pistol);
-
+  auto Pistol = new CWeaponPistol(this);
+  auto SMG = new CWeaponSMG(this);
+  m_inventory->AddItem( SMG);
+  m_inventory->AddItem( Pistol );
   //MOVE THIS
   for(auto& item : m_inventory->contents()){
     if(item == nullptr) continue;
@@ -211,8 +211,19 @@ void CPlayer::CreateMove()
   {
       GetActiveWeapon()->Shoot();
   }
-
-
+  if(IInputSystem->IsKeyDown(SDL_SCANCODE_R)){
+    GetActiveWeapon()->Reload();
+  }
+   if(IInputSystem->IsKeyDown(SDL_SCANCODE_1)){
+    if(Inventory()->SlotFilled(0)){
+      Inventory()->Switch(0);
+    }
+  }
+   if(IInputSystem->IsKeyDown(SDL_SCANCODE_2)){
+    if(Inventory()->SlotFilled(1)){
+      Inventory()->Switch(1);
+    }
+  }
   if (m_camera.m_flPitch > 0)
     m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
   if (m_camera.m_flPitch < 0)
