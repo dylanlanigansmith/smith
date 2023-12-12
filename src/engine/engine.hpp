@@ -42,7 +42,7 @@ public:
     void Start(const char* title);
     int Run();
     
-    auto window() const { return m_SDLWindow; }
+    auto& window()  { return m_SDLWindow; }
 
     template <typename T> T*
     CreateInterface(const std::string& name)

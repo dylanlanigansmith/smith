@@ -22,6 +22,8 @@ void CPlayer::OnCreate()
   SET_ENT_NAME();
   SET_ENT_TYPE();
   
+  m_health = m_max_health = 100;
+
   m_vecPosition = {19,20,0};//Vector(22, 12, 0);
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
@@ -82,6 +84,21 @@ void CPlayer::Render(CRenderer *renderer)
 void CPlayer::RenderView(CRenderer *renderer)
 {
   m_viewmodel.Render(renderer);
+}
+
+void CPlayer::OnHit(int damage)
+{
+  m_health -= damage;
+  engine->log("player health: %d", m_health);
+  //play hurt sound
+  if(m_health <= 0){
+    m_move.m_flForwardSpeed = 0.0;
+    m_move.m_flStrafeSpeed = 0.0;
+    int er = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "You died.", "you lost the game like a little bitch", engine->window()); //No message system available -1
+    //Inventory()->At(1000);
+    engine->log("%s %d", SDL_GetError(), er);
+  }
+    
 }
 
 void CPlayer::CreateMove()

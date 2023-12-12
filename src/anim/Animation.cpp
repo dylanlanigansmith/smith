@@ -97,7 +97,7 @@ void CAnimation::PlaySequenceByName(const std::string &seq_name, bool no_interup
         m_nextUpdate = m_curUpdate + m_curSequence->GetRate();
     else return;
 
-    log(seq_name);
+   // log(seq_name);
 }
 
 

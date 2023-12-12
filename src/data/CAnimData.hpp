@@ -106,6 +106,7 @@ public:
     inline auto GetMaskColor() const { return m_maskColor; }
     inline auto GetMaskColorAlt() const { return m_maskColorAlt; }
     inline auto GetTexture() const { return m_pTexture; }
+    inline void SetTexture(texture_t* new_text)  { m_pTexture = new_text; }
     inline auto& GetSurface() { return m_pTexture->m_texture; }
     inline auto GetNumFrames() const { return m_numFrames; }
 

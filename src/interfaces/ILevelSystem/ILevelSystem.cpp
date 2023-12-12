@@ -84,7 +84,7 @@ void CLevelSystem::OnEngineInitFinish()
     light->SetPosition(19.5, 18.5);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
     pillar->SetPosition(2, 12);
-
+/*
     auto enemy = IEntitySystem->AddEntity<CBaseEnemy>();
     enemy->SetPosition(9, 19);
    // enemy->Freeze(true);
@@ -92,7 +92,7 @@ void CLevelSystem::OnEngineInitFinish()
    enemy2->SetPosition(12, 22);
     // enemy2->Freeze(true);
     auto enemy3 = IEntitySystem->AddEntity<CBaseEnemy>();
-    enemy3->SetPosition(8, 2);
+    enemy3->SetPosition(8, 2); */
     // enemy3->Freeze(true);
 
 

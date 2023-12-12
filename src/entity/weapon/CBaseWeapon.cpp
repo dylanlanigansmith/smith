@@ -1,8 +1,8 @@
 #include "CBaseWeapon.hpp"
 #include <engine/engine.hpp>
 #include <entity/dynamic/CBaseEnemy.hpp>
-
-inline bool HitDetectPixelPerfect(CPlayer *player, CBaseEnemy *ent, IVector2 *textpos)
+#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+inline bool HitDetectPixelPerfect(CPlayer *player, CEnemySoldier *ent, IVector2 *textpos)
 {
     auto crosshair_color = ent->GetPixelAtPoint(player->m_pCamera(), {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2}, textpos);
     //log("%x", crosshair_color);
@@ -29,14 +29,14 @@ void CBaseWeapon::Shoot()
     auto cam = owner->Camera();
     auto pos = owner->GetPosition();
 
-
+    const std::string enemyname = "CEnemySoldier";
     //collision detection
     
     auto tile = ILevelSystem->GetTileAt(IVector2::Rounded(pos.x, pos.y)); //this should be a function
-    CBaseEnemy *hit_ent = nullptr;
+    CEnemySoldier *hit_ent = nullptr;
     if (!tile->m_occupants.empty()) //player doesnt get tiled
     {
-        static constexpr auto enemy_type = Util::fnv1a::Hash64("CBaseEnemy");
+        static constexpr auto enemy_type = Util::fnv1a::Hash64("CEnemySoldier");
         for (auto &id : tile->m_occupants)
         {
             auto ent = IEntitySystem->GetEntity(id);
@@ -46,7 +46,7 @@ void CBaseWeapon::Shoot()
                 continue;
             if (ent->GetType() == enemy_type)
             {
-                hit_ent = (CBaseEnemy *)ent;
+                hit_ent = (CEnemySoldier *)ent;
                 IVector2 textpos;
                 if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
                     dbg("hit");
@@ -126,10 +126,10 @@ void CBaseWeapon::Shoot()
 
         */
         auto tile = ILevelSystem->GetTileAt(mapPos);
-        CBaseEnemy *hit_ent = nullptr;
+        CEnemySoldier *hit_ent = nullptr;
         if (!tile->m_occupants.empty())
         {
-            static constexpr auto enemy_type = Util::fnv1a::Hash64("CBaseEnemy");
+            static constexpr auto enemy_type = Util::fnv1a::Hash64("CEnemySoldier");
             for (auto &id : tile->m_occupants)
             {
                 auto ent = IEntitySystem->GetEntity(id);
@@ -139,7 +139,7 @@ void CBaseWeapon::Shoot()
                     continue;
                 if (ent->GetType() == enemy_type)
                 {
-                    hit_ent = (CBaseEnemy *)ent;
+                    hit_ent = (CEnemySoldier *)ent;
                    IVector2 textpos;
                     if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
                         dbg("hit");

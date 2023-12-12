@@ -54,7 +54,7 @@ public:
 
 public:
     CAnimDirectional(CBaseRenderable* m_pOwner, const std::string& name) : CAnimation(m_pOwner, name) {
-        
+        Debug(false);
     }
 
     virtual void OnCreate();
@@ -62,6 +62,10 @@ public:
     virtual void Draw(CRenderer* renderer, const sprite_draw_data& data );
 
     void SetCallback(orient_callback_fn fn) { DeduceOrientationCallback = fn;}
+
+    virtual void ChangeBaseTexture(const std::string& texture_name);
+
+     virtual uint32_t GetPixelAtPoint(const IVector2 &point, IVector2* textpos, const sprite_draw_data& data);
 protected:
     virtual void OnSequenceStart(const std::string& seq_name);
     virtual void OnSequenceEnd(const std::string& seq_name);

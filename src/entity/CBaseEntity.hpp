@@ -35,6 +35,7 @@ public:
     const auto GetID() { return m_iID; }
     const auto GetPosition() { return m_vecPosition; }
     virtual void SetPosition(double x, double y, double z = 0.0);
+    virtual void SetPosition(const Vector& pos) { SetPosition(pos.x, pos.y, pos.z); }
     virtual const std::string GetName() {return m_szName;}
     virtual const std::string GetSubclass() {return m_szSubclass;}
     virtual const uint64_t GetType() { return m_nType; }

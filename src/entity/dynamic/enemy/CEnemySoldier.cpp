@@ -3,15 +3,43 @@
 
 void CEnemySoldier::OnUpdate()
 {
+
+    if(m_state == Dying || m_state == Dead)
+    {
+        static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
+        static auto whenToDie = IEngineTime->GetCurLoopTick() + 21;
+        if(m_state == Dying && IEngineTime->GetCurLoopTick() > whenToDie ){
+             m_state = Dead;
+             draw.params.vOffset *= 2.5;
+        }
+           
+        m_anim.OnUpdate();
+        return;
+    }
     static Vector2 pts[4] = { { 14.5, 21.3}, {14.5, 18.0}, {19.8, 17.7}, {19.4, 21.2} };
     static int goal = 0;
+    static bool roundOnce = false;
     if((int)m_vecPosition.x == (int)pts[goal].x && (int)m_vecPosition.y == (int)pts[goal].y){
-        if(goal >= 3) goal = 0;
+        if(goal >= 3) {goal = 0; roundOnce = true;}
         else goal++;
     }
-    m_state = Default;
-    WalkTowards(pts[goal]);
+     m_state = Default;
+    if(!roundOnce){
+        
+        WalkTowards(pts[goal]);
+        m_anim.OnUpdate();
+        return;
+    }
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    auto player = IEntitySystem->GetLocalPlayer();
+
+
+    m_state = Attacking;
+    m_view.lookAt(m_vecPosition, player->GetPosition());
+    Shoot(player);
     m_anim.OnUpdate();
+
 }
 
 void CEnemySoldier::OnCreate()
@@ -33,12 +61,14 @@ void CEnemySoldier::WalkTowards(const Vector2& pos)
         moveSpeed /= 2.0;
     
     m_state = Walking;
-  
-   if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + m_view.m_dir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false )
-        m_vecPosition.x += m_view.m_dir.x * moveSpeed;
-   if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + m_view.m_dir.y * moveSpeed, m_vecPosition.z}) == false)
-        m_vecPosition.y += m_view.m_dir.y * moveSpeed;
-  
+    Vector newPos = m_vecPosition;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + m_view.m_dir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false )
+        newPos.x += m_view.m_dir.x * moveSpeed;
+    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + m_view.m_dir.y * moveSpeed, m_vecPosition.z}) == false)
+        newPos.y += m_view.m_dir.y * moveSpeed;
+
+ 
+    SetPosition(newPos);
 }
 
 int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int *frame, std::string &seq_name) // returns orientation
@@ -68,7 +98,79 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
     const double xtol = 0.1;
     switch (m_state)
     {
-
+    case Dying:
+    {
+       
+        orient = CAnimDirectional::Face_Dying;
+        *flip = AnimDir_NoFlip;
+        *anim_state = AnimDir_Dying; 
+        seq_name = "death0"; break;
+        
+    }
+    case Dead:
+    {
+       
+        orient = CAnimDirectional::Dead;
+        *flip = AnimDir_NoFlip;
+        *anim_state = AnimDir_Dead; 
+        seq_name = "dead0"; break;
+        
+    }
+    case Attacking:
+    {
+        if(!facing && angle < tol){
+            orient = CAnimDirectional::Away;
+             *flip = AnimDir_NoFlip;
+            *anim_state = AnimDir_Attacking; 
+            seq_name = "shoot4"; break;
+        }
+        if(facing && angle > (180 - tol) ){
+            orient = CAnimDirectional::Facing;
+             *flip = AnimDir_NoFlip;
+            *anim_state = AnimDir_Attacking; 
+            seq_name = "shoot0"; break;
+        }
+        if( (90 - side_tol) < angle && angle < (90 + side_tol) ){
+                 orient =  (cross >= xtol) ? CAnimDirectional::Face_Right : CAnimDirectional::Face_Left;
+                *flip = (cross >= xtol) ?  AnimDir_FlipH : AnimDir_NoFlip;
+                *anim_state = AnimDir_Attacking; 
+                seq_name = "shoot2"; break;
+        }
+        if(!facing &&  tol < angle){
+            
+            if(cross >= xtol){
+                orient = CAnimDirectional::Away_DiagLeft;
+                *flip = AnimDir_FlipH;
+                *anim_state = AnimDir_Attacking; 
+                seq_name = "shoot3"; break;
+            }
+            else if(cross <= -xtol){
+                orient = CAnimDirectional::Away_DiagRight; //no idea
+                 *flip = AnimDir_NoFlip;
+                *anim_state = AnimDir_Attacking; 
+                seq_name = "shoot3"; break;
+            }
+           
+        }
+        
+        if(facing &&  angle < (180.0 - tol)){
+            if(cross >= xtol){
+                orient = CAnimDirectional::Face_DiagLeft;
+                *flip = AnimDir_FlipH;
+                *anim_state = AnimDir_Attacking; 
+                seq_name = "shoot1"; break;
+            }
+            else if(cross <= -xtol){
+                orient = CAnimDirectional::Face_DiagRight; //idk
+                 *flip = AnimDir_NoFlip;
+                *anim_state = AnimDir_Attacking; 
+                seq_name = "shoot1"; break;
+            }
+           
+        }
+        engine->log(" shoot hit no cases  <%.2f | x%.2f", angle, cross);
+        break;
+    }
     case Walking:
     {
         if(!facing && angle < tol){
@@ -190,6 +292,54 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
     lastOrient = orient;
     return orient;
 }
+
+
+void CEnemySoldier::Shoot(CPlayer *player)
+{
+    //ray cast??
+    //how do we make it "fair"
+    auto player_pos = player->GetPosition();
+    float player_bounds = player->GetBounds();
+    Ray_t ray = {
+        .origin = Vector2(GetPosition()),
+        .direction = m_view.m_dir.Normalize() //should already be
+    };
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    if(Util::RayIntersectsCircle(ray, player_pos, player_bounds))
+    {
+        //engine->log("in circle");
+        int hit = 0;
+        Vector2 ray_pos = ray.origin;
+        double step = 0.2;
+        double dist_to_player = (Vector2(player_pos) - ray.origin).Length();
+        IVector2 lastPos = {-1,-1};
+        while((Vector2(player_pos) - ray_pos).Length() >= player_bounds)
+        {
+            engine->log("%.3f %.3f", ray_pos.x, ray_pos.y);
+            ray_pos = ray_pos + (ray.direction * step);
+          
+            if(ray_pos.x < 0 || ray_pos.y < 0) return;
+            if((int)floor(ray_pos.x) == lastPos.x && (int)floor(ray_pos.y) == lastPos.y)
+                continue;
+            lastPos = ray_pos;
+            auto tile = ILevelSystem->GetTileAt(lastPos);
+            if(tile->m_nType == Level::Tile_Wall)
+                return;
+            
+        }
+        player->OnHit(m_stats.m_main_damage);
+        engine->log("hit player");
+    }
+}
+
+
+uint32_t CEnemySoldier::GetPixelAtPoint(CCamera *camera, const IVector2 &point, IVector2 *textpos)
+{
+    draw.camera = camera;
+    CalculateDrawInfo(draw);
+    return m_anim.GetPixelAtPoint(point, textpos, draw);
+    
+}
 void CEnemySoldier::CreateRenderable()
 {
     auto seq_stand = m_anim.AddDefaultSequenceByName("stand0", {64, 64});
@@ -198,6 +348,16 @@ void CEnemySoldier::CreateRenderable()
     m_anim.AddSequenceByName("walkaway0");
     m_anim.AddSequenceByName("walkdiag0");
     m_anim.AddSequenceByName("walkdiag1");
+
+    m_anim.AddSequenceByName("shoot0"); //set x to match if you dont want shaking
+    m_anim.AddSequenceByName("shoot1");
+    m_anim.AddSequenceByName("shoot2");
+    m_anim.AddSequenceByName("shoot3");
+    m_anim.AddSequenceByName("shoot4");
+
+    m_anim.AddSequenceByName("death0");
+    m_anim.AddSequenceByName("death1");
+    m_anim.AddSequenceByName("dead0");
     m_Texture = new texture_t(seq_stand->GetTexture()->m_handle, m_anim.Drawable());
     draw.params.wScale = 1.15; 
     draw.params.vScale = 1.15;

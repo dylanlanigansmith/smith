@@ -31,7 +31,13 @@ public:
 
     CCamera* m_pCamera() { return &m_camera; } //not a good system
 
+    virtual void OnHit(int damage);
+
+    auto GetHealth() const { return m_health; }
+    auto GetBounds() const { return 0.2f; }
 private:
+    int m_health;
+    int m_max_health;
     virtual void CreateMove();
     CMove m_move;
     CBaseWeapon* GetActiveWeapon() { return m_inventory->Active(); }

@@ -118,3 +118,60 @@ void CAnimDirectional::OnUpdate()
 void CAnimDirectional::OnSequenceEnd(const std::string &seq_name)
 {
 }
+
+void CAnimDirectional::ChangeBaseTexture(const std::string &texture_name)
+{
+    
+    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+    auto newTexture = ITextureSystem->FindOrCreatetexture(texture_name);
+    for(auto& seq : m_seq)
+    {
+        seq.second->SetTexture(newTexture);
+    }
+    log("overrode texture to %s", texture_name.c_str());
+}
+
+uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *textpos , const sprite_draw_data& data)
+{
+    log("hit check pt[%d %d] ds[%d %d]  de[%d %d] ", point.x, point.y, data.drawStart.x, data.drawStart.y, data.drawEnd.x, data.drawEnd.y);
+    if (!(data.drawStart.x <= point.x && point.x <= data.drawEnd.x ) )
+        return 0u;
+    if (!(data.drawStart.y <= point.y && point.y <= data.drawEnd.y ) )
+        return 0u;
+  
+    int stripe = point.x;
+  
+    IVector2 tex;
+    tex.x = int(256 * (stripe - ((-data.renderSize.x / 2) + data.screen.x)) * m_surface->w() / data.renderSize.x) / 256;
+        if(m_animflip == AnimDir_FlipH){
+                    tex.x = m_surface->w() - tex.x; //tex.y = m_surface->h() - tex.y; 
+        }
+    log("first round");
+    //***likely dont need any of the checks below***
+    // conditions in the if are:
+    // 1) it's in front of camera plane  2) it's on the screen (left) 3) it's on the screen (right) //REMOVED 4) ZBuffer, with perpendicular distance
+    if (data.transform.y > 0 && stripe > 0 && stripe < SCREEN_WIDTH ) // REMOVED: && transform.y < (renderer->ZBufferAt(stripe)) we shouldnt need bc we will just hit a wall first
+    {
+        int y = point.y;
+         int d = (y - data.screen.y) * 256 - SCREEN_HEIGHT * 128 + data.renderSize.y * 128; // 256 and 128 factors to avoid floats
+        tex.y = ((d * m_surface->h()) / data.renderSize.y) / 256;
+        
+        Color color = m_surface->getColorAtPoint(tex.x, tex.y); // get current color from the texture
+
+        if (!color)
+            return 0u;
+        if (color == m_curSequence->GetMaskColor())
+             return 0u;
+        if (color == m_curSequence->GetMaskColorAlt())
+             return 0u;
+        if (m_curSequence->GetTexture()->m_clrKey && color == m_curSequence->GetTexture()->m_clrKey)
+             return 0u;
+        log("HIT");
+        return color;
+
+       
+    }
+    
+
+    return 0u;
+}

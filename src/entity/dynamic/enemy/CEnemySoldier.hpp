@@ -30,7 +30,16 @@ struct EntView
 };
 
 
+struct foe_info
+{
+    int m_health;
+    int m_maxhealth;
+    int m_main_damage;
+    int m_alt_damage;
 
+    foe_info(int m_maxhealth) : 
+        m_health(m_maxhealth), m_maxhealth(m_maxhealth), m_main_damage(10), m_alt_damage(5){}
+};
 
 enum RelDir : int
 {
@@ -44,7 +53,7 @@ enum RelDir : int
 class CEnemySoldier : public CBaseRenderable //CBaseDynamicEntity 
 {
 public:
-    CEnemySoldier(int m_iID) : CBaseRenderable(m_iID), m_anim(this, "soldier"), m_state(SoldierState::Default) {}
+    CEnemySoldier(int m_iID) : CBaseRenderable(m_iID), m_stats(50),  m_anim(this, "soldier"), m_state(SoldierState::Default) {}
     ~CEnemySoldier() { delete m_Texture; }
     virtual void OnUpdate();
     virtual void OnCreate();
@@ -55,11 +64,33 @@ public:
     virtual void OnRenderEnd() {}
     virtual void Render(CRenderer* renderer);
     
-    virtual void OnHit(int damage, int position) {}
+    virtual void OnHit(int damage, int position) {
+        m_stats.m_health -= damage;
+        if(m_stats.m_health <= 0)
+            m_state = Dying;
+    }
 
     virtual void WalkTowards(const Vector2& pos);
     int DeduceSequenceForOrientation(int* flip, int* anim_state, int* frame, std::string& seq_name);
+
+    virtual void Shoot(CPlayer* player);
+
+    virtual uint32_t GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos);
+    virtual void SetType(int type = 0){
+        switch(type)
+        {
+            case Soldier_Command:
+                m_anim.ChangeBaseTexture("soldier3.png"); break;
+            case Soldier_Med:
+                m_anim.ChangeBaseTexture("soldier2.png"); break;
+            case Soldier_Grunt:   
+            default:
+                m_anim.ChangeBaseTexture("soldier.png"); break;
+              
+        }
+    }
 protected:
+    foe_info m_stats;
     CMove m_move;
 
     EntView m_view;
@@ -78,5 +109,10 @@ public:
         Dead
     };
 
-
+    enum SoldierTypes : int
+    {
+        Soldier_Grunt = 0,
+        Soldier_Med = 1,
+        Soldier_Command = 3
+    };
 };
