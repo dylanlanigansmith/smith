@@ -5,11 +5,7 @@
 
 #include <entity/components/pathfinder/CPathFinder.hpp>
 
-struct sprite_draw_params{
-    double wScale;
-    double vScale;
-    int vOffset;
-};
+
 
 class CBaseEnemy : public CBaseRenderable, public CLogger
 {
@@ -45,7 +41,7 @@ protected:
     virtual void CalculateDrawInfo(IVector2* drawStart,IVector2* drawEnd, IVector2* renderSize, IVector2* screen, Vector2* tform ,
                                      CCamera* camera, double wScale, double vScale, int vOffset);
 
-    virtual inline void UpdateBBox();
+    virtual void UpdateBBox();
 protected:
     sprite_draw_params draw_params;
     IVector2 m_lastRenderPos;

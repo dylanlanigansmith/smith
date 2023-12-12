@@ -8,7 +8,34 @@
 #include <SDL3/SDL.h>
 #include "Texture.hpp"
 
-//using json =  nlohmann::json; 
+
+enum AnimFlags : uint64_t {
+    ANIM_STANDARD     = 1ULL << 0, 
+    ANIM_SHOULD_LOOP = 1ULL << 1, 
+    ANIM_NO_SCALE    = 1ULL << 2, 
+    ANIM_NO_AUTOPLAY = 1ULL << 3,
+    ANIM_CENTERED    = 1ULL << 4,
+    ANIM_POS_SCREEN  = 1ULL << 5,
+    ANIM_POS_REL     = 1ULL << 6,
+    AnimFlags_SIZE = 7 //7 entries
+};
+/*
+
+todo write a reusable flags class - smithSTL
+// Setting a flag
+m_flags |= ANIM_SHOULD_LOOP;
+
+// Clearing a flag
+m_flags &= ~ANIM_SHOULD_LOOP;
+
+// Checking a flag
+if (m_flags & ANIM_SHOULD_LOOP) {
+    // ANIM_SHOULD_LOOP is set
+}
+
+*/
+
+
 struct anim_frame
 {
     int m_index;
@@ -83,11 +110,44 @@ public:
     inline auto GetNumFrames() const { return m_numFrames; }
 
     inline int GetLastIndex() { return m_numFrames - 1; }
+
+
+    //FLAGS
+    inline bool IsAnimStandard() const { return m_flags & ANIM_STANDARD; }
+    inline bool ShouldAnimLoop() const { return m_flags & ANIM_SHOULD_LOOP; }
+    inline bool IsAnimNoScale() const { return m_flags & ANIM_NO_SCALE; }
+    inline bool IsAnimNoAutoplay() const { return m_flags & ANIM_NO_AUTOPLAY; }
+    inline bool IsAnimCentered() const { return m_flags & ANIM_CENTERED; }
+    inline bool IsAnimPosScreen() const { return m_flags & ANIM_POS_SCREEN; }
+    inline bool IsAnimPosRel() const { return m_flags & ANIM_POS_REL; }
+
+    inline void SetAnimShouldLoop(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_SHOULD_LOOP) : (m_flags & ~ANIM_SHOULD_LOOP);
+    }
+    inline void SetAnimNoScale(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_NO_SCALE) : (m_flags & ~ANIM_NO_SCALE);
+    }
+    inline void SetAnimNoAutoplay(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_NO_AUTOPLAY) : (m_flags & ~ANIM_NO_AUTOPLAY);
+    }
+    inline void SetAnimCentered(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_CENTERED) : (m_flags & ~ANIM_CENTERED);
+    }
+    inline void SetAnimPosScreen(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_POS_SCREEN) : (m_flags & ~ANIM_POS_SCREEN);
+    }
+    inline void SetAnimPosRel(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_POS_REL) : (m_flags & ~ANIM_POS_REL);
+    }
+
+
+
 private:
     nlohmann::json ToJson(){
         using json =  nlohmann::json; 
+        
         json  data = {
-            m_szName, m_szTextureName, ivec2json(m_size), ivec2json(m_pos), m_rate, (uint32_t)m_maskColor, (uint32_t)m_maskColorAlt, m_numFrames 
+            m_szName, m_szTextureName, ivec2json(m_size), ivec2json(m_pos), m_rate, (uint32_t)m_maskColor, (uint32_t)m_maskColorAlt, m_numFrames, m_flags 
         };
 
         json j = json::object();
@@ -125,7 +185,7 @@ private:
         m_maskColor = Color((uint32_t)data.at(5));
         m_maskColorAlt = Color((uint32_t)data.at(6));
         m_numFrames = (size_t)data.at(7);
-
+        m_flags = (uint64_t)data.at(8);
         m_frames.clear();
         for(auto& frame : frames){
             anim_frame af;
@@ -149,6 +209,7 @@ private:
     IVector2 m_pos;
     int m_rate;
 
+    uint64_t m_flags;
     size_t m_numFrames;
     std::vector<anim_frame> m_frames;
     

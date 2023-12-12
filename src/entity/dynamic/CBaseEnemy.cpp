@@ -39,11 +39,11 @@ void CBaseEnemy::UpdateBBox()
 
 void CBaseEnemy::CreateRenderable()
 {
-    draw_params = {
-        .wScale = 1.3, 
-        .vScale = 1.3,
-        .vOffset = 95 
-    };
+   
+        draw_params.wScale = 1.3; 
+        draw_params.vScale = 1.3;
+        draw_params.vOffset = 95 ;
+ 
     SetupTexture("dylan_devred.png");
     SetUpAnimation();
 }

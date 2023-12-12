@@ -4,6 +4,7 @@
 #include <entity/prop/objects/CGreenLight.hpp>
 #include <entity/prop/objects/CPillar.hpp>
 #include <entity/dynamic/CBaseEnemy.hpp>
+#include <entity/dynamic/enemy/CEnemySoldier.hpp>
 #include <data/level.hpp>
 #include <util/misc.hpp>
 #include <renderer/render_helpers.hpp>
@@ -94,6 +95,9 @@ void CLevelSystem::OnEngineInitFinish()
     enemy3->SetPosition(8, 2);
     // enemy3->Freeze(true);
 
+
+    auto soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+    soldier->SetPosition(pstart.x - 3, pstart.y);
     engine->SoundSystem()->PlaySound("van_Wiese_bass_beat", 0.2f);
 }
 

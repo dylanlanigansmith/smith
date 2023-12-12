@@ -12,9 +12,9 @@ public:
     virtual void OnCreate();
     virtual void OnUpdate();
 
-    void AddDefaultSequenceByName(const std::string& seq_name);
-    void AddSequenceByName(const std::string& seq_name);
-    void PlaySequenceByName(const std::string& seq_name);
+    CAnimData* AddDefaultSequenceByName(const std::string& seq_name, const IVector2& size_override = {-1,-1});
+    CAnimData* AddSequenceByName(const std::string& seq_name);
+    void PlaySequenceByName(const std::string& seq_name, bool no_interupt = false);
     inline auto& Drawable() { return *m_surface; }
 protected:
     virtual void OnSequenceStart(const std::string& seq_name);

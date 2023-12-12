@@ -57,39 +57,47 @@ auto &CAnimation::IAnimationSystem()
 {  static auto animsys = engine->CreateInterface<CAnimationSystem>("IAnimationSystem"); return animsys; }
 
 
-void CAnimation::AddDefaultSequenceByName(const std::string &seq_name)
+CAnimData* CAnimation::AddDefaultSequenceByName(const std::string &seq_name, const IVector2& size_override)
 {
     if(m_defaultSequence != nullptr){
         Error("overwriting default sequence with %s", seq_name.c_str());
     }
    m_defaultSequence = IAnimationSystem()->GetSequence(m_szName, seq_name);
    if(m_defaultSequence == nullptr){
-        Error("no def seq found for %s", seq_name.c_str()); return;
+        Error("no def seq found for %s", seq_name.c_str()); return nullptr;
    }
-    m_surface =  IAnimationSystem()->GetSurface(m_defaultSequence->GetSize());
+    m_surface = (size_override.x == -1 && size_override.y == -1) ? IAnimationSystem()->GetSurface(m_defaultSequence->GetSize()) : IAnimationSystem()->GetSurface(size_override) ;
     AddKnownSequence(m_defaultSequence);
-    dbg("acquired surface [%d %d] and switched to default sequence [0]", m_surface->w(), m_surface->h()); 
+    dbg("acquired surface %s [%d %d] and switched to default sequence [0]",(size_override.x == -1) ? "size" : "override", m_surface->w(), m_surface->h()); 
     m_curSequence = m_defaultSequence;
     SwitchFrames(m_defaultSequence, 0); m_curFrame = 0;
+
+    return m_defaultSequence;
 }
 
-void CAnimation::AddSequenceByName(const std::string &seq_name)
+CAnimData* CAnimation::AddSequenceByName(const std::string &seq_name)
 {
    auto to_add = IAnimationSystem()->GetSequence(m_szName, seq_name);
    if(m_defaultSequence == nullptr){
-        Error("no seq found for %s", seq_name.c_str()); return;
+        Error("no seq found for %s", seq_name.c_str()); return nullptr;
    }
     AddKnownSequence(to_add);
+    return to_add;
 }
 
-void CAnimation::PlaySequenceByName(const std::string &seq_name)
+void CAnimation::PlaySequenceByName(const std::string &seq_name, bool no_interupt )
 {
-    if(m_curSequence != m_defaultSequence ) return; //HACKY 
+    if(m_curSequence != m_defaultSequence  && no_interupt) return; //HACKY 
     m_curSequence = GetSequenceByLocalName(seq_name);
 
     SwitchFrames(m_curSequence, 0);
-    m_nextUpdate = m_curUpdate + m_curSequence->GetRate();
+   
     OnSequenceStart(seq_name);
+    if(!m_curSequence->IsAnimNoAutoplay())
+        m_nextUpdate = m_curUpdate + m_curSequence->GetRate();
+    else return;
+
+    log(seq_name);
 }
 
 
@@ -98,8 +106,18 @@ void CAnimation::SwitchFrames(CAnimData *seq, int idx)
     //ahahaha remember when we used to check for errors here 
    
     SDL_FillSurfaceRect(*m_surface, NULL, 0);
-     
-    SDL_BlitSurfaceScaled(seq->GetSurface(), &(seq->GetFrames()[idx].m_rect), *m_surface, NULL);
+    if(seq->IsAnimNoScale())
+    {
+        auto& fr = seq->GetFrames()[idx].m_rect;
+        SDL_Rect no_scale = {0,0,fr.w, fr.h };
+        if(seq->IsAnimCentered()){
+            no_scale.x = m_surface->w() - (fr.w / 2);
+            no_scale.y = m_surface->h() - (fr.h / 2); //do we really wanna do this?
+        }
+        SDL_BlitSurface(seq->GetSurface(), &(seq->GetFrames()[idx].m_rect), *m_surface, &(no_scale));
+    }
+    else
+        SDL_BlitSurfaceScaled(seq->GetSurface(), &(seq->GetFrames()[idx].m_rect), *m_surface, NULL);
     
 }
 

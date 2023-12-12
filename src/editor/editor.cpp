@@ -1377,8 +1377,11 @@ void CEditor::drawAnimView()
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
      static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
+     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static SDL_Texture* anim_preview = NULL;
 
+    static bool isPlaying = false;
+    static auto lastPlayTime = IEngineTime->GetCurLoopTick();
 
 
     if(ImGui::Button("Save Anim. Data")){
@@ -1397,11 +1400,17 @@ void CEditor::drawAnimView()
 
     static std::string addNew_name = "";
      static std::string addNew_text = "";
+
+     static ImGuiTextFilter anim_filter;
     ImGui::Columns(3, "####animeditorcols");
-    if(ImGui::BeginListBox("Animations", ImVec2(UI_W / 5, UI_H / 2))){
+    anim_filter.Draw("anim filter", UI_W / 5); ImGui::SameLine();
+    if(ImGui::SmallButton("x##clearfilter")) anim_filter.Clear();
+
+    if(ImGui::BeginListBox("Animations", ImVec2(UI_W / 8, UI_H / 2))){
 
         for(auto& anim : IAnimationSystem->animation_list)
         {
+            if(!anim_filter.PassFilter(anim.first.c_str())) continue;
             ImGui::PushID(anim.second);
             if(ImGui::Selectable(anim.first.c_str(), selectedAnim == anim.second)){
                 selectedFrame = 0;
@@ -1442,6 +1451,7 @@ void CEditor::drawAnimView()
         ad->m_szTextureName = addNew_text;
         ad->m_maskColor = Color(65, 176, 70, 255);
         ad->m_maskColorAlt = Color(65, 176, 70, 255);
+        ad->m_rate = 3;
         ad->m_pos = {0, 0};
         ad->m_size = {addNew_size[0], addNew_size[1]};
         ad->AddFrame(0, {0, 0, 0, 0});
@@ -1453,29 +1463,36 @@ void CEditor::drawAnimView()
     }
 
     ImGui::NextColumn();
-    if(selectedAnim == nullptr || selectedAnimTexture == NULL) {  ImGui::NextColumn();ImGui::Columns(); return; }
-
+    if(selectedAnim == nullptr || selectedAnimTexture == NULL) {  ImGui::NextColumn(); ImGui::Columns(); return; }
+    static bool scalex2 = false; static int edit_scale = 1; if(edit_scale < 1) edit_scale = 1; static Color rect_clr = Color::White();
+    static bool prev_other = false;
+    if(ImGui::CollapsingHeader("view options")){
+        ImGui::Checkbox("scale preview x2", &scalex2); ImGui::SameLine(); 
+         ImGui::Checkbox("show prev on other col", &prev_other); 
+        ImGui::SliderInt("edit scale", &edit_scale, 1, 5);
+        rect_clr = Editor::colorPicker("rect color", rect_clr, ImGuiColorEditFlags_NoAlpha);
+    }
+    
     auto& frame = selectedAnim->m_frames.at(selectedFrame);
 
     ImGui::Text("%s | src[%d x %d]", selectedAnim->m_szTextureName.c_str(), selectedTextInfo->texture->m_size.x, selectedTextInfo->texture->m_size.y);
-    static ImVec2 ip = ImGui::GetCursorScreenPos();
-    ImGui::Image(selectedAnimTexture,  { selectedTextInfo->texture->m_size.x, selectedTextInfo->texture->m_size.y}); //need scale slider 
+    ImVec2 ip = ImGui::GetCursorScreenPos();
+    ImGui::Image(selectedAnimTexture,  { selectedTextInfo->texture->m_size.x / edit_scale, selectedTextInfo->texture->m_size.y / edit_scale}); //need scale slider 
     auto draw = ImGui::GetWindowDrawList();
-    draw->AddRect({ip.x + frame.m_rect.x, ip.y + frame.m_rect.y }, {ip.x + frame.m_rect.x + frame.m_rect.w, ip.y + frame.m_rect.y + frame.m_rect.h},IM_COL32(255,255,255,255) );
-    ImGui::Text("%s frame [%d]", selectedAnim->m_szName.c_str(), selectedFrame);
-    ImGui::Image(previewTexture, {selectedAnim->m_size.x, selectedAnim->m_size.y});
+    draw->AddRect({ip.x + frame.m_rect.x / edit_scale, ip.y + frame.m_rect.y / edit_scale }, {ip.x + (frame.m_rect.x + frame.m_rect.w) / edit_scale, ip.y + (frame.m_rect.y + frame.m_rect.h) / edit_scale}, Editor::ColorToIU32(rect_clr) );
+    
+    if(!prev_other)
+    {
+         ImGui::Text("%s frame [%d]", selectedAnim->m_szName.c_str(), selectedFrame);
+
+        ImVec2 frameSize = (scalex2 == true) ? ImVec2(selectedAnim->m_size.x * 2, selectedAnim->m_size.y * 2) : ImVec2(selectedAnim->m_size.x, selectedAnim->m_size.y);
+        ImGui::Image(previewTexture, frameSize);
+    }
+   
 
 
     ImGui::NextColumn();
-    if(ImGui::SmallButton("<<")) {}
-    ImGui::SameLine();
-    if(ImGui::SmallButton(">")){
-
-    } ImGui::SameLine();
-    if(ImGui::SmallButton("=")) {}
-    ImGui::SameLine();
-    if(ImGui::SmallButton(">>")) {}
-
+    
 
     ImGui::Text("%s {%i x %i} #%li frames", selectedAnim->m_szName.c_str(), selectedAnim->m_size.x, selectedAnim->m_size.y, selectedAnim->m_numFrames);
     if(ImGui::CollapsingHeader("edit seq data")){
@@ -1483,11 +1500,33 @@ void CEditor::drawAnimView()
         selectedAnim->m_maskColorAlt = Editor::colorPicker("mask color alt", Color(selectedAnim->m_maskColorAlt), 0);
         ImGui::InputInt("frametime", &selectedAnim->m_rate);
         ImGui::InputInt2("framesize", &selectedAnim->m_size.x);
+
+        static auto flag_names = magic_enum::enum_entries<AnimFlags>();
+     
+        static int selected_flag = 0;
+        if(ImGui::BeginListBox("Flags", ImVec2(UI_W / 9, UI_H / 12))){
+            for(int i = 0; i < (int)flag_names.size(); ++i)
+            {
+                if(flag_names[i].first == AnimFlags_SIZE) continue;
+                ImGui::PushID(&flag_names[i]);
+
+                if(ImGui::Selectable(flag_names[i].second.data(), (selectedAnim->m_flags &  flag_names[i].first))){
+                     selectedAnim->m_flags = (selectedAnim->m_flags &  flag_names[i].first) ?  (selectedAnim->m_flags & ~flag_names[i].first) : (selectedAnim->m_flags | flag_names[i].first);
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndListBox();
+        }
+      
     }
    
 
     if(ImGui::Button("add frame")){ //should dup rect from before it 
+        auto rect = selectedAnim->GetFrames().back().m_rect;
         selectedAnim->AddFrame();
+        selectedAnim->GetFrames().back().m_rect = rect;
+        selectedFrame = selectedAnim->GetLastIndex();
+
     } ImGui::SameLine();
     if(ImGui::Button("remove frame")){
         //todo;
@@ -1511,7 +1550,37 @@ void CEditor::drawAnimView()
 
         ImGui::EndListBox();
     }
-    
+    if(ImGui::SmallButton("<<")) {
+        if(selectedFrame == 0) selectedFrame = selectedAnim->GetLastIndex();
+        else selectedFrame--;
+    }
+    ImGui::SameLine();
+    if(ImGui::SmallButton(">")){
+        isPlaying = true;
+        lastPlayTime = IEngineTime->GetCurLoopTick();
+    } ImGui::SameLine();
+    if(ImGui::SmallButton("=")) { isPlaying = false; }
+    ImGui::SameLine();
+    if(ImGui::SmallButton(">>")) {
+        if(selectedFrame == selectedAnim->GetLastIndex()) selectedFrame = 0;
+        else selectedFrame++;
+    }
+    if(isPlaying){
+        auto curTick = IEngineTime->GetCurLoopTick();
+        if(curTick > (lastPlayTime + selectedAnim->GetRate())){
+            
+            frame = selectedAnim->m_frames.at(selectedFrame);
+            SDL_Surface* surf;
+            SDL_LockTextureToSurface(previewTexture, NULL, &surf );
+            SDL_FillSurfaceRect(surf, NULL, 0);
+            SDL_BlitSurfaceScaled(selectedTextInfo->texture->m_texture, &(frame.m_rect), surf, NULL); 
+            SDL_UnlockTexture(previewTexture);
+            if(selectedFrame == selectedAnim->GetLastIndex()) selectedFrame = 0;
+            else selectedFrame++;
+            lastPlayTime = curTick;
+        }
+    }
+    ImGui::SeparatorText("edit frame");
     if(ImGui::Button("update preview")){
         SDL_Surface* surf;
         SDL_LockTextureToSurface(previewTexture, NULL, &surf );
@@ -1521,5 +1590,14 @@ void CEditor::drawAnimView()
         
     }
     ImGui::InputInt4("Rect", &frame.m_rect.x);
+
+    ImGui::SeparatorText("preview");
+    if(prev_other)
+    {
+         ImGui::Text("%s frame [%d]", selectedAnim->m_szName.c_str(), selectedFrame);
+
+        ImVec2 frameSize = (scalex2 == true) ? ImVec2(selectedAnim->m_size.x * 2, selectedAnim->m_size.y * 2) : ImVec2(selectedAnim->m_size.x, selectedAnim->m_size.y);
+        ImGui::Image(previewTexture, frameSize);
+    }
     ImGui::Columns(); 
 }
