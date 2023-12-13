@@ -19,13 +19,16 @@ TODO
 - SDL3
     - great mac/linux support 
 - SDL3_Image
-    -  the only annoying dependency 
+    -  the only annoying dependency (no static linking, for what I use it for (pngs only) might be worth rolling my own  )
 - Dear ImGUI
     - obviously <3
 - nlohmann/json 
     - why make things difficult, I have yet to master serialization and hope to structure my scene/entity saving in a way I can be proud of this time. This library isn't my choice for lightweight/simple apps, but is it ever nice to use.. 
 - magic_enum 
     - sidenote: where has this been all my life holy! it is actually magic!
+
+- for some SDL stuff: sudo pacman -Sy xorg xorg-fonts  & a restart of X11 
+
 
 ### License/Usage
 - use the code all you want but the files in /resource are either: randomly found online, or bought from itch.io in the past and not mine to share. acquire them yourself. 

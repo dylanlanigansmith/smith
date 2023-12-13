@@ -3,7 +3,7 @@
 #include <imgui_impl_sdl3.h>
 #include <magic_enum/magic_enum.hpp>
 
-
+#include <ctime>
 CEngine::~CEngine()
 {
 }
@@ -38,6 +38,7 @@ void CEngine::Start(const char* title)
         log("set threadpriority -> %s", magic_enum::enum_name(priority).data() ); //+10-15fps boost with -Og  -> should we do this now that we are multithreaded
     }
 
+    srand(  time(nullptr) );
 #ifdef SMITHNETWORKED 
     if(enet_initialize() != 0){
         Error("failed to init network client %s", "stopping"); Shutdown();

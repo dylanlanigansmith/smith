@@ -42,20 +42,7 @@ public:
         sprintf(buf, "clr{%i,%i,%i,%i}", r(),g(),b(),a());
         return std::string(buf);
     }
-    uint8_t operator [](int idx) const {
-        switch (idx)
-        {
-        case 0:
-            return r();
-        case 1 :
-            return g();
-        case 2:
-            return b();
-        case 4: return a();
-        default:
-            return 0xffu;
-        }
-    }
+
     uint8_t& operator [](int idx){
         switch (idx)
         {
@@ -65,6 +52,7 @@ public:
             return *(uint8_t*)(&m_uColor + 0x2);
         case 2:
             return *(uint8_t*)(&m_uColor + 0x1);
+        case 3:
         case 4: return *(uint8_t*)(&m_uColor + 0x0);
         default:
             return*(uint8_t*)(&m_uColor + 0x0);

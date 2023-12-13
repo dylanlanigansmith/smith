@@ -17,8 +17,12 @@ void CBaseWeapon::Shoot()
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     static auto owner = static_cast<CPlayer *>(m_pOwner);
     auto curTick = IEngineTime->GetCurLoopTick();
-    if (m_nNextShot > curTick || m_clip == 0)
+    if (m_nNextShot > curTick || m_clip == 0){
+        if(m_clip == 0)
+            engine->SoundSystem()->PlaySound("empty-gun", 1.0);
         return;
+    }
+        
 
     m_nNextShot = curTick + m_nFireRate;
     m_clip --;

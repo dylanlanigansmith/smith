@@ -70,6 +70,8 @@ private:
     void SetLightingRenderInfo();
     void UpdateLighting();
     void BlurTexture();
+    void applyMovingAverage(int startX, int endX);
+    void applyRollingAverage(int startX, int endX, int kernelSize);
     void GaussianBlurPass(bool horizontal, int startX, int endX);
     void GaussBlurTexture(int startX, int endX);
     void GenerateGaussKernel();

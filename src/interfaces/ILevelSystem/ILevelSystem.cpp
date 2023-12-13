@@ -98,7 +98,27 @@ void CLevelSystem::OnEngineInitFinish()
 
     auto soldier = IEntitySystem->AddEntity<CEnemySoldier>();
     soldier->SetPosition(pstart.x - 3, pstart.y);
-    engine->SoundSystem()->PlaySound("van_Wiese_bass_beat", 0.2f);
+    soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+    soldier->SetPosition(11.6, 9.8);
+   // soldier->SetType(CEnemySoldier::Soldier_Med);
+    soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+    soldier->SetPosition(3.4, 22.7);
+
+    soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+    soldier->SetPosition(4.0, 10.5);
+    //soldier->SetType(CEnemySoldier::Soldier_Grunt);
+
+    for(int i = 0; i < 15; ++i)
+    {
+        auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
+        auto empty = FindEmptySpace();
+        while ((pstart - Vector2(empty.x, empty.y)).Length() < 12 ){
+            empty = FindEmptySpace();
+        }
+        sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
+    }
+
+    engine->SoundSystem()->PlaySound("st-song", 0.3f);
 }
 
 tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none

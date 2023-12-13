@@ -3,41 +3,161 @@
 
 void CEnemySoldier::OnUpdate()
 {
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
 
+     auto curTick = IEngineTime->GetCurLoopTick();
     if(m_state == Dying || m_state == Dead)
     {
-        static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-
         static auto whenToDie = IEngineTime->GetCurLoopTick() + 21;
         if(m_state == Dying && IEngineTime->GetCurLoopTick() > whenToDie ){
              m_state = Dead;
              draw.params.vOffset *= 2.5;
-        }
-           
+        }      
         m_anim.OnUpdate();
         return;
     }
-    static Vector2 pts[4] = { { 14.5, 21.3}, {14.5, 18.0}, {19.8, 17.7}, {19.4, 21.2} };
-    static int goal = 0;
-    static bool roundOnce = false;
-    if((int)m_vecPosition.x == (int)pts[goal].x && (int)m_vecPosition.y == (int)pts[goal].y){
-        if(goal >= 3) {goal = 0; roundOnce = true;}
-        else goal++;
-    }
-     m_state = Default;
-    if(!roundOnce){
-        
-        WalkTowards(pts[goal]);
-        m_anim.OnUpdate();
-        return;
-    }
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     auto player = IEntitySystem->GetLocalPlayer();
+    auto player_pos = player->GetPosition();
+    m_state = Default; //must be overwritten
 
+    if( curTick >=m_nextBehaviourChange && m_nextBehaviour != -1){
+        m_behaviour = m_nextBehaviour;
+        m_nextBehaviourChange = 0;
+        m_nextBehaviour = -1;
+    }
+    if(m_behaviour == Behaviour_Default){
+        if(m_state != Aiming)
+            m_state = Standing;
+       // m_anim.log("waiting for %s now%li then%li", magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)m_nextBehaviour).data(), curTick, m_nextBehaviourChange);
+        m_anim.OnUpdate();
+        return;
+    }
+    if(m_behaviour == Behaviour_Patrol)
+    {
+        if(!m_path.HasPath()){
+            m_path.Search({m_vecPosition.x, m_vecPosition.y}, ILevelSystem->FindEmptySpace());
+        }
+        if(m_path.HasPath())
+        {
+            auto nextPoint = m_path.GetNextPoint(IVector2(m_vecPosition));
+            if(IVector2(m_vecPosition) == nextPoint || !ILevelSystem->GetTileAt(nextPoint)->isEmpty())
+            {
+                m_view.lookAt(m_vecPosition, Vector2(nextPoint.x, nextPoint.y));
+                m_path.Reset();
+                m_behaviour = Behaviour_Default;
+                m_nextBehaviour = Behaviour_Patrol;
+                m_nextBehaviourChange = curTick + TICKS_PER_S;
+            }
+            else{
+                WalkTowards({nextPoint.x + 0.3, nextPoint.y + 0.3});
+            }
+        }
+        if(isPlayerVisible(player, 45.0))
+        {
+          //  m_anim.log("HEY! %li", curTick);
+            engine->SoundSystem()->PlaySound("soldier_hey");
+            //play sound HEY
+             m_view.lookAt(m_vecPosition, player_pos);
+            m_path.Reset();
+            m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
+            if(m_path.HasPath()){
+                 m_behaviour = Behaviour_Default;
+                m_nextBehaviour = Behaviour_Reposition;
+                m_nextBehaviourChange = curTick ;
+            }
+            else{
+                m_behaviour = Behaviour_Default;
+                m_state = Aiming;
+                m_nextBehaviour = Behaviour_Aiming;
+                m_nextBehaviourChange = curTick + TICKS_PER_S / 3;
+            }
+        }
+    }
+    if(m_behaviour == Behaviour_Reposition)
+    {
+        
+        if(!isPlayerVisible(player, 50.0))//wider fov
+        {
+           //path will still be to last spotted pt??
+            m_view.lookAt(m_vecPosition, player_pos);
+            m_behaviour = Behaviour_Default;
+            m_nextBehaviour = Behaviour_Patrol;
+            m_nextBehaviourChange = curTick + TICKS_PER_S;
+            m_anim.log("wtf we lost em");
+        }
+        else{
+            if(m_path.HasPath()){
+                auto nextPoint = m_path.GetNextPoint(IVector2(m_vecPosition));
+                double oldMove = m_move.m_flForwardSpeed;
+                m_move.m_flForwardSpeed *= m_move.m_flSpeedModifier;
+                WalkTowards({nextPoint.x + 0.3, nextPoint.y + 0.3});
 
-    m_state = Attacking;
-    m_view.lookAt(m_vecPosition, player->GetPosition());
-    Shoot(player);
+                m_move.m_flForwardSpeed = oldMove;
+            }
+            else{
+                 m_view.lookAt(m_vecPosition, player_pos);
+                 m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
+            }
+            if( (player_pos - m_vecPosition).Length2D() < 8){ //arbitrary
+                     m_view.lookAt(m_vecPosition, player_pos, m_move.m_flYawSpeed);
+                    m_behaviour = Behaviour_Default;
+                    m_nextBehaviour = Behaviour_Aiming;
+                    m_state = Aiming;
+                    m_nextBehaviourChange = curTick + 1;
+                      m_anim.log("we gonna aim");
+            }
+        }
+    }
+    if(m_behaviour == Behaviour_Aiming){
+        //aiming animation
+        m_state = Aiming;
+        if(m_nextBehaviour != Behaviour_Attack)
+        {
+             m_view.lookAt(m_vecPosition, player_pos);
+            m_behaviour = Behaviour_Default;
+            m_nextBehaviour = Behaviour_Attack;
+            m_nextBehaviourChange = curTick + TICKS_PER_S / 3;
+            if(!isPlayerVisible(player, 75.0))//wider fov
+            {
+                
+            //path will still be to last spotted pt??
+                m_view.lookAt(m_vecPosition, player_pos);
+                m_behaviour = Behaviour_Default;
+                m_nextBehaviour = Behaviour_Patrol;
+                m_nextBehaviourChange = curTick + TICKS_PER_S / 3;
+                
+            }
+        }
+    }
+    if(m_behaviour == Behaviour_Attack){
+        m_state = Attacking;
+        if(m_nextBehaviour != Behaviour_PostAttack)
+        {
+            engine->SoundSystem()->PlaySound("mp5", 0.7);
+             Shoot(player);
+            m_view.lookAt(m_vecPosition, player_pos, m_move.m_flYawSpeed);
+            //playsound gun 
+            m_nextBehaviour = Behaviour_PostAttack;
+            m_nextBehaviourChange = curTick + TICKS_PER_S / 3;
+        
+        }
+    }
+     if(m_behaviour == Behaviour_PostAttack){
+        m_state = Aiming;     
+       
+        
+        if(Util::SemiRandRange(0, 100) > 75){
+            m_behaviour = Behaviour_Aiming;
+        }
+        else{
+            m_nextBehaviour = Behaviour_Reposition;
+            m_nextBehaviourChange = curTick + 8;
+        }
+    }
+       
+
     m_anim.OnUpdate();
 
 }
@@ -45,6 +165,11 @@ void CEnemySoldier::OnUpdate()
 void CEnemySoldier::OnCreate()
 {
     ENT_SETUP();
+
+    m_state = Default;
+    m_behaviour = Behaviour_Patrol;
+    m_nextBehaviourChange = 0;
+    m_nextBehaviour = -1; //these should be AI states not anim states
     m_move.m_flForwardSpeed = 0.03; //0.130
     m_move.m_flStrafeSpeed = 0.1;
     m_move.m_flSpeedModifier = 1.38;
@@ -71,6 +196,8 @@ void CEnemySoldier::WalkTowards(const Vector2& pos)
     SetPosition(newPos);
 }
 
+
+//just keep this function minimized okay? you can thank me later. god help you. 
 int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int *frame, std::string &seq_name) // returns orientation
 {
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
@@ -169,6 +296,62 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
            
         }
         engine->log(" shoot hit no cases  <%.2f | x%.2f", angle, cross);
+        break;
+    }
+    case Aiming:
+    {
+        if(!facing && angle < tol){
+            orient = CAnimDirectional::Away;
+            *frame = 0 ;
+             *flip = AnimDir_NoFlip;
+            *anim_state = AnimDir_Attacking; 
+            seq_name = "shoot4"; break;
+        }
+        if(facing && angle > (180 - tol) ){
+            orient = CAnimDirectional::Facing;
+             *flip = AnimDir_NoFlip; *frame = 0 ;
+            *anim_state = AnimDir_Attacking; 
+            seq_name = "shoot0"; break;
+        }
+        if( (90 - side_tol) < angle && angle < (90 + side_tol) ){
+                 orient =  (cross >= xtol) ? CAnimDirectional::Face_Right : CAnimDirectional::Face_Left;
+                *flip = (cross >= xtol) ?  AnimDir_FlipH : AnimDir_NoFlip;
+                *anim_state = AnimDir_Attacking; *frame = 0 ;
+                seq_name = "shoot2"; break;
+        }
+        if(!facing &&  tol < angle){
+            
+            if(cross >= xtol){
+                orient = CAnimDirectional::Away_DiagLeft;
+                *flip = AnimDir_FlipH;
+                *anim_state = AnimDir_Attacking; *frame = 0 ;
+                seq_name = "shoot3"; break;
+            }
+            else if(cross <= -xtol){
+                orient = CAnimDirectional::Away_DiagRight; //no idea
+                 *flip = AnimDir_NoFlip;
+                *anim_state = AnimDir_Attacking; *frame = 0 ;
+                seq_name = "shoot3"; break;
+            }
+           
+        }
+        
+        if(facing &&  angle < (180.0 - tol)){
+            if(cross >= xtol){
+                orient = CAnimDirectional::Face_DiagLeft;
+                *flip = AnimDir_FlipH;
+                *anim_state = AnimDir_Attacking; *frame = 0 ;
+                seq_name = "shoot1"; break;
+            }
+            else if(cross <= -xtol){
+                orient = CAnimDirectional::Face_DiagRight; //idk
+                 *flip = AnimDir_NoFlip;
+                *anim_state = AnimDir_Attacking; *frame = 0 ;
+                seq_name = "shoot1"; break;
+            }
+           
+        }
+        engine->log(" aim hit no cases  <%.2f | x%.2f", angle, cross);
         break;
     }
     case Walking:
@@ -286,13 +469,77 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
     }
     static int lastOrient = 0;
     if(lastOrient != orient){
-         engine->log("facing %s <%.2f | x%.2f", magic_enum::enum_name((CAnimDirectional::AnimOrientations(orient))).data(), angle, cross);
+         //engine->log("facing %s <%.2f | x%.2f", magic_enum::enum_name((CAnimDirectional::AnimOrientations(orient))).data(), angle, cross);
 
     }
     lastOrient = orient;
     return orient;
 }
 
+bool CEnemySoldier::isPlayerVisible(CPlayer *player, double fov)
+{
+    #ifdef IGNORE_PLAYER
+    return false;
+    #endif
+
+    if(isPlayerWithinFOV(player->GetPosition(), fov))
+    {
+        if(CastRayToPlayer(player->GetPosition(), player->GetBounds()))
+            return true;
+    }
+    return false;
+}
+
+bool CEnemySoldier::isPlayerWithinFOV(const Vector2 &playerPosition, double FOVAngleDegrees)
+{
+      Vector2 delta = playerPosition - Vector2(GetPosition());
+ 
+    double dot = m_view.m_dir.Normalize().dot(delta.Normalize());
+
+    double halfFOVRadians = (FOVAngleDegrees / 2.0) * (M_PI / 180.0);
+    double cosHalfFOV = cos(halfFOVRadians);
+
+    return dot >= cosHalfFOV;
+
+}
+
+bool CEnemySoldier::CastRayToPlayer(const Vector2 &playerPosition, float playerBounds)
+{
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+     Ray_t ray = {
+        .origin = Vector2(GetPosition()),
+        .direction = (playerPosition - GetPosition()).Normalize() 
+    };
+    if(Util::RayIntersectsCircle(ray, playerPosition, playerBounds))
+    {
+        //engine->log("in circle");
+        int hit = 0;
+        Vector2 ray_pos = ray.origin;
+        double step = 0.2;
+        double dist_to_player = (playerPosition - ray.origin).Length();
+        IVector2 lastPos = {-1,-1};
+        while((playerPosition- ray_pos).Length() >= playerBounds)
+        {
+            //engine->log("CastRay %.3f %.3f", ray_pos.x, ray_pos.y);
+            ray_pos = ray_pos + (ray.direction * step);
+          
+            if(ray_pos.x < 0 || ray_pos.y < 0) return false;
+            if((int)floor(ray_pos.x) == lastPos.x && (int)floor(ray_pos.y) == lastPos.y)
+                continue;
+            lastPos = ray_pos;
+            auto tile = ILevelSystem->GetTileAt(lastPos);
+            if(tile->isEmpty()) continue;
+            if(tile->m_nType == Level::Tile_Wall || (tile->IsThinWall() && tile->m_pTexture->isTransparent()) )
+                return false;
+            
+        }
+        return true;
+        //engine->log("cast ray hit player");
+    }
+
+    return false;
+
+}
 
 void CEnemySoldier::Shoot(CPlayer *player)
 {
@@ -305,7 +552,7 @@ void CEnemySoldier::Shoot(CPlayer *player)
         .direction = m_view.m_dir.Normalize() //should already be
     };
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    if(Util::RayIntersectsCircle(ray, player_pos, player_bounds))
+    if(Util::RayIntersectsCircle(ray, player_pos, player_bounds)) //this is literally CastRayToPlayer...
     {
         //engine->log("in circle");
         int hit = 0;
@@ -315,7 +562,7 @@ void CEnemySoldier::Shoot(CPlayer *player)
         IVector2 lastPos = {-1,-1};
         while((Vector2(player_pos) - ray_pos).Length() >= player_bounds)
         {
-            engine->log("%.3f %.3f", ray_pos.x, ray_pos.y);
+           //engine->log("%.3f %.3f", ray_pos.x, ray_pos.y);
             ray_pos = ray_pos + (ray.direction * step);
           
             if(ray_pos.x < 0 || ray_pos.y < 0) return;
@@ -327,8 +574,8 @@ void CEnemySoldier::Shoot(CPlayer *player)
                 return;
             
         }
-        player->OnHit(m_stats.m_main_damage);
-        engine->log("hit player");
+        player->OnHit(m_stats.m_main_damage + (Util::SemiRandRange(0, m_stats.m_alt_damage) - m_stats.m_alt_damage ));
+       // engine->log("hit player");
     }
 }
 

@@ -111,6 +111,229 @@ void CRenderer::UpdateLighting()
   static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
   
 }
+void CRenderer::applyMovingAverage(int startX, int endX ) {
+
+
+  static SDL_Surface *surf = (BLUR_SCALE != 1) ? m_downscale : m_lightsurface;
+ static constexpr int width = SCREEN_WIDTH / BLUR_SCALE;
+ static constexpr int height = SCREEN_HEIGHT / BLUR_SCALE;
+  static const int pitch = surf->pitch / 4;
+  
+ static constexpr int kernelSize = 4;
+ static constexpr int ksz = kernelSize / 2;
+  static constexpr int leftMargin = ksz;
+ static constexpr int rightMargin = width - ksz;
+ static constexpr int topMargin = ksz;
+static constexpr int bottomMargin = height - ksz;
+
+
+if(startX == 0 || endX == width)
+{
+      for (int y = 0; y < height; ++y) {
+      for (int x = startX; x < endX; ++x) {
+          if (x < leftMargin || x >= rightMargin || y < topMargin || y >= bottomMargin) {
+                uint32_t r = 0, g = 0, b = 0, a = 0;
+              int count = 0;
+
+              // Kernel iteration
+              for (int ky = -ksz; ky <= ksz; ++ky) {
+                  for (int kx = -ksz; kx <= ksz; ++kx) {
+                      int sampleX =  std::clamp(x + kx, 0, width - 1) ;
+                      int sampleY = std::clamp(y + ky, 0, height - 1);
+                      r += (  ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX]  >> 24) & 0xFF);
+                    g += ( (((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] >> 16) & 0xFF);
+                    b += ( ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] >> 8) & 0xFF);
+                    a += ( ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] ) & 0xFF);
+                      count++;
+                  }
+              }
+
+              // Compute average
+              r /= count;
+              g /= count;
+              b /= count;
+              a /= count;
+
+              ((uint32_t *)(m_blur->pixels))[(y * pitch) + x] = ( ( r ) << 24)  | ( ( g   ) << 16) 
+                                                            |  ( ( b   ) << 8)  |  ( ( a   )  ) ;
+          }
+      }
+    }
+}
+else
+{
+      for (int y = 0; y < height; ++y) {
+      for (int x = startX; x < endX; ++x) {
+          if (x < leftMargin || x >= rightMargin || y < topMargin || y >= bottomMargin) {
+                uint32_t r = 0, g = 0, b = 0, a = 0;
+              int count = 0;
+
+              // Kernel iteration
+              for (int ky = -ksz; ky <= ksz; ++ky) {
+                  for (int kx = -ksz; kx <= ksz; ++kx) {
+                      int sampleX =  x + kx;
+                      int sampleY = std::clamp(y + ky, 0, height - 1);
+                       r += (  ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX]  >> 24) & 0xFF);
+                    g += ( (((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] >> 16) & 0xFF);
+                    b += ( ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] >> 8) & 0xFF);
+                    a += ( ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] ) & 0xFF);
+                      count++;
+                  }
+              }
+
+              // Compute average
+              r /= count;
+              g /= count;
+              b /= count;
+              a /= count;
+
+               ((uint32_t *)(m_blur->pixels))[(y * pitch) + x] = ( ( r ) << 24)  | ( ( g   ) << 16) 
+                                                            |  ( ( b   ) << 8)  |  ( ( a   )  ) ;
+          }
+      }
+    }
+}
+
+
+const int x_start = std::max(startX, leftMargin), x_end = std::min(endX, rightMargin);
+// Process central area without boundary checks
+for (int y = topMargin; y < bottomMargin; ++y) {
+    for (int x = x_start; x < x_end; ++x) {
+         uint32_t r = 0, g = 0, b = 0, a = 0;
+            int count = 0;
+
+            // Kernel iteration
+            for (int ky = -ksz; ky <= ksz; ++ky) {
+                for (int kx = -ksz; kx <= ksz; ++kx) {
+                    int sampleX =  x + kx;
+                    int sampleY = y + ky;
+                  //  Color clr = ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX];
+                  //  r += clr.r(); 
+                  //  g += clr.g();
+                  //  b += clr.b();
+                 //   a += clr.a();
+                    r += (  ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX]  >> 24) & 0xFF);
+                    g += ( (((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] >> 16) & 0xFF);
+                    b += ( ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] >> 8) & 0xFF);
+                    a += ( ( ((uint32_t*)surf->pixels)[(sampleY * pitch) + sampleX] ) & 0xFF);
+                    count++;
+                }
+            }
+
+            //Compute average
+            r /= count;
+            g /= count;
+            b /= count;
+            a /= count;
+
+            ((uint32_t *)(m_blur->pixels))[(y * pitch) + x] = ( ( r ) << 24)  | ( ( g   ) << 16) 
+                                                            |  ( ( b   ) << 8)  |  ( ( a   )  ) ;
+    }
+}
+
+/*
+    for (int y = 0; y < height; ++y) {
+        for (int x = startX; x < endX; ++x) {*/
+            //float r = 0, g = 0, b = 0, a = 0;
+            //
+     //   }
+  //  }
+
+   
+  
+}
+void CRenderer::applyRollingAverage(int startY, int endY, int kernelSize)
+{
+  struct big_color_t
+  {
+    uint64_t r{}, g{}, b{}, a{};
+
+    void operator+=(const Color &rhs)
+    {
+      r += rhs.r();
+      g += rhs.g();
+      b += rhs.b();
+      a += rhs.a();
+    }
+    void operator+=(const big_color_t &rhs)
+    {
+      r += rhs.r;
+      g += rhs.g;
+      b += rhs.b;
+      a += rhs.a;
+    }
+  void add(const Color &color) {
+        r += color.r();
+        g += color.g();
+        b += color.b();
+        a += color.a();
+    }
+
+    void subtract(const big_color_t &other) {
+        r -= other.r;
+        g -= other.g;
+        b -= other.b;
+        a -= other.a;
+    }
+    Color operator/(const int c) const
+    {
+      return Color(uint8_t(r / c), uint8_t(g / c), uint8_t(b / c), uint8_t(a / c));
+    }
+    Color average(int area) const {
+        return Color(r / area, g / area, b / area, a / area);
+    }
+  };
+
+
+
+ SDL_Surface *surf = (BLUR_SCALE != 1) ? m_downscale : m_lightsurface;
+    int width = SCREEN_WIDTH / BLUR_SCALE;
+    int height = SCREEN_HEIGHT / BLUR_SCALE;
+int extendedStartY = std::max(startY - kernelSize / 2, 0);
+int extendedEndY = std::min(endY + kernelSize , height);
+    std::vector<big_color_t> horizontalSum(width * height);
+
+    // Horizontal pass
+    for (int y = startY; y < extendedEndY; ++y) {
+        big_color_t x_color;
+        for (int x = 0; x < width ; ++x) {
+            Color clr = GetPixel(surf, x, y);
+            x_color += clr;
+          //  log( "r%li g%li b%li a%li thread=%d", x_color.r, x_color.g, x_color.b, x_color.a, startX);
+            horizontalSum[y * width + x] = x_color;
+        }
+            
+            
+    }
+    std::vector<big_color_t> verticalCumulativeSum(height * width);
+int kernelArea = kernelSize * kernelSize;
+
+
+for (int x = 0; x < width ; ++x) {
+     big_color_t sum = {};
+    for (int y = 0; y < startY; ++y) {
+        sum += horizontalSum[y * width + x];
+    }
+    for (int y = startY; y < extendedEndY; ++y) {
+        sum += horizontalSum[y * width + x];
+        verticalCumulativeSum[y * width + x] = sum;
+
+        if (x >= kernelSize - 1 && y >= kernelSize - 1) {
+            big_color_t topLeft = (x - kernelSize < 0 || y - kernelSize < 0) ? big_color_t{} : verticalCumulativeSum[(y - kernelSize) * width + (x - kernelSize)];
+            big_color_t topRight = (y - kernelSize < 0) ? big_color_t{} : verticalCumulativeSum[(y - kernelSize) * width + x];
+            big_color_t bottomLeft = (x - kernelSize < 0) ? big_color_t{} : verticalCumulativeSum[y * width + (x - kernelSize)];
+
+            big_color_t areaSum = sum;
+            areaSum.subtract(topRight);
+            areaSum.subtract(bottomLeft);
+            areaSum += topLeft;
+
+            SetPixel(m_blur, x, y, areaSum.average(kernelArea));
+        }
+    }
+}
+   
+}
 
 void CRenderer::BlurTexture()
 {
@@ -152,29 +375,37 @@ void CRenderer::BlurTexture()
         }
     }
 }
-void CRenderer::GaussianBlurPass(bool horizontal, int startX, int endX) {
-    SDL_Surface* surf = (BLUR_SCALE != 1 ) ? m_downscale : m_lightsurface;
-    int width = SCREEN_WIDTH / BLUR_SCALE;
-    int height = SCREEN_HEIGHT / BLUR_SCALE;
-   
-    for (int y = 0; y < height; ++y) {
-        for (int x = startX; x < endX; ++x) {
-            float r = 0, g = 0, b = 0, a = 0;
+void CRenderer::GaussianBlurPass(bool horizontal, int startX, int endX)
+{
+  SDL_Surface *surf = (BLUR_SCALE != 1) ? m_downscale : m_lightsurface;
+ constexpr int width = SCREEN_WIDTH / BLUR_SCALE;
+ constexpr int height = SCREEN_HEIGHT / BLUR_SCALE;
+  const int pitch = surf->pitch / 4;
+  for (int y = 0; y < height; ++y)
+  {
+    for (int x = startX; x < endX; ++x)
+    {
+      float r = 0, g = 0, b = 0, a = 0;
 
-            for (int k = -kernelSize / 2; k <= kernelSize / 2; ++k) {
-                int sampleX = horizontal ? std::clamp(x + k, 0, width - 1) : x;
-                int sampleY = horizontal ? y : std::clamp(y + k, 0, height - 1);
-                Color clr = GetPixel(surf, sampleX, sampleY);
-                float weight = kernel[k + kernelSize / 2];
-                r += clr.r() * weight;
-                g += clr.g() * weight;
-                b += clr.b() * weight;
-                a += clr.a() * weight;
-            }
+      for (int k = -kernelSize / 2; k <= kernelSize / 2; ++k)
+      {
+        int sampleX = horizontal ? std::clamp(x + k, 0, width - 1) : x;
+        int sampleY = horizontal ? y : std::clamp(y + k, 0, height - 1);
 
-            SetPixel(m_blur, x, y, Color(r,g,b,a));
-        }
+        int sampleIndex = (sampleY * pitch) + sampleX; // Corrected index calculation
+        Color clr = ((uint32_t *)surf->pixels)[sampleIndex];
+
+        float weight = kernel[k + kernelSize / 2];
+        r += clr.r() * weight;
+        g += clr.g() * weight;
+        b += clr.b() * weight;
+        a += clr.a() * weight;
+     
+      }
+
+      ((uint32_t *)(m_blur->pixels))[(y * pitch) + x] = Color(r, g, b, a);//
     }
+  }
 }
 
 void CRenderer::GaussBlurTexture(int startX, int endX) {
@@ -220,7 +451,10 @@ void CRenderer::SetupThreads()
                         std::this_thread::yield();
                     }
                     const int endblur = (i == NUM_THREADS - 1) ? (SCREEN_WIDTH / BLUR_SCALE): (((SCREEN_WIDTH / BLUR_SCALE))/ NUM_THREADS) * (i + 1);
-                    this->GaussBlurTexture( 0 + ( i * ((SCREEN_WIDTH / BLUR_SCALE)) / NUM_THREADS)  ,  endblur );
+                    const int endblury = (i == NUM_THREADS - 1) ? (SCREEN_HEIGHT / BLUR_SCALE): (((SCREEN_HEIGHT/ BLUR_SCALE))/ NUM_THREADS) * (i + 1);
+                  //  this->GaussBlurTexture( 0 + ( i * ((SCREEN_WIDTH / BLUR_SCALE)) / NUM_THREADS)  ,  endblur ); 
+                  this->applyMovingAverage( 0 + ( i * ((SCREEN_WIDTH / BLUR_SCALE)) / NUM_THREADS)  ,  endblur ); 
+                   // this->applyRollingAverage( 0 + ( i * ((SCREEN_HEIGHT / BLUR_SCALE)) / NUM_THREADS)  ,  endblury, 8 );
                      doneCount.fetch_add(1);
                     while(this->startBlur.load()){
                       std::this_thread::yield();
@@ -283,7 +517,7 @@ void CRenderer::Loop()
  
   WolfProfiler->Start();
  
-  doneCount.store(0);
+  doneCount.store(0); //startBlur.store(true);
   startRender.store(true, std::memory_order_release);
 
 
@@ -314,9 +548,10 @@ void CRenderer::Loop()
     
   }
    startBlur.store(false);
-    //GaussBlurTexture( 0, SCREEN_WIDTH / BLUR_SCALE);
-   // BlurTexture();
+
   } 
+
+
   BlurProfiler->End();
   
 

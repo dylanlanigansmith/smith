@@ -17,7 +17,8 @@ enum AnimFlags : uint64_t {
     ANIM_CENTERED    = 1ULL << 4,
     ANIM_POS_SCREEN  = 1ULL << 5,
     ANIM_POS_REL     = 1ULL << 6,
-    AnimFlags_SIZE = 7 //7 entries
+    ANIM_OVER_LIGHT  = 1ULL << 7,
+    AnimFlags_SIZE = 7 //8 entries
 };
 /*
 
@@ -121,7 +122,10 @@ public:
     inline bool IsAnimCentered() const { return m_flags & ANIM_CENTERED; }
     inline bool IsAnimPosScreen() const { return m_flags & ANIM_POS_SCREEN; }
     inline bool IsAnimPosRel() const { return m_flags & ANIM_POS_REL; }
-
+    inline bool IsAnimOverLight() const { return m_flags & ANIM_OVER_LIGHT; }
+    inline void SetAnimOverLight(bool enabled) {
+        m_flags = enabled ? (m_flags | ANIM_OVER_LIGHT) : (m_flags & ~ANIM_OVER_LIGHT);
+    }
     inline void SetAnimShouldLoop(bool enabled) {
         m_flags = enabled ? (m_flags | ANIM_SHOULD_LOOP) : (m_flags & ~ANIM_SHOULD_LOOP);
     }

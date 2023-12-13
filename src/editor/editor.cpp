@@ -8,6 +8,7 @@
 #include <renderer/render_helpers.hpp>
 #include <util/misc.hpp>
 
+#include <entity/dynamic/enemy/CEnemySoldier.hpp>
 #include <data/CAnimData.hpp>
 #define MENULOG(fmt, ...) engine->log(fmt, __VA_ARGS__)
 
@@ -111,6 +112,11 @@ void CEditor::render(CRenderer *renderer)
                 draw->AddText(tp - ent_ts, text_color, ent_info.c_str());
             }
         }
+            std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_max_health, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());
+            auto camtextSize = ImGui::CalcTextSize(str_hp.c_str());
+            static const ImVec2 camposition(camtextSize.x + 35, SCREEN_HEIGHT_FULL - 25);
+            draw->AddText(camposition , text_color, str_hp.c_str());
+
     }
 
     if (!isOpen())
@@ -434,7 +440,9 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
     ImGui::Text("%s", entity->GetSubclass().c_str());
     auto pos = entity->GetPosition();
     const float GRID_STEP = 32.f;
-    if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && entity->GetID() > 0)
+
+    static const auto csoldier= CEntitySystem::CreateType("CEnemySoldier");
+    if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && entity->GetID() > 0 && (entity->GetType() != csoldier))
     {
         auto rdr = (CBaseRenderable *)entity;
         auto name = ITextureSystem->FilenameFromHandle(rdr->GetTextureHandle());
@@ -443,9 +451,15 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
         float offset_x = GRID_STEP * (float)pos.x + offset.x;
         float offset_y = GRID_STEP * (float)pos.y + offset.y;
+
         draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
     }
+    else if((entity->GetType() == csoldier)){
+        float offset_x = GRID_STEP * (float)pos.x + offset.x;
+        float offset_y = GRID_STEP * (float)pos.y + offset.y;
 
+        draw_list->AddRect( ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP / 2, pos.y + offset_y + GRID_STEP / 2), IM_COL32(255,0,0,200));
+    }
     if (node_open)
     {
 
@@ -464,7 +478,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             ImGui::AlignTextToFramePadding();
             ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet;
 
-            static const auto cbaseenemy = CEntitySystem::CreateType("CBaseEnemy");
+            
 
             ImGui::TreeNodeEx("Properties", flags, "%d", i);
 
@@ -477,18 +491,19 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             //  else
             //  ImGui::DragFloat("##value", &placeholder_members[i], 0.01f);
 
-            if (entity->IsRenderable() && !(entity->IsLocalPlayer()))
+            if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && (entity->GetType() != csoldier))
             {
                 auto rdr = (CBaseRenderable *)entity;
                 auto name = ITextureSystem->FilenameFromHandle(rdr->GetTextureHandle());
                 auto editor_text = texture_info.at(name);
                 ImGui::Text("mat: %s", name.c_str());
             }
-            if (entity->GetType() == cbaseenemy)
+            if (entity->GetType() == csoldier)
             {
-                auto enemy = (CBaseEnemy *)entity;
+                auto enemy = (CEnemySoldier *)entity;
                 ImGui::Text("Health {%i / %i}", enemy->GetHealth(), enemy->GetMaxHealth());
 
+                ImGui::Text("behaviour %s", magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour).data());
                 auto path = enemy->GetPathFinder();
                 if (path->HasPath())
                 {

@@ -32,7 +32,7 @@ void CWeaponSMG::OnUpdate()
 
 void CWeaponSMG::OnShoot()
 {
-   anim_smg.PlaySequenceByName("shoot0");
+   anim_smg.PlaySequenceByName("shoot0", true);
   
      engine->SoundSystem()->PlaySound("dev_gunshot0", 1.0); //needs a sound
 }

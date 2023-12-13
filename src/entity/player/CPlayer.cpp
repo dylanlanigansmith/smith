@@ -14,7 +14,12 @@ void CPlayer::OnUpdate()
 {
   m_inventory->OnUpdate();
   CreateMove();
-
+  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+  static auto lastHealthGain = IEngineTime->GetCurLoopTick();
+  if(m_health < 75 && IEngineTime->GetCurLoopTick()  > (lastHealthGain + TICKS_PER_S * 2.5 ) ){
+    m_health += Util::SemiRandRange(2, 8);
+    lastHealthGain = IEngineTime->GetCurLoopTick();
+  }
 }
 
 void CPlayer::OnCreate()
@@ -95,8 +100,7 @@ void CPlayer::OnHit(int damage)
     m_move.m_flForwardSpeed = 0.0;
     m_move.m_flStrafeSpeed = 0.0;
     int er = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "You died.", "you lost the game like a little bitch", engine->window()); //No message system available -1
-    //Inventory()->At(1000);
-    engine->log("%s %d", SDL_GetError(), er);
+    
   }
     
 }
@@ -249,4 +253,8 @@ void CPlayer::CreateMove()
     m_vecPosition.z = std::max<double>(0, m_vecPosition.z - 100 * moveSpeed);
   if (m_vecPosition.z < 0 && !isCrouching)
     m_vecPosition.z = std::min<double>(0, m_vecPosition.z + 100 * moveSpeed);
+
+
+    if(noclip)
+      m_health = m_max_health;
 }

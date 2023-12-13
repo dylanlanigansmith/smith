@@ -74,6 +74,10 @@ int CSoundSystem::Loop(void *sndsys)
     LoadAudioFile("dev_test_scores.wav");
     LoadAudioFile("van_Wiese_bass_beat.wav");
     LoadAudioFile("dev_gunshot0.wav");
+    LoadAudioFile("soldier_hey.wav");
+    LoadAudioFile("mp5.wav");
+    LoadAudioFile("st-song.wav");
+    LoadAudioFile("empty-gun.wav");
    // LogAudioData("van_Wiese_bass_beat");
    // LogAudioData("dev_tests16");
    // LogAudioData("dev_test_scores");
