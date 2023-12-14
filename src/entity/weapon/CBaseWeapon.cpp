@@ -10,17 +10,21 @@ inline bool HitDetectPixelPerfect(CPlayer *player, CEnemySoldier *ent, IVector2 
 }
 
 
-void CBaseWeapon::Shoot()
+bool CBaseWeapon::Shoot()
 {
      static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem"); // real collisions just use 2d top down sdl rect
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     static auto owner = static_cast<CPlayer *>(m_pOwner);
     auto curTick = IEngineTime->GetCurLoopTick();
-    if (m_nNextShot > curTick || m_clip == 0){
-        if(m_clip == 0)
-            engine->SoundSystem()->PlaySound("empty-gun", 1.0);
-        return;
+
+    static looptick_t click = 0;
+    if (m_nNextShot > curTick || m_clip == 0 || m_nNextReload > curTick){
+        if(m_clip == 0 && click < curTick){
+            click = curTick + TICKS_PER_S / 2; engine->SoundSystem()->PlaySound("empty-gun", 1.0);
+        }
+            
+        return false;
     }
         
 
@@ -57,7 +61,7 @@ void CBaseWeapon::Shoot()
                     int pos = Util::SemiRandRange(0, 8) * -1;
                     hit_ent->OnHit(Util::SemiRandRange(8, 16), pos);
 
-                    return;
+                    return true;
                 }
             }
         }
@@ -150,20 +154,20 @@ void CBaseWeapon::Shoot()
                         int pos = Util::SemiRandRange(0, 8) * -1;
                         hit_ent->OnHit(Util::SemiRandRange(m_data.flDamage - m_data.iDamageMod / 1.5, m_data.flDamage + m_data.iDamageMod / 2), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
 
-                        return;
+                        return true;
                     }
                 }
             }
         }
         // Check if ray has hit a wall o
-        if (ILevelSystem->GetMapAt(mapPos.x, mapPos.y) > 0)
+        if (tile->m_nType == Level::Tile_Wall )
             hit = 1;
     }
     // FOR BULLET HOLES ^
 
     if (hit)
     {
-        auto tile = ILevelSystem->GetTileAt(mapPos.x, mapPos.y);
+        auto tile = ILevelSystem->GetTileAtFast(mapPos.x, mapPos.y);
         // engine->dbg("shot %i %i | %i", tile->m_vecPosition.x, tile->m_vecPosition.y, tile->m_nDecals);
         if (side == 0)
             perpWallDist = (sideDist.x - deltaDist.x);
@@ -188,18 +192,30 @@ void CBaseWeapon::Shoot()
         const uint8_t dir[3] = {(step.x > 0), (step.y > 0), side & 0xFF};
         ILevelSystem->AddBulletHole(tile, tex, dir, 2.f); // 3 works well
     }
+
+    return true;
 }
 
 void CBaseWeapon::Reload()
 {
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
 
-      auto curTick = IEngineTime->GetCurLoopTick();
-      if(m_nNextReload > curTick) return;
+    auto curTick = IEngineTime->GetCurLoopTick();
+    if(m_reserveammo == 0 ) return;
+    if(m_nNextReload > curTick) return;
 
      this->OnReload(); 
      m_nNextReload = curTick + m_data.iReloadTime;
-     m_clip = m_data.iMaxAmmo; 
+     if(m_reserveammo > m_data.iMaxAmmo)
+     {
+         m_clip = m_data.iMaxAmmo; 
+        m_reserveammo -= m_clip;
+     }
+     else{
+         m_clip = m_reserveammo;
+         m_reserveammo = 0;
+     }
+    
 }
 
 void CBaseWeapon::OnSetOwnerEntity()

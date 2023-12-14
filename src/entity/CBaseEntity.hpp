@@ -44,7 +44,9 @@ public:
     virtual void OnUpdate() = 0;
     virtual void OnCreate() = 0;
     virtual void OnDestroy() = 0;
-
+    virtual float GetBounds() const { return 0.34f; }
+    virtual void OnCollisionWith(CBaseEntity* hit) {}
+    virtual bool IsBlocking() const { return true; }
 protected:
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos) {}
 protected:

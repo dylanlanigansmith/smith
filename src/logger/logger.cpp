@@ -15,6 +15,7 @@ void CLogger::formatName()
     //just bc every constructor calls this
      m_bColorizeEverything = false;
     m_bFileLogging = false;
+    m_bOnlyFileLogging = false;
     m_bDebug = true;
 }
 

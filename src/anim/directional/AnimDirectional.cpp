@@ -92,7 +92,7 @@ void CAnimDirectional::OnUpdate()
         BackToDefault();
         return;
     }
-
+    
     if(m_nextUpdate > m_curUpdate) return;
 
     m_curFrame++;
@@ -101,6 +101,7 @@ void CAnimDirectional::OnUpdate()
         if(m_animstate == m_playingForState){
              m_nextUpdate = 0; m_curFrame = 0;
             PlaySequenceByName(seq_name);
+            m_currentlyPlaying = seq_name;
              dbg("repeating %s", seq_name.c_str());
         }
              

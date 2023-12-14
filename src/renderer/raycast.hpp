@@ -394,31 +394,31 @@ namespace Render
             bool setPixel = false;
             auto pDecals = tile->m_pDecals;
             int i = 0;
-            while (1 && pDecals != nullptr)
+            while ( pDecals != nullptr)
             {
-            int hole_side = pDecals->side;
-            uint8_t hole_x = pDecals->dir[0];
-            uint8_t hole_y = pDecals->dir[1];
-            if (ray.side == hole_side && ((ray.side == 0 && (ray.step.x > 0) == hole_x) || (ray.side == 1 && (ray.step.y > 0) == hole_y)))
-            {
-                int radius = pDecals->radius;
-                IVector2 &hole = pDecals->texturePosition;
-                auto delta = hole - draw.texture_pos;
-                if (radius * radius >= delta.x * delta.x + delta.y * delta.y + 0.25f)
+                int hole_side = pDecals->side;
+                uint8_t hole_x = pDecals->dir[0];
+                uint8_t hole_y = pDecals->dir[1];
+                if (ray.side == hole_side && ((ray.side == 0 && (ray.step.x > 0) == hole_x) || (ray.side == 1 && (ray.step.y > 0) == hole_y)))
                 {
-                // SetPixel(x,y,  Render::MergeColorsFixed( hole_color, color, hole_alpha, oalpha));
-                renderer->SetPixel(x, y, hole_color + color);
-                setPixel = true;
-                break;
+                    int radius = pDecals->radius;
+                    IVector2 &hole = pDecals->texturePosition;
+                    auto delta = hole - draw.texture_pos;
+                    if (radius * radius >= delta.x * delta.x + delta.y * delta.y + 0.25f)
+                    {
+                    // SetPixel(x,y,  Render::MergeColorsFixed( hole_color, color, hole_alpha, oalpha));
+                    renderer->SetPixel(x, y, hole_color + color);
+                    setPixel = true;
+                    break;
+                    }
                 }
-            }
-            i++;
-            if (pDecals->m_pNextDecal == nullptr)
-                break;
-            pDecals = pDecals->m_pNextDecal;
+                i++;
+                if (pDecals->m_pNextDecal == nullptr)
+                    break;
+                pDecals = pDecals->m_pNextDecal;
             }
             if (setPixel)
-            continue;
+                continue;
         }
         if (ray.side == 1) // make color darker for y-sides
             color /= 0.5f;

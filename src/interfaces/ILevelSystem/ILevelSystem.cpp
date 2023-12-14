@@ -98,17 +98,17 @@ void CLevelSystem::OnEngineInitFinish()
 
     auto soldier = IEntitySystem->AddEntity<CEnemySoldier>();
     soldier->SetPosition(pstart.x - 3, pstart.y);
-    soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-    soldier->SetPosition(11.6, 9.8);
+   // soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+   // soldier->SetPosition(11.6, 9.8);
    // soldier->SetType(CEnemySoldier::Soldier_Med);
-    soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-    soldier->SetPosition(3.4, 22.7);
+  //  soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+  //  soldier->SetPosition(3.4, 22.7);
 
-    soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-    soldier->SetPosition(4.0, 10.5);
+ //   soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+  //  soldier->SetPosition(4.0, 10.5);
     //soldier->SetType(CEnemySoldier::Soldier_Grunt);
 
-    for(int i = 0; i < 15; ++i)
+    for(int i = 0; i < 26; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();
@@ -116,9 +116,10 @@ void CLevelSystem::OnEngineInitFinish()
             empty = FindEmptySpace();
         }
         sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
+        sold->GetPathFinder()->Debug(false);
     }
 
-    engine->SoundSystem()->PlaySound("st-song", 0.3f);
+   engine->SoundSystem()->PlaySound("st-song", 0.3f);
 }
 
 tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none
@@ -155,26 +156,65 @@ IVector2 CLevelSystem::FindEmptySpace() // Random
         int x = Util::SemiRandRange(0, MAP_SIZE - 1);
         int y = Util::SemiRandRange(0, MAP_SIZE - 1);
         bail++;
-        if(GetMapAt(x,y) != Level::Tile_Empty)
+        if(auto t = GetTileAtFast(x,y); t->Blocking() || !t->m_occupants.empty())
             continue;
         return {x,y};
     }
 }
 
-bool CLevelSystem::IsCollision(const Vector& origin, const Vector& goal)
+bool CLevelSystem::IsCollision(CBaseEntity* caller, const Vector& origin, const Vector& goal)
 {
     //to raycast everything we would have to either dda or deduce direction and get face coords, or check all 4 lol
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+  //  return IsWallCollision(origin, goal);
+    if(IsWallCollision(origin, goal)) return true;
+    Vector delta = goal - origin;
+    auto tile = GetTileAt({goal.x, goal.y});
+    auto tile_start = GetTileAt(Vector2(origin));
+    if(!caller) return true;
+    if(!tile->m_occupants.empty())
+    {
 
+        if(tile == tile_start && tile->m_occupants.size() == 1) //its us
+            return false;
+        
+        for(auto& id : tile->m_occupants)
+        {
+            auto ent = IEntitySystem->GetEntity(id);
+            if(!ent) continue; //we got issues 
+            if(ent->GetID() == caller->GetID()) continue;
+            Vector2 pos = ent->GetPosition();
+            auto bounds = ent->GetBounds() + 0.1;
+            if( (pos - Vector2(goal)).LengthSqr() <=  bounds*bounds){
+            //    warn("too long %f %f", (pos - Vector2(origin)).LengthSqr(),  bounds*bounds);
+                caller->OnCollisionWith(ent);
+                if(ent->IsBlocking())
+                    return true;
+            }
+        }
+    }
+    return false;
+
+
+}
+
+bool CLevelSystem::IsWallCollision(const Vector& origin, const Vector& goal)
+{
+    //to raycast everything we would have to either dda or deduce direction and get face coords, or check all 4 lol
+   
     Vector delta = goal - origin;
     auto tile = GetTileAt({goal.x, goal.y});
     auto tile2 = GetTileAt(Vector2(goal - delta * 0.1));
     if(!tile || !tile2) return true;
     auto type = tile->m_nType;
     auto type2 = tile2->m_nType;
-    if(type == Level::Tile_Empty && type == type2) return false;
-    if(type == Level::Tile_Wall) return true;
 
-    //we have a fancy wall aw shit
+    if(!tile->Blocking() ) return false; //idek
+    if(tile->Blocking() ) return true;
+    
+    
+
+    //we have a fancy wall aw shit.. this is likely void w/ flags
     Ray_t ray = {
         .origin = origin,
         .direction = (goal - origin).Normalize()
@@ -221,7 +261,7 @@ void CLevelSystem::LoadAndFindTexturesForMap()
     AddMapTexture(4, "mossy.png");
     AddMapTexture(5, "pillar.png");
     AddMapTexture(69, "greystone.png");*/
-
+//lol this code was from the first evening
 }
 
 void CLevelSystem::AddMapTexture(int id, const std::string& name)
@@ -271,19 +311,21 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
 
 void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius)
 {
-    #define MAX_DECALS 4
+    #define MAX_DECALS 100
 
     if(tile->m_nDecals > MAX_DECALS){
         int index = (tile->m_nDecals - 1) % MAX_DECALS;
         auto pDecals = tile->m_pDecals;
         for (int i = 0; i < index; ++i) {
-            if(pDecals == nullptr) break;
-            pDecals = pDecals->m_pNextDecal;
+            if(pDecals->m_pNextDecal)
+                pDecals = pDecals->m_pNextDecal;
+           
+            
         }
         if(pDecals == nullptr) return; //always nullptr!!
 
         pDecals->radius = radius;
-       // pDecals->m_pNextDecal = nullptr;
+        pDecals->m_pNextDecal = nullptr;
         pDecals->texturePosition = pos;
         pDecals->side = side[2];
         pDecals->dir[0] = side[0];
@@ -317,7 +359,7 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
         pDecals = pDecals->m_pNextDecal;
         d++;
     }
-    if(pDecals == nullptr || pDecals && pDecals->m_pNextDecal){
+    if(pDecals == nullptr || (pDecals && pDecals->m_pNextDecal == nullptr )){
         delete hole; return;
     }
 

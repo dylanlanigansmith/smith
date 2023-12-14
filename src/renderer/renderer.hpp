@@ -8,13 +8,14 @@
 #include <entity/player/CCamera.hpp>
 // #include <entity/player/CPlayer.hpp>
 #include "render_helpers.hpp"
-
+#define BLUR_SCALE 2
 
 class CPlayer;
 
 class CRenderer : public CLogger
 {
 public:
+    friend class CEditor;
     CRenderer(SDL_Window *win) : CLogger(std::string("Render")), m_SDLWindow(win) {}
     virtual ~CRenderer();
     virtual bool Create();
@@ -35,7 +36,8 @@ public:
 
     inline void SetPixel(int x, int y, const Color color)
     {
-        int index = (y * m_surface->pitch / 4) + x;
+        const static int pitch = m_surface->pitch / 4;
+        int index = (y * pitch) + x;
         pixels[index] = color;
     }
     inline void SetPixel(SDL_Surface* surf, int x, int y, const Color color)
@@ -50,14 +52,15 @@ public:
     }
     inline Color GetPixel(int x, int y)
     {
-        int index = (y * m_surface->pitch / 4) + x;
+        const static int pitch = m_surface->pitch / 4;
+        int index = (y * pitch) + x;
         return Color(pixels[index]);
     }
     void OnEngineInitFinish();
 
  
     
-    uint8_t Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god
+    uint8_t Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god delete this
 private:
     bool CreateRendererLinuxGL();
     void RunImGui();
@@ -70,7 +73,7 @@ private:
     void SetLightingRenderInfo();
     void UpdateLighting();
     void BlurTexture();
-    void applyMovingAverage(int startX, int endX);
+    void applyMovingAverage(int startX, int endX, int startY = 0, int endY = SCREEN_HEIGHT/BLUR_SCALE);
     void applyRollingAverage(int startX, int endX, int kernelSize);
     void GaussianBlurPass(bool horizontal, int startX, int endX);
     void GaussBlurTexture(int startX, int endX);
@@ -81,6 +84,7 @@ private:
     int thread_count;
     std::atomic<bool> startRender{false};
     std::atomic<bool> startBlur{false};
+   
     std::atomic<bool> stopThread{false};
     std::atomic<int> doneCount{0};
     
@@ -91,10 +95,16 @@ private:
 
 
     std::vector<float> kernel;
-    bool m_bBlur = false;
-    bool m_bBlurGauss = true;
     int kernelSize;
      float sigma;
+
+    bool m_bBlurMethod;
+   
+    bool m_bBlur = false;
+    bool m_bBlurGauss = true;
+    int avg_kernelSize;
+
+    
     bool m_bThreadDone;
     double ZBuffer[SCREEN_WIDTH];
     

@@ -33,6 +33,22 @@ public:
     return {x / rhs, y / rhs};
   }
 
+  bool operator==(const Vector2 &rhs) const
+  {
+    return (x == rhs.x) && (y == rhs.y);
+  }
+  bool operator!=(const Vector2 &rhs) const
+  {
+    return (x != rhs.x) && (y != rhs.y);
+  }
+  bool operator<(const Vector2 &rhs) const
+  {
+    return (x < rhs.x) || (x == rhs.x && y < rhs.y);
+  }
+  bool operator>(const Vector2 &rhs) const
+  {
+    return (x > rhs.x) || (x == rhs.x && y > rhs.y);
+  }
   double &operator[](uint8_t i)
   {
     switch (i)
@@ -123,8 +139,26 @@ public:
                                                         a0.y + (t * (a1.y - a0.y))})
                                                   : ((Vector2){NAN, NAN});
   }
-};
 
+  static inline bool closeEnough(const Vector2& cur, const Vector2& goal, double tol = 0.35){
+      if( (goal - cur).LengthSqr() <= tol*tol ){
+          return true;
+      }
+      return false;
+  }
+};
+template <>
+struct std::hash<Vector2>
+{
+  std::size_t operator()(const Vector2 &k) const noexcept
+  {
+    using std::hash;
+    using std::size_t;
+    using std::string;
+
+    return ((hash<float>()((k.y + 1) * (k.x + 1)) ^ (hash<float>()(k.y) << 1)) >> 1) ^ (hash<float>()(k.x) << 1);
+  }
+};
 struct BBoxAABB
 {
   Vector2 min;
@@ -203,6 +237,10 @@ public:
   static IVector2 Rounded(const Vector2 &v)
   {
     return IVector2(static_cast<int>(std::round(v.x)), static_cast<int>(std::round(v.y)));
+  }
+
+  operator Vector2(){
+    return Vector2(x,y);
   }
 };
 template <>

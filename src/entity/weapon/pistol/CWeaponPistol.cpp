@@ -46,10 +46,10 @@ void CWeaponPistol::OnCreate()
 {
     // setup data
     this->m_nNextShot = 0;
-    this->m_nFireRate = 11;
-    this->m_data.flDamage = 8.0;
-    this->m_data.iDamageMod = 6;
-    this->m_data.iReloadTime = 96;
+    this->m_nFireRate = 12;
+    this->m_data.flDamage = 13.0;
+    this->m_data.iDamageMod = 7;
+    this->m_data.iReloadTime = 28;
     this->m_clip = this->m_data.iMaxAmmo = 18;
     this->m_data.nAmmoType = 1;
     this->m_reserveammo =  this->m_data.iMaxAmmo * 2;

@@ -23,7 +23,8 @@ void CAnimViewmodel::Draw(CRenderer *renderer, const IVector2 &screen_pos, uint8
         for (int x = 0; x < m_surface->w(); ++x)
         {
             Color color = m_surface->getColorAtPoint(x,y);
-           
+            if(x + start_x >= SCREEN_WIDTH) continue;
+            if(y + start_y >= SCREEN_HEIGHT) continue;
             if (!color)
                 continue;
             if (color == m_curSequence->GetMaskColor())

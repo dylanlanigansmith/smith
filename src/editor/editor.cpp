@@ -27,7 +27,17 @@ void CEditor::InitTextureInfo()
 {
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
-    texture_info.clear(); // GIANT MEMORY LEAK!!
+    if(!texture_info.empty()) // NO MORE GIANT MEMORY LEAK!!
+    {
+        for(auto& entry : texture_info){
+            auto tex = entry.second;
+            if(tex.texture_preview != NULL)
+                SDL_DestroyTexture(tex.texture_preview);
+        }
+    }
+
+    
+     texture_info.clear(); 
     for (const auto &entry : ITextureSystem->texture_lookup)
     {
         auto texture = ITextureSystem->GetTextureData(entry.first);
@@ -121,22 +131,27 @@ void CEditor::render(CRenderer *renderer)
 
     if (!isOpen())
         return;
+    smith_renderer = renderer;
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
     if (!m_bHasInit)
         Init();
     ImVec2 windowSize(UI_W, UI_H);
     ImVec2 windowPos(0, 0);
+    static float nextAlpha = 0.2f;
     ImGui::SetNextWindowPos(windowPos);
     ImGui::SetNextWindowSize(windowSize);
-    ImGui::SetNextWindowBgAlpha(0.2f);
+    ImGui::SetNextWindowBgAlpha(nextAlpha);
     ImGui::Begin("SmithEditor v0.0.0");
 
     // the code here can be a bit greasy because it is a dev tool but try not to make it too singletrack
+    //^^ this didnt age well 12.13.23
     if (ImGui::BeginTabBar("###mode"))
     {
         if (ImGui::BeginTabItem("Dev View"))
         {
+            drawSystemView();
+            
             if (ImGui::CollapsingHeader("test Sound"))
             {
                 ImGui::SeparatorText("sound test");
@@ -151,9 +166,9 @@ void CEditor::render(CRenderer *renderer)
                 {
                     engine->SoundSystem()->PlaySound("dev_tests16", vol);
                 }
-                if (ImGui::Button("sound 3"))
+                if (ImGui::Button("hey"))
                 {
-                    engine->SoundSystem()->PlaySound("dev_test_scores", vol);
+                     engine->SoundSystem()->PlaySound("soldier_hey");
                 }
                 if (ImGui::Button("music"))
                 {
@@ -163,17 +178,22 @@ void CEditor::render(CRenderer *renderer)
 
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Map View"))
+        if (ImGui::BeginTabItem("Map Edit"))
         {
             drawMapView();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Resources"))
+        if (ImGui::BeginTabItem("New Editor"))
+        {
+            drawMapView();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Resource"))
         {
             drawResourceView();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Scene View"))
+        if (ImGui::BeginTabItem("Scene"))
         {
             drawEntityView();
             /*
@@ -189,9 +209,14 @@ void CEditor::render(CRenderer *renderer)
             */
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Lighting View"))
+        if (ImGui::BeginTabItem("Lighting"))
         {
             drawLightView();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("options"))
+        {
+            ImGui::SliderFloat("UI Alpha", &nextAlpha, 0.0f, 1.0f);
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -419,6 +444,12 @@ void CEditor::drawMapView()
 
     ImGui::SliderFloat("Ceiling Height", &selectedTile->m_flCeiling, -25.f, 25.f);
     ImGui::SliderFloat("Floor Height", &selectedTile->m_flFloor, -25.f, 25.f);
+
+    ImGui::Text("flags: %li", selectedTile->m_nFlags);
+    if(ImGui::Button("toggle nocol")){
+        bool v = selectedTile->NoCollision();
+        selectedTile->SetNoClip(!v);
+    }
     ImGui::Columns();
     // Editor::IVec2Str(tile.m_vecPosition).c_str(),
 }
@@ -458,7 +489,8 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
         float offset_x = GRID_STEP * (float)pos.x + offset.x;
         float offset_y = GRID_STEP * (float)pos.y + offset.y;
 
-        draw_list->AddRect( ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP / 2, pos.y + offset_y + GRID_STEP / 2), IM_COL32(255,0,0,200));
+       
+        draw_list->AddCircleFilled(ImVec2(pos.x + offset_x, pos.y + offset_y), 10.f, IM_COL32(255,0,0,200), 12);
     }
     if (node_open)
     {
@@ -505,8 +537,10 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
                 ImGui::Text("behaviour %s", magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour).data());
                 auto path = enemy->GetPathFinder();
+                
                 if (path->HasPath())
                 {
+                    ImGui::Text("%i / %li Steps", path->m_iPathIndex, path->m_iPathSize);
                     // engine->log("%i", path->path.size());
                     auto idx = path->m_iPathIndex;
                     int i = 0;
@@ -520,9 +554,12 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
                         auto col = IM_COL32(0, 240, 255, 165);
                         if (i > idx)
                             col = IM_COL32(255, 100, 0, 165);
-                        draw_list->AddCircleFilled(ImVec2(node.x + offset_x, node.y + offset_y), 8.f, col, 12);
+                        draw_list->AddCircleFilled(ImVec2(node.x + offset_x, node.y + offset_y), 5.f, col, 12);
                         i++;
                     }
+                }
+                else{
+                    ImGui::Text("no path");
                 }
             }
             else if (entity->IsLocalPlayer())
@@ -740,28 +777,28 @@ void CEditor::drawResourceView()
     if (ImGui::BeginCombo("Type", type_preview.c_str(), 0))
     {
         ImGui::PushID("materialrscoption");
-        if (ImGui::Selectable("Material Import", &view_textures))
+        if (ImGui::Selectable("Material Import", view_idx == 1))
         {
             view_idx = 1;
             type_preview = "Material Import";
         }
         ImGui::PopID();
-        ImGui::PushID("enginedatarscoption");
-        if (ImGui::Selectable("Engine Performance Data", &view_other))
+        ImGui::PushID("unusedtab");
+        if (ImGui::Selectable("--------", view_idx == 2))
         {
             view_idx = 2;
-            type_preview = "Engine Data";
+            type_preview = "MOVED";
         }
         ImGui::PopID();
         ImGui::PushID("materialeditor");
-        if (ImGui::Selectable("Material Editor", &view_mateditor))
+        if (ImGui::Selectable("Material Editor", view_idx == 3))
         {
             view_idx = 3;
             type_preview = "Material Editor";
         }
         ImGui::PopID();
         ImGui::PushID("animeditor");
-        if (ImGui::Selectable("Animation Editor", &view_mateditor))
+        if (ImGui::Selectable("Animation Editor", view_idx == 4))
         {
             view_idx = 4;
             type_preview = "Anim. Editor";
@@ -772,51 +809,13 @@ void CEditor::drawResourceView()
 
     if (view_idx == 1)
         return drawMaterialView();
-    if (view_idx == 3)
-        return drawMaterialEditor();
     if (view_idx == 2)
     {
-        static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-        static auto WolfProfiler = IEngineTime->GetProfiler("Render::LoopWolf()");
-        static auto BlurProfiler = IEngineTime->GetProfiler("Render::Blur()");
-        float history[60];
-        auto &th = WolfProfiler->History();
-        for (int i = 0; i < th.size(); ++i)
-        {
-            history[i] = th[i].us() / 1000.f;
-        }
-
-        std::string wolfstr = WolfProfiler->GetAvgString().c_str();
-        ImGui::Text(wolfstr.c_str());
-        ImGui::SameLine();
-        ImGui::Text("Max %li Min %li", WolfProfiler->GetMax().us(), WolfProfiler->GetMin().us());
-        ImGui::PlotLines("History", history, IM_ARRAYSIZE(history), 0,
-                         (const char *)__null, (WolfProfiler->GetMin().us() / 1000.f), (WolfProfiler->GetMax().us() / 1000.f), {(UI_W * 0.75f), (UI_H * 0.2f)});
-        if (ImGui::Button("Copy for Wolf"))
-        {
-            wolfstr.append(" ");
-            wolfstr.append(engine->GetTime(true));
-            SDL_SetClipboardText(wolfstr.c_str());
-        }
-
-        auto &bh = BlurProfiler->History();
-        for (int i = 0; i < th.size(); ++i)
-        {
-            history[i] = bh[i].us() / 1000.f;
-        }
-        std::string bstr = BlurProfiler->GetAvgString().c_str();
-        ImGui::Text(bstr.c_str());
-        ImGui::SameLine();
-        ImGui::Text("Max %li Min %li", BlurProfiler->GetMax().us(), BlurProfiler->GetMin().us());
-        ImGui::PlotLines("Blur History", history, IM_ARRAYSIZE(history), 0,
-                         (const char *)__null, (BlurProfiler->GetMin().us() / 1000.f), (BlurProfiler->GetMax().us() / 1000.f), {(UI_W * 0.75f), (UI_H * 0.2f)});
-        if (ImGui::Button("Copy for Blur"))
-        {
-            bstr.append(" ");
-            bstr.append(engine->GetTime(true));
-            SDL_SetClipboardText(bstr.c_str());
-        }
+        ImGui::SeparatorText("moved!"); return;
     }
+    if (view_idx == 3)
+        return drawMaterialEditor();
+    
 
     if (view_idx == 4)
     {
@@ -1354,6 +1353,56 @@ void CEditor::drawLightView()
 
     ImGui::PopStyleVar();
     ImGui::End();
+}
+
+void CEditor::drawSystemView()
+{
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    if(ImGui::CollapsingHeader("Performance"))
+    {
+        
+        for(auto& entry : IEngineTime->profilers)
+        {
+           
+            entry.second->DisplayForEditor(UI_W, UI_H);
+           
+        }
+    }
+
+    if(ImGui::CollapsingHeader("Graphics"))
+    {
+        ImGui::Text("==Rendering==");
+        ImGui::Text("drawing @ [%d x %d], blurscale x%d @ [%d x %d]", SCREEN_WIDTH, SCREEN_HEIGHT, BLUR_SCALE, SCREEN_WIDTH / BLUR_SCALE, SCREEN_HEIGHT / BLUR_SCALE);
+        ImGui::Text("upscaling to {%d x %d}, using %d threads", SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, smith_renderer->thread_count);
+        static auto RenderProfiler =  IEngineTime->GetProfiler("Render::LoopWolf()");
+        RenderProfiler->DisplayForEditor(UI_W, UI_H);
+
+
+        ImGui::Text("==BLUR==");
+        ImGui::Text((smith_renderer->m_bBlurMethod) ? "Using Gauss" : "Using MovingAvg" );
+        ImGui::Checkbox("Gauss Blur", &smith_renderer->m_bBlurMethod);
+
+        static auto BlurProfiler =  IEngineTime->GetProfiler("Render::Blur()");
+       BlurProfiler->DisplayForEditor(UI_W, UI_H);
+        if(smith_renderer->m_bBlurMethod)
+        {
+            static float sig = smith_renderer->sigma;
+            if(ImGui::Button("rebuild gauss kernel")){
+                smith_renderer->GenerateGaussKernel();
+                smith_renderer->sigma = sig;
+                sig = smith_renderer->sigma;
+            }
+            
+            ImGui::InputFloat("sigma",  &sig, 0.2f, 1.0f); 
+            ImGui::InputInt("size", &smith_renderer->kernelSize);
+        }
+        else
+        {
+            ImGui::InputInt("size", &smith_renderer->avg_kernelSize);
+        }
+        
+    }
+  
 }
 
 void CEditor::TexturePicker(const char *title, tile_t *selectedTile, texture_t *&selectedTexture,

@@ -84,23 +84,23 @@ std::vector<IVector2> CPathFinder::GetNeighbours(IVector2 pos)
     static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     std::vector<IVector2 > ret;
     if(auto t = m_levelSystem->GetTileAt(pos.x, pos.y ); t != nullptr){
-        if(t->m_nType == Level::Tile_Empty)
+        if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
     if(auto t = m_levelSystem->GetTileAt(pos.x, pos.y + 1); t != nullptr){
-        if(t->m_nType == Level::Tile_Empty)
+        if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
     if(auto t = m_levelSystem->GetTileAt(pos.x, pos.y - 1); t != nullptr){
-        if(t->m_nType == Level::Tile_Empty)
+        if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
     if(auto t = m_levelSystem->GetTileAt(pos.x + 1, pos.y); t != nullptr){
-        if(t->m_nType == Level::Tile_Empty)
+        if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
     if(auto t = m_levelSystem->GetTileAt(pos.x - 1, pos.y); t != nullptr){
-        if(t->m_nType == Level::Tile_Empty)
+        if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
     return ret;

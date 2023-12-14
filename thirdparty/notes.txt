@@ -1,0 +1,12 @@
+## for building SDL
+
+//https://github.com/libsdl-org/SDL/blob/main/docs/README-cmake.md
+
+setup:
+cmake -S . -B ./build 
+
+cfg:
+cmake . -DSDL_STATIC=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-march=x86-64-v3" -DCMAKE_CXX_FLAGS="-march=x86-64-v3" -B ./build 
+
+build:
+cmake --build ./build --config Release 

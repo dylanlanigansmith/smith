@@ -58,6 +58,7 @@ void CLightingSystem::CalculateLighting()
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
 
     static auto LightGenProfiler = IEngineTime->AddProfiler("CLightingSystem::CalculateLighting()");
+    LightGenProfiler->HideFromEditor();
     LightGenProfiler->Start();
     SetLogFileOnly(true);
     LightData ld(this);

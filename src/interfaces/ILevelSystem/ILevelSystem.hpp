@@ -49,8 +49,8 @@ public:
     virtual tile_t* GetTileNeighbor(tile_t* tile, int dir);
     virtual IVector2 FindEmptySpace();
 
-    bool IsCollision(const Vector& origin, const Vector& goal); //false = no collision
-
+    bool IsCollision(CBaseEntity* ent, const Vector& origin, const Vector& goal); //false = no collision
+    bool IsWallCollision(const Vector& origin, const Vector& goal);
     auto GetPlayerStart() const { return m_Level->m_vecPlayerStart; }
 private:
     void LoadAndFindTexturesForMap();

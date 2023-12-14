@@ -1,7 +1,7 @@
 #include "CPlayer.hpp"
 #include <engine/engine.hpp>
 #include <interfaces/IInputSystem/IInputSystem.hpp>
-
+#include <entity/dynamic/enemy/CEnemySoldier.hpp>
 CPlayer::CPlayer(int m_iID) : CBaseRenderable(m_iID), m_viewmodel(this)
 {
 }
@@ -105,6 +105,22 @@ void CPlayer::OnHit(int damage)
     
 }
 
+void CPlayer::OnCollisionWith(CBaseEntity *hit)
+{
+  constexpr static auto enemytype = CEntitySystem::CreateType("CEnemySoldier");
+  if(hit->GetType() != enemytype) return;
+
+  auto enemy = (CEnemySoldier*)hit;
+
+  if(enemy->GetHealth() > 0) return;
+
+  if(!enemy->HasLoot()) return;
+
+  int ammo = enemy->Loot();
+  GetActiveWeapon()->GainAmmo(ammo);
+
+}
+
 void CPlayer::CreateMove()
 {
   static bool noclip = false;
@@ -116,6 +132,33 @@ void CPlayer::CreateMove()
  
   double rotSpeed = m_move.m_flYawSpeed;   // the constant value is in radians/ tick
   double pitchSpeed = m_move.m_flYawSpeed; //pitch not used currently
+
+  static bool viewPunch = false;
+  static int bob = 0;
+  const int maxbob = 11;
+  static bool up = true;
+  static bool shutOffNextZero = false;
+  if(viewPunch && false)
+  {
+      
+    if(bob >= maxbob){
+      up = false;
+      shutOffNextZero = true;
+    } 
+    if(bob <= -maxbob ){
+      up = true;
+      
+    } 
+    if(shutOffNextZero && bob >= 0){
+      viewPunch = false;
+      shutOffNextZero = false;
+      up = true;
+      bob = 0;
+    }
+    if(up) bob += 4;
+    else bob -= 4;
+  }
+  m_camera.m_flPitch = bob;
 
   double speedMod = (noclip ) ? 1.5 : 1.0;
   WASD_t in_move = IInputSystem->GetInput();
@@ -130,26 +173,26 @@ void CPlayer::CreateMove()
   if (in_move.w)
   {
    
-     if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
         m_vecPosition.x += Camera().m_vecDir.x * moveSpeed;
-     if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false)
+     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false)
         m_vecPosition.y += Camera().m_vecDir.y * moveSpeed;
   }
   // move backwards if no wall behind you
   if (in_move.s)
   {
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x - Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x - Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
         m_vecPosition.x -= Camera().m_vecDir.x * moveSpeed;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y - Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false || noclip)
+    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y - Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false || noclip)
         m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
   }
   if (in_move.d)
   {
     float rightX = Camera().m_vecDir.y;
     float rightY = -Camera().m_vecDir.x;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + rightX * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x + rightX * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
         m_vecPosition.x += rightX  * strafeSpeed;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + rightY * strafeSpeed, m_vecPosition.z}) == false || noclip)
+    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + rightY * strafeSpeed, m_vecPosition.z}) == false || noclip)
         m_vecPosition.y += rightY  * strafeSpeed;
   }
 
@@ -159,9 +202,9 @@ void CPlayer::CreateMove()
     float leftX = -Camera().m_vecDir.y;
     float leftY = Camera().m_vecDir.x;
 
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x + leftX  * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
+    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x + leftX  * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
         m_vecPosition.x += leftX  * strafeSpeed;
-    if(ILevelSystem->IsCollision(m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * strafeSpeed, m_vecPosition.z}) == false || noclip)
+    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * strafeSpeed, m_vecPosition.z}) == false || noclip)
         m_vecPosition.y += leftY  * strafeSpeed;
   }
 
@@ -230,7 +273,7 @@ void CPlayer::CreateMove()
   }
   if(IInputSystem->IsMouseButtonDown(0) ) //REALLY NEED A MENU OPEN FUNCTION LIKE WTF
   {
-      GetActiveWeapon()->Shoot();
+      if(GetActiveWeapon()->Shoot()) viewPunch = true; 
   }
   if(IInputSystem->IsKeyDown(SDL_SCANCODE_R)){
     GetActiveWeapon()->Reload();

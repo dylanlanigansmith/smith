@@ -20,7 +20,7 @@ void CWeaponSMG::Render(CRenderer *renderer)
     static constexpr float fly = SCREEN_HEIGHT / -3.6f;
     static constexpr float gx = SCREEN_WIDTH / 5.9534f;
    
-    anim_smg.Draw(renderer, {90.f, 0.f});
+    anim_smg.Draw(renderer, {90.f, 5.f});
 }
 
 void CWeaponSMG::OnUpdate()
@@ -49,8 +49,8 @@ void CWeaponSMG::OnCreate()
     this->m_nFireRate = 3;
     this->m_data.flDamage = 8.0;
     this->m_data.iDamageMod = 6;
-    this->m_data.iReloadTime = 120;
-    this->m_clip = this->m_data.iMaxAmmo = 50;
+    this->m_data.iReloadTime = 80;
+    this->m_clip = this->m_data.iMaxAmmo = 60;
     this->m_data.nAmmoType = 1;
     this->m_reserveammo =  this->m_data.iMaxAmmo * 2;
 
@@ -59,7 +59,7 @@ void CWeaponSMG::OnCreate()
     anim_smg.AddSequenceByName("equip0");
     anim_smg.AddSequenceByName("reload0");
 
-   
+    
 
    
     if (m_pOwner == nullptr)

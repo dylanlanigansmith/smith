@@ -63,6 +63,13 @@ struct ivec3{ //dont use
     };
 };
 #define TILE_SECTORS 3
+
+enum Tile_Flags : int
+{
+    TileFlags_NONE = 0,
+    TileFlags_NOCLIP = 1,
+};
+
 struct tile_t
 {
     //$ = memory size 1/$ $ $$ $! $16 ... | 1 byte 4 byte 8 byte 16 bytes ...
@@ -84,7 +91,7 @@ struct tile_t
     float m_flCeiling = 0.f;        //$#
     float m_flFloor = 0.f;          //$#
     uint8_t m_nType{};              //1/$#
-   // uint64_t m_nFlags;              //$!
+    uint64_t m_nFlags;              //$!
     std::vector<hEntity> m_occupants;
     voxel_t sectors[TILE_SECTORS][TILE_SECTORS][TILE_SECTORS];
     bool IsThinWall(){
@@ -169,7 +176,8 @@ struct tile_t
             }
         }
     }
-    Vector getSectorCenterRelativeCoords(int x, int y, int z) {
+    inline Vector getSectorCenterRelativeCoords(const ivec3& v) { return getSectorCenterRelativeCoords(v.x,v.y,v.z); }
+    inline Vector getSectorCenterRelativeCoords(int x, int y, int z) {
        
         float voxelSize = _sectoroffset(); //1.f/3.f
 
@@ -188,6 +196,17 @@ struct tile_t
         return &(sectors[x][y][z]);
     }
     static constexpr float _sectoroffset() { return 1.f / (float)TILE_SECTORS ; }
+
+
+    inline void SetNoClip(bool v) { m_nFlags = (v) ? 1 : 0; }
+    inline bool NoCollision() const { return (m_nFlags > 0); }
+
+    inline bool Blocking(){
+        if(m_nType == Level::Tile_Wall)  return true;
+        if(m_nType == Level::Tile_Empty || NoCollision()) return false;
+
+        return true;
+    }
 };
 
 /*
@@ -228,7 +247,7 @@ public:
                 if( x == 0 || y == 0 || x == m_vecBounds.x - 1 || y == m_vecBounds.y - 1) 
                     empty.m_nType = 1;
                 empty.m_hTexture = empty.m_hTextureCeiling = empty.m_hTextureFloor = def;
-                empty.m_vecPosition = IVector2(x,y);// empty.m_nFlags = 0;
+                empty.m_vecPosition = IVector2(x,y); empty.m_nFlags = 0;
                 empty.m_flFloor = 0.5f; empty.m_flCeiling = 0.5f;
                 empty.id = MakeTileID(empty);
                 row.push_back(empty);
@@ -282,7 +301,7 @@ protected:
     {
          auto t = json::array();
          t = { tile.id, tile.m_vecPosition.x, tile.m_vecPosition.y, tile.m_hTexture, tile.m_hTextureCeiling, tile.m_hTextureFloor,
-          tile.m_flLight, tile.m_nDecals, tile.m_flCeiling, tile.m_flFloor, tile.m_nType};
+          tile.m_flLight, tile.m_nDecals, tile.m_flCeiling, tile.m_flFloor, tile.m_nType, tile.m_nFlags};
                 
         return t;
     }
@@ -303,8 +322,8 @@ protected:
             .m_pDecals = nullptr,
             .m_flCeiling = j.at(8),
             .m_flFloor = j.at(9),
-            .m_nType = j.at(10)
-            //.m_nFlags = 0 //j.at(11)
+            .m_nType = j.at(10),
+            .m_nFlags = j.at(11)
         };
     }
 

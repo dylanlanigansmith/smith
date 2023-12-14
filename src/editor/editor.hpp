@@ -30,6 +30,7 @@ struct dev_tools
 
 class CEditor
 {
+    
 public:
     static CEditor& instance(){
         static CEditor ce;
@@ -44,7 +45,7 @@ private:
     void drawMaterialView();
     void drawMaterialEditor();
     void drawLightView();
-
+    void drawSystemView();
     void drawAnimView();
     void Init();
 private:
@@ -57,6 +58,7 @@ private:
     bool m_bIsOpen = false;
     dev_tools settings;
     bool m_bHasInit = false;
+    CRenderer * smith_renderer;
     SDL_Renderer* m_renderer;
     std::unordered_map<std::string, editor_texture_t> texture_info;
    // std::unordered_map<texture_t*, SDL_Texture*> texture_previews; 

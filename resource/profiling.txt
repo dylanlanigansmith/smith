@@ -79,4 +79,19 @@ Commands:
 
    valgrind --tool=callgrind --dump-instr=yes ./smith
 
+
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./smith
+
+valgrind --tool=cachegrind ./smith
+
+
+valgrind --tool=callgrind --callgrind-out-file=callgrind.out ./smith
+valgrind --tool=massif ./smith
+ms_print massif.out.xxxx
+
+
+valgrind --tool=helgrind ./smith
+valgrind --tool=drd ./smith
+
+
 */

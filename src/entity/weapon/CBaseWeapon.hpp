@@ -40,7 +40,8 @@ public:
     virtual void OnCreate() = 0;
     virtual void Render(CRenderer* renderer) = 0;
     virtual void OnUpdate() = 0;
-    virtual void Shoot();
+    virtual bool Shoot();
+    virtual void GainAmmo(int amt) { m_reserveammo += amt; }
     virtual void Reload();
     virtual void OnReload() = 0;
     virtual void OnShoot() = 0;

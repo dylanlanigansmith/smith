@@ -66,6 +66,7 @@ public:
     virtual void ChangeBaseTexture(const std::string& texture_name);
 
      virtual uint32_t GetPixelAtPoint(const IVector2 &point, IVector2* textpos, const sprite_draw_data& data);
+     auto GetCurrentSeqName() const { return m_currentlyPlaying;}
 protected:
     virtual void OnSequenceStart(const std::string& seq_name);
     virtual void OnSequenceEnd(const std::string& seq_name);

@@ -3,7 +3,7 @@
 #include <anim/directional/AnimDirectional.hpp>
 #include <entity/CMove.hpp>
 #include <entity/components/pathfinder/CPathFinder.hpp>
-
+#include <entity/components/pathfinder/precise/CPathVoxel.hpp>
 //#define IGNORE_PLAYER
 
 struct EntView
@@ -21,7 +21,12 @@ struct EntView
     }
     bool lookAt(const Vector2& pos, const Vector2& target, double speed, double close_enough = 4.0){
         Vector2 targetDirection = (target - pos).Normalize();
-        m_dir = m_dir.lerp(targetDirection, speed);
+        if((target - pos).Length() < 0.04)
+            return true;
+        auto newDir = m_dir.lerp(targetDirection, speed);
+        if(std::isnan(newDir.x) || std::isnan(newDir.y))
+            return true;
+        m_dir = newDir;
          double dot = m_dir.dotClamped(targetDirection);
        
         double angle = std::acos(dot) * RAD2DEGNUM; 
@@ -69,11 +74,19 @@ public:
     virtual void Render(CRenderer* renderer);
     
     virtual void OnHit(int damage, int position) {
-        m_behaviour = Behaviour_Aiming;
-        m_state = Aiming;
+       
         m_stats.m_health -= damage;
-        if(m_stats.m_health <= 0)
+        if(m_stats.m_health <= 0){
+           
             m_state = Dying;
+            m_nextBehaviourChange = 0;
+            m_behaviour = Behaviour_Dying;
+           
+        }
+        else{
+             m_behaviour = Behaviour_Aiming;
+            m_state = Aiming;
+        }
     }
 
     auto GetHealth() const { return m_stats.m_health; }
@@ -85,8 +98,11 @@ public:
     bool isPlayerVisible(CPlayer* player, double fov = 40.0);
     bool isPlayerWithinFOV( const Vector2 &playerPosition, double FOVAngleDegrees);
     bool CastRayToPlayer(const Vector2 &playerPosition, float playerBounds);
+    virtual bool HasLoot() { return !m_hasDroppedLoot; }
+    virtual int Loot();
     virtual void Shoot(CPlayer* player);
-
+    virtual float GetBounds() const override { return m_bounds; } 
+    virtual bool IsBlocking() const override { return m_blocking; }
     virtual uint32_t GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos);
     virtual void SetType(int type = 0){
         switch(type)
@@ -102,18 +118,24 @@ public:
         }
     }
 protected:
+
+    bool m_hasDroppedLoot;
+    float m_bounds;
+    bool m_blocking;
     int m_nextBehaviour;
     int m_behaviour;
     uint64_t m_nextBehaviourChange;
+    Vector2 m_headingTo;
     foe_info m_stats;
     CMove m_move;
-
+    bool m_isDying;
     EntView m_view;
     CAnimDirectional m_anim;
      int m_state;
     sprite_draw_data draw;
 
     CPathFinder m_path;
+      //  CPathVoxel m_path;
 public:
     enum SoldierBehaviour : int 
     {
@@ -123,6 +145,7 @@ public:
         Behaviour_Attack,
         Behaviour_Reposition,
         Behaviour_PostAttack,
+        Behaviour_Dying,
     };
 
     enum SoldierState : int

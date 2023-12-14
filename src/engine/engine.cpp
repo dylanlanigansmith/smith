@@ -29,7 +29,10 @@ void CEngine::Start(const char* title)
      
     render = new CRenderer(m_SDLWindow);
     if(!render->Create()) return;
-    
+    #ifdef SCREEN_FULLSCREEN
+    SDL_SetWindowFullscreen(m_SDLWindow, SDL_TRUE);
+  
+    #endif
 
     SDL_ThreadPriority priority = SDL_THREAD_PRIORITY_HIGH;
     if(int err = SDL_SetThreadPriority(priority); err != 0){
@@ -65,7 +68,8 @@ int CEngine::Run()
 {
     static auto IInputSystem = CreateInterface<CInputSystem>("IInputSystem");
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-
+    static auto UpdateProfiler = IEngineTime->AddProfiler("Engine::PostRenderUpdate()");
+    static auto TotalRenderProfiler = IEngineTime->AddProfiler("Engine::RenderLoop()");
     m_SoundSystem.Init(0);
     shouldStopLoop = SDL_FALSE;
     while(!shouldStopLoop)
@@ -83,17 +87,24 @@ int CEngine::Run()
                 shouldStopLoop = SDL_TRUE;
                 break;
             }
+            if(event.type == SDL_EVENT_KEY_DOWN && event.key.keysym.scancode == SDL_SCANCODE_F10){
+                shouldStopLoop = SDL_TRUE;
+                break;
+            }
             IInputSystem->OnEvent(&event);
         }
         
         for(auto& element : interfaces.list())
             element.second->OnRenderStart();
+        TotalRenderProfiler->Start();
         render->Loop();
+        TotalRenderProfiler->End();
+        UpdateProfiler->Start();
         for(auto& element : interfaces.list())
             element.second->OnRenderEnd();
         for(auto& element : interfaces.list())
             element.second->OnLoopEnd();
-
+        UpdateProfiler->End();
        // log("%f", 1.0 / IEngineTime->GetLastFrameTime().sec());//this is broken
     }
    
@@ -104,6 +115,7 @@ int CEngine::Run()
 }
 int CEngine::Shutdown()
 {
+    interfaces.Destroy();
     enet_deinitialize();
     render->Shutdown();
     warn("smith-engine shutdown");

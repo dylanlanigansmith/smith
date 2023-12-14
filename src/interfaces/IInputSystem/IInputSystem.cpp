@@ -7,9 +7,9 @@ CInputSystem::~CInputSystem()
 void CInputSystem::OnCreate()
 {
     keyboardState = SDL_GetKeyboardState(&keyboardSize);
-    m_flSensitivity = 1.2; // 2.24;
+    m_flSensitivity = 2.2; // 2.24;
     m_flMouseScale = 0.005;
-    m_flMouseAccel = 5.3;
+    m_flMouseAccel = 5.6;
     m_bMouseLook = true;
     m_bGrabCursor = true;
     m_bPitch = false;

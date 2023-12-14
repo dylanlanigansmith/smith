@@ -188,13 +188,15 @@ protected:
     bool CastRayToPoint(CLight *light, const Vector &point, float maxDistance, float step = 0.5f);
     inline void SetPixel(int x, int y, const Color color)
     {
-        int index = (y * m_lightsurface->pitch / 4) + x;
+        const static int pitch = m_lightsurface->pitch / 4;
+        int index = (y * pitch) + x;
         ((uint32_t *)(m_lightsurface->pixels))[index] = color;
     }
 
     inline Color GetPixel(int x, int y)
     {
-        int index = (y * m_lightsurface->pitch / 4) + x;
+        const static int pitch = m_lightsurface->pitch / 4;
+        int index = (y * pitch) + x;
         return Color(((uint32_t *)(m_lightsurface->pixels))[index]);
     }
     inline Color MergeLightColors(Color src, Color add)
