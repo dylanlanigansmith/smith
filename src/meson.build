@@ -2,7 +2,6 @@
 x_dep = dependency('x11')
 gl_dep = dependency('gl')
 sdl3_dep = dependency('sdl3')
-sdl3_img_dep = dependency('SDL3_image')
 thread_dep = dependency('threads')
 
 

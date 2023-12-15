@@ -5,7 +5,9 @@
 - wolfenstein style raycasting for now
     - for linux x86/64 and eventually Apple silicon Macs next time I go on vacation and only have a laptop
 
-- full multithreaded game engine with editor, semi-dynamic lighting and many subsystems
+- full multithreaded game engine with editor, semi-dynamic lighting, enemy AI with A*, and many more subsystems
+
+-  everything besides the deps. below is done from scratch
 
 ### Gallery
 TODO
@@ -17,15 +19,13 @@ TODO
         - sidenote: partially because it is really easy to hack your way out of messy build situations unlike CMake
         - never tried the Xcode integration but I hope it works (fav C++ ide), VSCode plugin locks up once a day but works well 
 - SDL3
-    - great mac/linux support 
-- SDL3_Image
-    -  the only annoying dependency (no static linking, for what I use it for (pngs only) might be worth rolling my own  )
+- stb_image header/library
 - Dear ImGUI
-    - obviously <3
 - nlohmann/json 
     - why make things difficult, I have yet to master serialization and hope to structure my scene/entity saving in a way I can be proud of this time. This library isn't my choice for lightweight/simple apps, but is it ever nice to use.. 
 - magic_enum 
     - sidenote: where has this been all my life holy! it is actually magic!
+
 
 - for some SDL stuff: sudo pacman -Sy xorg xorg-fonts  & a restart of X11 
 
