@@ -2,7 +2,7 @@
 #include <common.hpp>
 #include <global.hpp>
 #include <SDL3/SDL.h>
-
+#include <logger/logger.hpp>
 
 class CLaunchOptions
 {
@@ -43,6 +43,17 @@ public:
             return std::string(*search);
        
         return std::string();
+    }
+
+    template <typename T> 
+    T GetValue(const std::string& name){
+        auto search = std::find(m_cmdline.begin(), m_cmdline.end(), name);
+        if(search == m_cmdline.end() ) return T();
+
+        auto val = std::next(search, 1);
+        if(val == m_cmdline.end()) return T();
+        
+        return static_cast<T>(std::stoi(*val)); //dumb
     }
     auto NumArgs() const { return m_cmdline.size() ; }
     private:

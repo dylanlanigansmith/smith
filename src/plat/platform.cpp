@@ -32,6 +32,12 @@ bool CPlatform::Init(int argc, char **argv)
     m_sysInfo.find();
     dbg("sys_info: [{cpu_cores: %i} {memory: %d MiB}], planning to use %d render threads", m_sysInfo.sys_cores, m_sysInfo.sys_ram, m_sysInfo.render_threads_to_use);
     dbg("platform init success!");
+
+    for(const auto& arg : m_cmdLine.GetArgList())
+    {
+        dbg("arg: %s", arg.c_str());
+    }
+
     return true;
 }
 

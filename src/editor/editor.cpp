@@ -53,6 +53,7 @@ void CEditor::InitTextureInfo()
 
 void CEditor::render(CRenderer *renderer)
 {
+    smith_renderer = renderer;
     static bool changedLastFrame = false;
     static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
     if (IInputSystem->IsKeyDown(SDL_SCANCODE_BACKSLASH))
@@ -78,7 +79,7 @@ void CEditor::render(CRenderer *renderer)
             auto p = player->GetPosition();
             std::string str_playerpos = Util::stringf("(%.1f, %.1f, %.1f)", p.x, p.y, p.z);
             auto textSize = ImGui::CalcTextSize(str_playerpos.c_str());
-            static const ImVec2 position(SCREEN_WIDTH_FULL - 10, SCREEN_HEIGHT_FULL - 10);
+            static const ImVec2 position(smith_renderer->GetFullWidth()  - 10, smith_renderer->GetFullHeight() - 10);
             draw->AddText(position - textSize, text_color, str_playerpos.c_str());
         }
         if (settings.show_cam)
@@ -87,7 +88,7 @@ void CEditor::render(CRenderer *renderer)
             auto d = player->Camera().m_vecDir;
             std::string str_camplane = Util::stringf("p(%.3f, %.3f) | d(%.3f, %.3f)", c.x, c.y, d.x, d.y);
             auto camtextSize = ImGui::CalcTextSize(str_camplane.c_str());
-            static const ImVec2 camposition(SCREEN_WIDTH_FULL - 10, SCREEN_HEIGHT_FULL - 25);
+            static const ImVec2 camposition(smith_renderer->GetFullWidth()  - 10, smith_renderer->GetFullHeight() - 25);
             draw->AddText(camposition - camtextSize, text_color, str_camplane.c_str());
         }
         if (settings.fps)
@@ -124,7 +125,7 @@ void CEditor::render(CRenderer *renderer)
         }
             std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_max_health, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());
             auto camtextSize = ImGui::CalcTextSize(str_hp.c_str());
-            static const ImVec2 camposition(camtextSize.x + 35, SCREEN_HEIGHT_FULL - 25);
+            static const ImVec2 camposition(camtextSize.x + 35, smith_renderer->GetFullHeight() - 25);
             draw->AddText(camposition , text_color, str_hp.c_str());
 
     }
@@ -736,7 +737,7 @@ void CEditor::drawEntityView()
     static bool once = false;
     if (!once)
     {
-        ImGui::SetNextWindowPos(ImVec2(SCREEN_WIDTH_FULL * 0.7, SCREEN_HEIGHT_FULL * 0.05));
+        ImGui::SetNextWindowPos(ImVec2(smith_renderer->GetFullWidth() * 0.7, smith_renderer->GetFullHeight() * 0.05));
         once = true;
     }
 
@@ -1199,7 +1200,7 @@ void CEditor::drawLightView()
     static bool once = false;
     if (!once)
     {
-        ImGui::SetNextWindowPos(ImVec2(SCREEN_WIDTH_FULL * 0.7, SCREEN_HEIGHT_FULL * 0.05));
+        ImGui::SetNextWindowPos(ImVec2(smith_renderer->GetFullWidth() * 0.7, smith_renderer->GetFullHeight() * 0.05));
         once = true;
     }
 
@@ -1373,7 +1374,7 @@ void CEditor::drawSystemView()
     {
         ImGui::Text("==Rendering==");
         ImGui::Text("drawing @ [%d x %d], blurscale x%d @ [%d x %d]", SCREEN_WIDTH, SCREEN_HEIGHT, BLUR_SCALE, SCREEN_WIDTH / BLUR_SCALE, SCREEN_HEIGHT / BLUR_SCALE);
-        ImGui::Text("upscaling to {%d x %d}, using %d threads", SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, smith_renderer->thread_count);
+        ImGui::Text("upscaling to {%d x %d}, using %d threads", smith_renderer->GetFullWidth(), smith_renderer->GetFullHeight(), smith_renderer->thread_count);
         static auto RenderProfiler =  IEngineTime->GetProfiler("Render::LoopWolf()");
         RenderProfiler->DisplayForEditor(UI_W, UI_H);
 

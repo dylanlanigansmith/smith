@@ -30,7 +30,7 @@ bool CBaseWeapon::Shoot()
 
     m_nNextShot = curTick + m_nFireRate;
     m_clip --;
-    log("%d", m_clip);
+    
     this->OnShoot();
     
 
@@ -150,7 +150,7 @@ bool CBaseWeapon::Shoot()
                     hit_ent = (CEnemySoldier *)ent;
                    IVector2 textpos;
                     if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
-                        dbg("hit");
+                       
                         int pos = Util::SemiRandRange(0, 8) * -1;
                         hit_ent->OnHit(Util::SemiRandRange(m_data.flDamage - m_data.iDamageMod / 1.5, m_data.flDamage + m_data.iDamageMod / 2), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
 

@@ -58,8 +58,8 @@ public:
     }
     void OnEngineInitFinish();
 
- 
-    
+    auto GetFullWidth() const { return windowSize.x; }
+    auto GetFullHeight() const { return windowSize.y; }
     uint8_t Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god delete this
 private:
     bool CreateRendererLinuxGL();
@@ -123,4 +123,7 @@ private:
     SDL_Surface *m_blur;
     SDL_Surface *m_downscale;
     CCamera *m_Camera;
+
+    IVector2 windowSize;
+    bool m_isUpScaling;
 };

@@ -42,6 +42,12 @@ CRenderer::~CRenderer()
 
 bool CRenderer::Create()
 {
+  auto plat_type = PLATFORM.GetPlatType();
+  windowSize.x = PLATFORM.SysWindow().Width();
+  windowSize.y = PLATFORM.SysWindow().Height();
+  log("%d %d ", windowSize.x, windowSize.y);
+  m_isUpScaling = (SCREEN_HEIGHT != windowSize.y);
+
 
   m_bBlur = true;
   
@@ -525,7 +531,7 @@ void CRenderer::Loop()
   static auto SpriteProfiler = IEngineTime->AddProfiler("Render::Sprites()");
   static auto SDLProfilerStart = IEngineTime->AddProfiler("Render::SDLRendererStart");
   static auto SDLProfiler = IEngineTime->AddProfiler("Render::SDLRendererEnd");
-  const SDL_FRect scale = {0.f, 0.f, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL};
+  static const SDL_FRect scale = {0.f, 0.f, windowSize.x, windowSize.y};
 
   SDLProfilerStart->Start();
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
@@ -569,7 +575,7 @@ void CRenderer::Loop()
     while (doneCount.load() < NUM_THREADS)
     {
       SDL_UnlockTexture(m_renderTexture);
-      if (SCREEN_HEIGHT == SCREEN_HEIGHT_FULL)
+      if (!m_isUpScaling )
         SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
       else
         SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
@@ -585,14 +591,14 @@ void CRenderer::Loop()
   SDL_UnlockTexture(m_blurTexture); //expensive
   if(!m_bBlur)
   {
-    if (SCREEN_HEIGHT == SCREEN_HEIGHT_FULL)
+    if (!m_isUpScaling )
       SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
     else
       SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
   }
   
 
-  if (SCREEN_HEIGHT == SCREEN_HEIGHT_FULL)
+  if (!m_isUpScaling )
     SDL_RenderTexture(get(), m_blurTexture, NULL, NULL);
   else
     SDL_RenderTexture(get(), m_blurTexture, NULL, &scale);

@@ -65,6 +65,7 @@ void CAnimationSystem::LoadSequences()
 
 void CAnimationSystem::OnCreate()
 {
+    Debug(false);
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
     IResourceSystem->LoadAnimations();
 }

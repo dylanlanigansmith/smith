@@ -94,13 +94,19 @@ void CPlayer::RenderView(CRenderer *renderer)
 void CPlayer::OnHit(int damage)
 {
   m_health -= damage;
-  engine->log("player health: %d", m_health);
+  
   //play hurt sound
   if(m_health <= 0){
-    m_move.m_flForwardSpeed = 0.0;
-    m_move.m_flStrafeSpeed = 0.0;
+   // m_move.m_flForwardSpeed = 0.0;
+    //m_move.m_flStrafeSpeed = 0.0;
+    engine->info("player died!");
     int er = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "You died.", "you lost the game like a little bitch", engine->window()); //No message system available -1
-    
+    m_health = m_max_health;
+    engine->info("giving health back ");
+    er = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "this is a dev preview so..", "you can try again", engine->window()); 
+    if(er != 0){
+      engine->warn("message boxes fucked %s", SDL_GetError());
+    }
   }
     
 }

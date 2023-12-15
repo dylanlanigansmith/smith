@@ -1,0 +1,14 @@
+sensitivity is set for 400dpi sorry
+
+launch options:
+ex:
+-width 2560 -height 1440 -full
+
+for enemies to ignore you use:
+
+-peace
+
+
+backslash to open devtools, view timings on main page under perf data
+if you really need to change sensitivity then go to scene view, and select CPlayer from the list in the side window, and change it there
+

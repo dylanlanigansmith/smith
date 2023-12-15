@@ -122,7 +122,7 @@ void CEnemySoldier::OnUpdate()
             m_behaviour = Behaviour_Default;
             m_nextBehaviour = Behaviour_Patrol;
             m_nextBehaviourChange = curTick + TICKS_PER_S;
-            m_anim.log("wtf we lost em");
+            m_anim.dbg("wtf we lost em");
         }
         else{
             if(m_path.HasPath()){
@@ -533,6 +533,8 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
 
 bool CEnemySoldier::isPlayerVisible(CPlayer *player, double fov)
 {
+    static bool ignore_player = PLATFORM.LaunchOptions().HasArg("peace");
+    if(ignore_player) return false;
     #ifdef IGNORE_PLAYER
     return false;
     #endif

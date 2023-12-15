@@ -18,16 +18,39 @@ bool CEngine::Start(const char* title)
         PLATFORM.Dialog().MessageBox("SDLInit failed: %s. Off to a great start I see!", SDL_GetError());
         return false;
     }   
-    log("starting window { %ix%i }", SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL);
+    int width = SCREEN_WIDTH_FULL, height = SCREEN_HEIGHT_FULL;
+    if(PLATFORM.LaunchOptions().HasArg("width") && PLATFORM.LaunchOptions().HasArg("height")){
+        width = PLATFORM.LaunchOptions().GetValue<int>("width");
+        height = PLATFORM.LaunchOptions().GetValue<int>("height");
+
+    }
+    if(PLATFORM.LaunchOptions().HasArg("full"))
+        PLATFORM.window().MakeFullScreen();
+    
+    log("starting window { %ix%i }", width, height );
     if(!PLATFORM.window().SetupForPlatform(PLATFORM.GetPlatType())){
          PLATFORM.Dialog().MessageBox("Window Setup Failed!");  return false;
     }
-    if(!PLATFORM.window().CreateWindow(title, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL)){
+    PLATFORM.window().SetWindowSize( width, height );
+    if(!PLATFORM.window().CreateWindow(title)){
         Error("SDL_CreateWindow failed: %s", SDL_GetError()); 
         PLATFORM.Dialog().MessageBox("SDL_CreateWindow failed: %s", SDL_GetError());
         return false; 
     }
     m_SDLWindow = PLATFORM.window().m_SDLWindow; //this is something we can have now
+
+
+     if(PLATFORM.LaunchOptions().HasArg("threads") ){
+       int threads_arg = PLATFORM.LaunchOptions().GetValue<int>("threads");     
+       if(threads_arg > 0 && threads_arg < GetSysInfo().sys_cores - 2){
+             PLATFORM.m_sysInfo.render_threads_to_use = threads_arg;
+             info("using overridden thread count %d", threads_arg);
+       }
+       else{
+        warn("launch option -threads %d ignored. invalid value", threads_arg);
+       }
+    }
+
 
     if(GetSysInfo().render_threads_to_use < 8)
          warn("system core count does not meet the recommended specifications"); //need that 700fps

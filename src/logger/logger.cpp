@@ -3,7 +3,7 @@
 #include <util/misc.hpp>
 #include <global.hpp>
 #include <ctime>
-
+#include <engine/engine.hpp>
 
 bool CLogger::gLogToFile = LOG_FILEGLOBAL;
 std::string CLogger::gLogFilePath = LOG_HOME_PATH + LOG_RESOURCE_PATH + LOG_SUBDIR + std::string("/");
@@ -191,7 +191,9 @@ void CLogger::error(const char* file, int line, const char* fmt, ...)
 
 bool CLogger::StartLogFileForInstance(const std::string &path,  bool unique )
 {
-    m_szFilePath = gLogFilePath + path;
+    static auto IFileSystem = engine->CreateInterface<CFileSystem>("IFileSystem");
+
+    m_szFilePath = IFileSystem->GetLogPath() + path;
     if(unique)
         m_szFilePath.append(_timestr(false));
     m_fsLogFile.open(m_szFilePath);

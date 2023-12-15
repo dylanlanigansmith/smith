@@ -13,18 +13,12 @@ int CImageLoader::Load(const std::string &img_path, SDL_Surface **surf)
         Error("Image %s doesn't exist", img_path.c_str());
         return 1;
     }
-    if (IFileSystem->GetExtension(img_path).find(".png") == std::string::npos)
+    if (IFileSystem->GetExtension(img_path).find(".png") == std::string::npos) //using find bc sometimes textures get a weird trash ".png~" ext... this will be an issue in the future
     {
         Error("Image has extension %s, want '.png' ", IFileSystem->GetExtension(img_path).c_str());
         return 1;
     }
 
-    // auto size = FindPNGSize(img_path);
-    // if(size.x == 0 || size.y == 0){
-    //     Error("failed to find img size! %d %d", size.x, size.y); return 1;
-    //}
-
-    // dbg("dims of %s are {%dx%d}",img_path.c_str(), size.x, size.y);
     int width, height, channels;
     unsigned char *img = stbi_load(img_path.c_str(), &width, &height, &channels, 0);
     if (img == NULL)
@@ -45,7 +39,9 @@ int CImageLoader::Load(const std::string &img_path, SDL_Surface **surf)
     *surf = SDL_CreateSurface(width, height, format);
 
     SDL_Surface *raw = SDL_CreateSurfaceFrom((void *)img, width, height, (*surf)->pitch, format);
-    SDL_BlitSurface(raw, NULL, *surf, NULL);
+    if(raw != NULL)
+        SDL_BlitSurface(raw, NULL, *surf, NULL);
+    
     SDL_DestroySurface(raw);
     stbi_image_free(img);
 

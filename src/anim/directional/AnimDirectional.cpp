@@ -60,6 +60,7 @@ void CAnimDirectional::Draw(CRenderer *renderer, const sprite_draw_data &data)
 
 void CAnimDirectional::OnCreate()
 {
+    Debug(false);
 }
 
 void CAnimDirectional::OnSequenceStart(const std::string &seq_name)
@@ -134,7 +135,7 @@ void CAnimDirectional::ChangeBaseTexture(const std::string &texture_name)
 
 uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *textpos , const sprite_draw_data& data)
 {
-    log("hit check pt[%d %d] ds[%d %d]  de[%d %d] ", point.x, point.y, data.drawStart.x, data.drawStart.y, data.drawEnd.x, data.drawEnd.y);
+    dbg("hit check pt[%d %d] ds[%d %d]  de[%d %d] ", point.x, point.y, data.drawStart.x, data.drawStart.y, data.drawEnd.x, data.drawEnd.y);
     if (!(data.drawStart.x <= point.x && point.x <= data.drawEnd.x ) )
         return 0u;
     if (!(data.drawStart.y <= point.y && point.y <= data.drawEnd.y ) )
@@ -147,7 +148,7 @@ uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *text
         if(m_animflip == AnimDir_FlipH){
                     tex.x = m_surface->w() - tex.x; //tex.y = m_surface->h() - tex.y; 
         }
-    log("first round");
+   
     //***likely dont need any of the checks below***
     // conditions in the if are:
     // 1) it's in front of camera plane  2) it's on the screen (left) 3) it's on the screen (right) //REMOVED 4) ZBuffer, with perpendicular distance
@@ -167,7 +168,7 @@ uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *text
              return 0u;
         if (m_curSequence->GetTexture()->m_clrKey && color == m_curSequence->GetTexture()->m_clrKey)
              return 0u;
-        log("HIT");
+        dbg("HIT");
         return color;
 
        

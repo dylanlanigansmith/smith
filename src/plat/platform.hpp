@@ -51,7 +51,7 @@ class CPlatform : private CLogger
 
         auto GetExecutableCWD() const { return m_basePath; } //Ends With SystemSlash
         char GetFileSystemSlash() { return (m_platType == Platform::WIN) ? '\\' : '/' ;  }
-        auto& LaunchOptions() const { return m_cmdLine; }
+        auto& LaunchOptions() { return m_cmdLine; }
         bool isDeveloperMode() const { return m_devMode;}
         auto GetPlatName() const { return m_platName; }
         auto GetPlatType() const { return m_platType; }

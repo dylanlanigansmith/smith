@@ -1,0 +1,97 @@
+Pre-Refactor: ~120 fps stable, usually 123-127
+Render::LoopWolf(): Avg. (5922770 ns) (5922 us) (5 ms) (0.005923 sec) Wed Dec  6 18:32:49 2023 @ start
+Render::LoopWolf(): Avg. (5905513 ns) (5905 us) (5 ms) (0.005906 sec)  @ column towards grass
+
+high: ~20000 low 5800
+
+Post-Refactor 130fps
+
+Render::LoopWolf(): Avg. (5638629 ns) (5638 us) (5 ms) (0.005639 sec)  @ start 
+Render::LoopWolf(): Avg. (5681567 ns) (5681 us) (5 ms) (0.005682 sec)  @ column towards grass
+
+high ~9000 low 5600 
+way less variation on graph (line near flat vs heart rate monitor before)
+
+with lighting
+Render::LoopWolf(): Avg. (9825168 ns) (9825 us) (9 ms) (0.009825 sec) @ start
+
+
+
+
+with square1 lighting
+Render::LoopWolf(): Avg. (10844890 ns) (10844 us) (10 ms) (0.010845 sec) Thu Dec  7 21:02:35 2023 //stdround
+Render::LoopWolf(): Avg. (11999054 ns) (11999 us) (11 ms) (0.011999 sec) Thu Dec  7 21:03:27 2023 //custom round
+Render::LoopWolf(): Avg. (11990296 ns) (11990 us) (11 ms) (0.011990 sec) Thu Dec  7 21:06:13 2023 //custom floor 
+
+with working lighting no interp no blur , 300fps avg
+Render::LoopWolf(): Avg. (2157393 ns) (2157 us) (2 ms) (0.002157 sec) Fri Dec  8 
+
+with gauss blur 10.0/3
+Render::LoopWolf(): Avg. (2132989 ns) (2132 us) (2 ms) (0.002133 sec) Fri Dec  8 
+Render::Blur(): Avg. (4105685 ns) (4105 us) (4 ms) (0.004106 sec) Fri Dec  8 
+-> no downscaling  s4.3 k3 ~140fps
+
+Render::Blur(): Avg. (1045148 ns) (1045 us) (1 ms) (0.001045 sec) Fri Dec  8 
+ with 2x downscale  s4.3 k3 ~ >240+ fps
+
+
+
+Render::Blur(): Avg. (986220 ns) (986 us) (0 ms) (0.000986 sec) Fri Dec  8 13:27:41 2023
+2x downscale  s4.3 k3 ~ >240+ fps
+
+
+with 2xblur s4.3k3, 8 renderwolf threads
+Render::LoopWolf(): Avg. (701238 ns) (701 us) (0 ms) (0.000701 sec) Fri Dec  8 19:37:25 2023
+
+Render::Blur(): Avg. (224922 ns) (224 us) (0 ms) (0.000225 sec) Sat Dec  9 13:54:43 2023
+
+2x downscale  s4.3 k3 ~ >700 fps
+
+
+//with better blur
+Render::Blur(): Avg. (706161 ns) (706 us) (0 ms) (0.000706 sec) Sat Dec  9 22:14:12 2023
+sig 24.3 kern 15
+//8t ^
+
+
+Render::LoopWolf(): Avg. (752072 ns) (752 us) (0 ms) (0.000752 sec) Sat Dec  9 23:02:57 2023
+Render::Blur(): Avg. (580786 ns) (580 us) (0 ms) (0.000581 sec) Sat Dec  9 23:03:20 2023
+//10t^
+
+
+
+//at 1024x576 ~200fps
+Render::LoopWolf(): Avg. (2684989 ns) (2684 us) (2 ms) (0.002685 sec) Sat Dec  9 22:44:57 2023
+Render::Blur(): Avg. (1848699 ns) (1848 us) (1 ms) (0.001849 sec) Sat Dec  9 22:45:13 2023
+sig 24.3 kern 15
+
+
+/*
+Commands:
+
+ perf stat -M TopdownL1  ./smith     
+  perf stat ./smith     
+  perf stat -M tma_backend_bound_group   ./smith  
+
+  perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations ./smith      
+
+   perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations ./smith                      
+
+   valgrind --tool=callgrind --dump-instr=yes ./smith
+
+
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./smith
+
+valgrind --tool=cachegrind ./smith
+
+
+valgrind --tool=callgrind --callgrind-out-file=callgrind.out ./smith
+valgrind --tool=massif ./smith
+ms_print massif.out.xxxx
+
+
+valgrind --tool=helgrind ./smith
+valgrind --tool=drd ./smith
+
+
+*/

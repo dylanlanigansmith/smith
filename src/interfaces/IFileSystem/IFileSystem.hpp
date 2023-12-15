@@ -26,7 +26,7 @@ public:
     virtual void OnRenderStart() override{}
     virtual void OnRenderEnd() override {}
 
-    inline auto& GetLogPath() const { return m_resourcepath; }
+    inline auto& GetLogPath() const { return m_logpath; }
     inline auto& GetResourcePath() const { return m_resourcepath; }
     inline auto& GetBasePath() const { return m_basepath; }
 

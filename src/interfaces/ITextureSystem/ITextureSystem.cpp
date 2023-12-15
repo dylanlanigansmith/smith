@@ -10,7 +10,7 @@ CTextureSystem::~CTextureSystem()
 
 void CTextureSystem::OnCreate()
 {
-
+    Debug(false);
     m_hTextureError = HTEXTURE_INVALID;
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
     m_szTextureResourcePath = IResourceSystem->GetResourceSubDir("material");
@@ -164,10 +164,10 @@ hTexture CTextureSystem::FindTexture(const std::string& name)
 
 texture_t* CTextureSystem::FindOrCreatetexture(const std::string& name)
 {
-    log("finding or creating %s ", name.c_str());
+    dbg("finding or creating %s ", name.c_str());
     auto search = FindTexture(name);
     if(search != ErrorTextureHandle()){
-        log("found %s %x", name.c_str(), search);   
+        dbg("found %s %x", name.c_str(), search);   
         return GetTextureData(search);
     }
         

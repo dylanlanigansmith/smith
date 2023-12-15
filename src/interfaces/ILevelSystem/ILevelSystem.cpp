@@ -96,8 +96,8 @@ void CLevelSystem::OnEngineInitFinish()
     // enemy3->Freeze(true);
 
 
-    auto soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-    soldier->SetPosition(pstart.x - 3, pstart.y);
+   // auto soldier = IEntitySystem->AddEntity<CEnemySoldier>();
+   // soldier->SetPosition(pstart.x - 3, pstart.y);
    // soldier = IEntitySystem->AddEntity<CEnemySoldier>();
    // soldier->SetPosition(11.6, 9.8);
    // soldier->SetType(CEnemySoldier::Soldier_Med);
@@ -108,7 +108,7 @@ void CLevelSystem::OnEngineInitFinish()
   //  soldier->SetPosition(4.0, 10.5);
     //soldier->SetType(CEnemySoldier::Soldier_Grunt);
 
-    for(int i = 0; i < 26; ++i)
+    for(int i = 0; i < 15; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();

@@ -1,0 +1,2578 @@
+{
+    "BIGDOOR_1A.PNG": [
+        "BIGDOOR_1A.PNG",
+        38667357,
+        0,
+        1.0,
+        0
+    ],
+    "BLOOD_1A.PNG": [
+        "BLOOD_1A.PNG",
+        2867908175,
+        0,
+        1.0,
+        0
+    ],
+    "BLOOD_1B.PNG": [
+        "BLOOD_1B.PNG",
+        3645557940,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_1A.PNG": [
+        "BRICK_1A.PNG",
+        234167674,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_1B.PNG": [
+        "BRICK_1B.PNG",
+        303895625,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_2A.PNG": [
+        "BRICK_2A.PNG",
+        3859806091,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_2B.PNG": [
+        "BRICK_2B.PNG",
+        3722086604,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_3A.PNG": [
+        "BRICK_3A.PNG",
+        2474563076,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_3B.PNG": [
+        "BRICK_3B.PNG",
+        1503127539,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_3C.PNG": [
+        "BRICK_3C.PNG",
+        3908456594,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_3D.PNG": [
+        "BRICK_3D.PNG",
+        3306567161,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_3E.PNG": [
+        "BRICK_3E.PNG",
+        4257786400,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_4A.PNG": [
+        "BRICK_4A.PNG",
+        2908663909,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_4B.PNG": [
+        "BRICK_4B.PNG",
+        3072503302,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_4C.PNG": [
+        "BRICK_4C.PNG",
+        4064639351,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_4D.PNG": [
+        "BRICK_4D.PNG",
+        1164022928,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_4E.PNG": [
+        "BRICK_4E.PNG",
+        2585517385,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_5A.PNG": [
+        "BRICK_5A.PNG",
+        3883967358,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_6A.PNG": [
+        "BRICK_6A.PNG",
+        55646143,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_6B.PNG": [
+        "BRICK_6B.PNG",
+        1976164640,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_6C.PNG": [
+        "BRICK_6C.PNG",
+        2288968541,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_6D.PNG": [
+        "BRICK_6D.PNG",
+        1555103094,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_6E.PNG": [
+        "BRICK_6E.PNG",
+        3784749299,
+        0,
+        1.0,
+        0
+    ],
+    "BRICK_6F.PNG": [
+        "BRICK_6F.PNG",
+        3762678100,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_1A.PNG": [
+        "CONCRETE_1A.PNG",
+        1930391836,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_1B.PNG": [
+        "CONCRETE_1B.PNG",
+        1006254597,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_1C.PNG": [
+        "CONCRETE_1C.PNG",
+        2016936926,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_1D.PNG": [
+        "CONCRETE_1D.PNG",
+        1462033959,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_2A.PNG": [
+        "CONCRETE_2A.PNG",
+        1050919423,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_2B.PNG": [
+        "CONCRETE_2B.PNG",
+        456983630,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_2C.PNG": [
+        "CONCRETE_2C.PNG",
+        2235836949,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_3A.PNG": [
+        "CONCRETE_3A.PNG",
+        3818761974,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_3B.PNG": [
+        "CONCRETE_3B.PNG",
+        2268623479,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_3C.PNG": [
+        "CONCRETE_3C.PNG",
+        1555551940,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_4A.PNG": [
+        "CONCRETE_4A.PNG",
+        2876285025,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_4B.PNG": [
+        "CONCRETE_4B.PNG",
+        2448062216,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_4C.PNG": [
+        "CONCRETE_4C.PNG",
+        2859770955,
+        0,
+        1.0,
+        0
+    ],
+    "CONCRETE_4D.PNG": [
+        "CONCRETE_4D.PNG",
+        1219909074,
+        0,
+        1.0,
+        0
+    ],
+    "CONSOLE_1A.PNG": [
+        "CONSOLE_1A.PNG",
+        2757140962,
+        0,
+        1.0,
+        0
+    ],
+    "CONSOLE_1B.PNG": [
+        "CONSOLE_1B.PNG",
+        3422250981,
+        0,
+        1.0,
+        0
+    ],
+    "CONSOLE_1C.PNG": [
+        "CONSOLE_1C.PNG",
+        134468376,
+        0,
+        1.0,
+        0
+    ],
+    "CONSOLE_1D.PNG": [
+        "CONSOLE_1D.PNG",
+        3422520611,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1A.PNG": [
+        "CRATE_1A.PNG",
+        646905284,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1B.PNG": [
+        "CRATE_1B.PNG",
+        493591019,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1C.PNG": [
+        "CRATE_1C.PNG",
+        2533105934,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1D.PNG": [
+        "CRATE_1D.PNG",
+        491955037,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1E.PNG": [
+        "CRATE_1E.PNG",
+        1537177072,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1F.PNG": [
+        "CRATE_1F.PNG",
+        538852279,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1G.PNG": [
+        "CRATE_1G.PNG",
+        3131321034,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1H.PNG": [
+        "CRATE_1H.PNG",
+        2111691305,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1I.PNG": [
+        "CRATE_1I.PNG",
+        132786556,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1J.PNG": [
+        "CRATE_1J.PNG",
+        3743204067,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1K.PNG": [
+        "CRATE_1K.PNG",
+        3845423430,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1L.PNG": [
+        "CRATE_1L.PNG",
+        3784079349,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1M.PNG": [
+        "CRATE_1M.PNG",
+        575910792,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_1N.PNG": [
+        "CRATE_1N.PNG",
+        1017443599,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2A.PNG": [
+        "CRATE_2A.PNG",
+        4278552197,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2B.PNG": [
+        "CRATE_2B.PNG",
+        3326329310,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2C.PNG": [
+        "CRATE_2C.PNG",
+        561991835,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2D.PNG": [
+        "CRATE_2D.PNG",
+        3941011228,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2E.PNG": [
+        "CRATE_2E.PNG",
+        1747872529,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2F.PNG": [
+        "CRATE_2F.PNG",
+        1434951770,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2G.PNG": [
+        "CRATE_2G.PNG",
+        602716647,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2H.PNG": [
+        "CRATE_2H.PNG",
+        3309986856,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2I.PNG": [
+        "CRATE_2I.PNG",
+        2776240957,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2J.PNG": [
+        "CRATE_2J.PNG",
+        2817288790,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2K.PNG": [
+        "CRATE_2K.PNG",
+        943742931,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2L.PNG": [
+        "CRATE_2L.PNG",
+        4214261428,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2M.PNG": [
+        "CRATE_2M.PNG",
+        1875039241,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_2N.PNG": [
+        "CRATE_2N.PNG",
+        4230116306,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_3A.PNG": [
+        "CRATE_3A.PNG",
+        185351542,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_3B.PNG": [
+        "CRATE_3B.PNG",
+        2102005645,
+        0,
+        1.0,
+        0
+    ],
+    "CRATE_3C.PNG": [
+        "CRATE_3C.PNG",
+        1876321852,
+        0,
+        1.0,
+        0
+    ],
+    "DIRT_1A.PNG": [
+        "DIRT_1A.PNG",
+        3282620142,
+        0,
+        1.0,
+        0
+    ],
+    "DIRT_1B.PNG": [
+        "DIRT_1B.PNG",
+        423508139,
+        0,
+        1.0,
+        0
+    ],
+    "DIRT_1C.PNG": [
+        "DIRT_1C.PNG",
+        1478509768,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1A.PNG": [
+        "DOORTRIM_1A.PNG",
+        468775205,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1B.PNG": [
+        "DOORTRIM_1B.PNG",
+        2206348880,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1C.PNG": [
+        "DOORTRIM_1C.PNG",
+        4042192267,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1D.PNG": [
+        "DOORTRIM_1D.PNG",
+        1249381646,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1E.PNG": [
+        "DOORTRIM_1E.PNG",
+        1604380449,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1F.PNG": [
+        "DOORTRIM_1F.PNG",
+        290627660,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1G.PNG": [
+        "DOORTRIM_1G.PNG",
+        2512920887,
+        0,
+        1.0,
+        0
+    ],
+    "DOORTRIM_1H.PNG": [
+        "DOORTRIM_1H.PNG",
+        309182922,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1A.PNG": [
+        "DOOR_1A.PNG",
+        2099725205,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1B.PNG": [
+        "DOOR_1B.PNG",
+        222262356,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1C.PNG": [
+        "DOOR_1C.PNG",
+        2885457927,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1D.PNG": [
+        "DOOR_1D.PNG",
+        1827315638,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1E.PNG": [
+        "DOOR_1E.PNG",
+        3355098417,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1F.PNG": [
+        "DOOR_1F.PNG",
+        4048913392,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1G.PNG": [
+        "DOOR_1G.PNG",
+        986621827,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_1H.PNG": [
+        "DOOR_1H.PNG",
+        3595200002,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2A.PNG": [
+        "DOOR_2A.PNG",
+        1144383214,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2B.PNG": [
+        "DOOR_2B.PNG",
+        1978390743,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2C.PNG": [
+        "DOOR_2C.PNG",
+        3535605764,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2D.PNG": [
+        "DOOR_2D.PNG",
+        2089065469,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2E.PNG": [
+        "DOOR_2E.PNG",
+        1604186554,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2F.PNG": [
+        "DOOR_2F.PNG",
+        2690606995,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2G.PNG": [
+        "DOOR_2G.PNG",
+        734171616,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_2H.PNG": [
+        "DOOR_2H.PNG",
+        4096860377,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_3A.PNG": [
+        "DOOR_3A.PNG",
+        2166925407,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_3B.PNG": [
+        "DOOR_3B.PNG",
+        3024795174,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_4A.PNG": [
+        "DOOR_4A.PNG",
+        533971712,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_4B.PNG": [
+        "DOOR_4B.PNG",
+        1196624433,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_5A.PNG": [
+        "DOOR_5A.PNG",
+        1938386393,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_5B.PNG": [
+        "DOOR_5B.PNG",
+        1831041208,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_6A.PNG": [
+        "DOOR_6A.PNG",
+        1436726018,
+        0,
+        1.0,
+        0
+    ],
+    "DOOR_7A.PNG": [
+        "DOOR_7A.PNG",
+        2793801763,
+        0,
+        1.0,
+        0
+    ],
+    "FENCE_1A.PNG": [
+        "FENCE_1A.PNG",
+        3684645666,
+        16777215,
+        1.0,
+        0
+    ],
+    "FENCE_1B.PNG": [
+        "FENCE_1B.PNG",
+        3949064193,
+        16777215,
+        1.0,
+        0
+    ],
+    "FENCE_2A.PNG": [
+        "FENCE_2A.PNG",
+        2458358151,
+        0,
+        1.0,
+        0
+    ],
+    "FENCE_2B.PNG": [
+        "FENCE_2B.PNG",
+        2279384568,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_1A.PNG": [
+        "FLOOR_1A.PNG",
+        132356209,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_1B.PNG": [
+        "FLOOR_1B.PNG",
+        1020309134,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_1C.PNG": [
+        "FLOOR_1C.PNG",
+        1334776203,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_1D.PNG": [
+        "FLOOR_1D.PNG",
+        359452824,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2A.PNG": [
+        "FLOOR_2A.PNG",
+        3636873008,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2B.PNG": [
+        "FLOOR_2B.PNG",
+        2201150075,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2C.PNG": [
+        "FLOOR_2C.PNG",
+        1368128286,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2D.PNG": [
+        "FLOOR_2D.PNG",
+        2410501145,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2E.PNG": [
+        "FLOOR_2E.PNG",
+        1368398956,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2F.PNG": [
+        "FLOOR_2F.PNG",
+        2068072343,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_2G.PNG": [
+        "FLOOR_2G.PNG",
+        3110017946,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_3A.PNG": [
+        "FLOOR_3A.PNG",
+        2618585763,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_3B.PNG": [
+        "FLOOR_3B.PNG",
+        1638984808,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_3C.PNG": [
+        "FLOOR_3C.PNG",
+        1108930745,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_4A.PNG": [
+        "FLOOR_4A.PNG",
+        2423274106,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_4B.PNG": [
+        "FLOOR_4B.PNG",
+        2393220621,
+        0,
+        1.0,
+        0
+    ],
+    "FLOOR_4C.PNG": [
+        "FLOOR_4C.PNG",
+        3387920956,
+        0,
+        1.0,
+        0
+    ],
+    "GRASS_1A.PNG": [
+        "GRASS_1A.PNG",
+        604592577,
+        0,
+        1.0,
+        0
+    ],
+    "GRASS_1B.PNG": [
+        "GRASS_1B.PNG",
+        3412382370,
+        0,
+        1.0,
+        0
+    ],
+    "GRASS_1C.PNG": [
+        "GRASS_1C.PNG",
+        232547379,
+        0,
+        1.0,
+        0
+    ],
+    "GRASS_2A.PNG": [
+        "GRASS_2A.PNG",
+        598231204,
+        0,
+        1.0,
+        0
+    ],
+    "GRASS_2B.PNG": [
+        "GRASS_2B.PNG",
+        2641765219,
+        0,
+        1.0,
+        0
+    ],
+    "GRID_1A.PNG": [
+        "GRID_1A.PNG",
+        2298542569,
+        0,
+        1.0,
+        0
+    ],
+    "GRID_1B.PNG": [
+        "GRID_1B.PNG",
+        3923783524,
+        0,
+        1.0,
+        0
+    ],
+    "GRID_1C.PNG": [
+        "GRID_1C.PNG",
+        2449676647,
+        0,
+        1.0,
+        0
+    ],
+    "GRID_2A.PNG": [
+        "GRID_2A.PNG",
+        3968555234,
+        0,
+        1.0,
+        0
+    ],
+    "GRID_2B.PNG": [
+        "GRID_2B.PNG",
+        2347659255,
+        0,
+        1.0,
+        0
+    ],
+    "GRID_2C.PNG": [
+        "GRID_2C.PNG",
+        1335577748,
+        0,
+        1.0,
+        0
+    ],
+    "HEDGE_1A.PNG": [
+        "HEDGE_1A.PNG",
+        1139821758,
+        0,
+        1.0,
+        0
+    ],
+    "HEDGE_1B.PNG": [
+        "HEDGE_1B.PNG",
+        3153566525,
+        0,
+        1.0,
+        0
+    ],
+    "HEDGE_1C.PNG": [
+        "HEDGE_1C.PNG",
+        494463380,
+        0,
+        1.0,
+        0
+    ],
+    "HEDGE_2A.PNG": [
+        "HEDGE_2A.PNG",
+        3796576587,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_1A.PNG": [
+        "LAB_1A.PNG",
+        1816699488,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_1B.PNG": [
+        "LAB_1B.PNG",
+        328710223,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_1C.PNG": [
+        "LAB_1C.PNG",
+        554694374,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_2A.PNG": [
+        "LAB_2A.PNG",
+        4032726997,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_2B.PNG": [
+        "LAB_2B.PNG",
+        604886262,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_3A.PNG": [
+        "LAB_3A.PNG",
+        902430878,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_3B.PNG": [
+        "LAB_3B.PNG",
+        4080574221,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_3C.PNG": [
+        "LAB_3C.PNG",
+        3549148040,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_4A.PNG": [
+        "LAB_4A.PNG",
+        1163108899,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_4B.PNG": [
+        "LAB_4B.PNG",
+        48521892,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_5A.PNG": [
+        "LAB_5A.PNG",
+        2725643052,
+        0,
+        1.0,
+        0
+    ],
+    "LAB_5B.PNG": [
+        "LAB_5B.PNG",
+        3591456859,
+        0,
+        1.0,
+        0
+    ],
+    "LDOOR_1A.PNG": [
+        "LDOOR_1A.PNG",
+        3721383579,
+        0,
+        1.0,
+        0
+    ],
+    "LEDGE_1A.PNG": [
+        "LEDGE_1A.PNG",
+        1206932234,
+        0,
+        1.0,
+        0
+    ],
+    "LIGHT_1A.PNG": [
+        "LIGHT_1A.PNG",
+        1275512103,
+        0,
+        1.0,
+        0
+    ],
+    "LIGHT_1B.PNG": [
+        "LIGHT_1B.PNG",
+        3002474432,
+        0,
+        1.0,
+        0
+    ],
+    "LIGHT_1C.PNG": [
+        "LIGHT_1C.PNG",
+        3147575357,
+        0,
+        1.0,
+        0
+    ],
+    "LIGHT_2A.PNG": [
+        "LIGHT_2A.PNG",
+        2816834614,
+        0,
+        1.0,
+        0
+    ],
+    "LIGHT_2B.PNG": [
+        "LIGHT_2B.PNG",
+        3960553901,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_1A.PNG": [
+        "PANEL_1A.PNG",
+        120559141,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_1B.PNG": [
+        "PANEL_1B.PNG",
+        143926842,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_2A.PNG": [
+        "PANEL_2A.PNG",
+        606946256,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_2B.PNG": [
+        "PANEL_2B.PNG",
+        2437176819,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_2C.PNG": [
+        "PANEL_2C.PNG",
+        1282025738,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_2D.PNG": [
+        "PANEL_2D.PNG",
+        899694525,
+        0,
+        1.0,
+        0
+    ],
+    "PANEL_2E.PNG": [
+        "PANEL_2E.PNG",
+        887796404,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1A.PNG": [
+        "PAPER_1A.PNG",
+        3991963993,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1B.PNG": [
+        "PAPER_1B.PNG",
+        2436853982,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1C.PNG": [
+        "PAPER_1C.PNG",
+        3598956887,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1D.PNG": [
+        "PAPER_1D.PNG",
+        2110439468,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1E.PNG": [
+        "PAPER_1E.PNG",
+        2377593565,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1F.PNG": [
+        "PAPER_1F.PNG",
+        1794443634,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1G.PNG": [
+        "PAPER_1G.PNG",
+        3267576171,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1H.PNG": [
+        "PAPER_1H.PNG",
+        3988685248,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1I.PNG": [
+        "PAPER_1I.PNG",
+        333768273,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1J.PNG": [
+        "PAPER_1J.PNG",
+        1437729238,
+        0,
+        1.0,
+        0
+    ],
+    "PAPER_1K.PNG": [
+        "PAPER_1K.PNG",
+        4215481039,
+        0,
+        1.0,
+        0
+    ],
+    "PIPES_1A.PNG": [
+        "PIPES_1A.PNG",
+        2827180934,
+        0,
+        1.0,
+        0
+    ],
+    "PIPES_1B.PNG": [
+        "PIPES_1B.PNG",
+        1817546865,
+        0,
+        1.0,
+        0
+    ],
+    "PIPES_2A.PNG": [
+        "PIPES_2A.PNG",
+        2032253279,
+        0,
+        1.0,
+        0
+    ],
+    "PIPES_2B.PNG": [
+        "PIPES_2B.PNG",
+        4289217052,
+        0,
+        1.0,
+        0
+    ],
+    "PIPES_3A.PNG": [
+        "PIPES_3A.PNG",
+        1404195076,
+        0,
+        1.0,
+        0
+    ],
+    "RDOOR_1A.PNG": [
+        "RDOOR_1A.PNG",
+        3419386437,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_1A.PNG": [
+        "RIVET_1A.PNG",
+        512278519,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_1B.PNG": [
+        "RIVET_1B.PNG",
+        3371486460,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_1C.PNG": [
+        "RIVET_1C.PNG",
+        3315343969,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_2A.PNG": [
+        "RIVET_2A.PNG",
+        3792146558,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_2B.PNG": [
+        "RIVET_2B.PNG",
+        310960145,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_2C.PNG": [
+        "RIVET_2C.PNG",
+        604049804,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_3A.PNG": [
+        "RIVET_3A.PNG",
+        2534571353,
+        0,
+        1.0,
+        0
+    ],
+    "RIVET_3B.PNG": [
+        "RIVET_3B.PNG",
+        3270504342,
+        0,
+        1.0,
+        0
+    ],
+    "SAND_1A.PNG": [
+        "SAND_1A.PNG",
+        4199717363,
+        0,
+        1.0,
+        0
+    ],
+    "SAND_1B.PNG": [
+        "SAND_1B.PNG",
+        110157526,
+        0,
+        1.0,
+        0
+    ],
+    "SAND_1C.PNG": [
+        "SAND_1C.PNG",
+        283942913,
+        0,
+        1.0,
+        0
+    ],
+    "SAND_2A.PNG": [
+        "SAND_2A.PNG",
+        1301746316,
+        0,
+        1.0,
+        0
+    ],
+    "SAND_2B.PNG": [
+        "SAND_2B.PNG",
+        724032209,
+        0,
+        1.0,
+        0
+    ],
+    "SIDEWALK_1A.PNG": [
+        "SIDEWALK_1A.PNG",
+        4170715279,
+        0,
+        1.0,
+        0
+    ],
+    "SIDEWALK_1B.PNG": [
+        "SIDEWALK_1B.PNG",
+        1500721302,
+        0,
+        1.0,
+        0
+    ],
+    "SIDEWALK_1C.PNG": [
+        "SIDEWALK_1C.PNG",
+        322066537,
+        0,
+        1.0,
+        0
+    ],
+    "SLIME_1A.PNG": [
+        "SLIME_1A.PNG",
+        1419100803,
+        0,
+        1.0,
+        0
+    ],
+    "SLIME_1B.PNG": [
+        "SLIME_1B.PNG",
+        1573601588,
+        0,
+        1.0,
+        0
+    ],
+    "SLUDGE_1A.PNG": [
+        "SLUDGE_1A.PNG",
+        186923275,
+        0,
+        1.0,
+        0
+    ],
+    "STEEL_1A.PNG": [
+        "STEEL_1A.PNG",
+        3098032360,
+        0,
+        1.0,
+        0
+    ],
+    "STEEL_1B.PNG": [
+        "STEEL_1B.PNG",
+        4246139215,
+        0,
+        1.0,
+        0
+    ],
+    "STEEL_2A.PNG": [
+        "STEEL_2A.PNG",
+        1340756941,
+        0,
+        1.0,
+        0
+    ],
+    "STEEL_2B.PNG": [
+        "STEEL_2B.PNG",
+        3166149702,
+        0,
+        1.0,
+        0
+    ],
+    "STEEL_3A.PNG": [
+        "STEEL_3A.PNG",
+        1048184622,
+        0,
+        1.0,
+        0
+    ],
+    "STEP_1A.PNG": [
+        "STEP_1A.PNG",
+        1007991191,
+        0,
+        1.0,
+        0
+    ],
+    "STEP_2A.PNG": [
+        "STEP_2A.PNG",
+        1560275940,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_1A.PNG": [
+        "STUCCO_1A.PNG",
+        2410146602,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_1B.PNG": [
+        "STUCCO_1B.PNG",
+        3209810903,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_1C.PNG": [
+        "STUCCO_1C.PNG",
+        2377473624,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_2A.PNG": [
+        "STUCCO_2A.PNG",
+        1652244797,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_2B.PNG": [
+        "STUCCO_2B.PNG",
+        670811624,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_2C.PNG": [
+        "STUCCO_2C.PNG",
+        1825425735,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_3A.PNG": [
+        "STUCCO_3A.PNG",
+        3145960480,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_3B.PNG": [
+        "STUCCO_3B.PNG",
+        3048671877,
+        0,
+        1.0,
+        0
+    ],
+    "STUCCO_3C.PNG": [
+        "STUCCO_3C.PNG",
+        4213260482,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_1A.PNG": [
+        "SUPPORT_1A.PNG",
+        1457321968,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_1B.PNG": [
+        "SUPPORT_1B.PNG",
+        3924045107,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_1C.PNG": [
+        "SUPPORT_1C.PNG",
+        1841099758,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_1D.PNG": [
+        "SUPPORT_1D.PNG",
+        154747065,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_2A.PNG": [
+        "SUPPORT_2A.PNG",
+        116631089,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_2B.PNG": [
+        "SUPPORT_2B.PNG",
+        1157180542,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_2C.PNG": [
+        "SUPPORT_2C.PNG",
+        3281280931,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_2D.PNG": [
+        "SUPPORT_2D.PNG",
+        116549400,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_3A.PNG": [
+        "SUPPORT_3A.PNG",
+        658464358,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_3B.PNG": [
+        "SUPPORT_3B.PNG",
+        399019881,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_3C.PNG": [
+        "SUPPORT_3C.PNG",
+        1412746040,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_3D.PNG": [
+        "SUPPORT_3D.PNG",
+        2190557315,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_4A.PNG": [
+        "SUPPORT_4A.PNG",
+        2974567143,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_4B.PNG": [
+        "SUPPORT_4B.PNG",
+        662761284,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_4C.PNG": [
+        "SUPPORT_4C.PNG",
+        3345730597,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_4D.PNG": [
+        "SUPPORT_4D.PNG",
+        1153904058,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_5A.PNG": [
+        "SUPPORT_5A.PNG",
+        3436602828,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_5B.PNG": [
+        "SUPPORT_5B.PNG",
+        3341401599,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_5C.PNG": [
+        "SUPPORT_5C.PNG",
+        3855237722,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_5D.PNG": [
+        "SUPPORT_5D.PNG",
+        1494296069,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_6A.PNG": [
+        "SUPPORT_6A.PNG",
+        3342578877,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_6B.PNG": [
+        "SUPPORT_6B.PNG",
+        1319859114,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_6C.PNG": [
+        "SUPPORT_6C.PNG",
+        2818314671,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_6D.PNG": [
+        "SUPPORT_6D.PNG",
+        1300153300,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_7A.PNG": [
+        "SUPPORT_7A.PNG",
+        431760370,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_7B.PNG": [
+        "SUPPORT_7B.PNG",
+        1831748725,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_7C.PNG": [
+        "SUPPORT_7C.PNG",
+        2445415796,
+        0,
+        1.0,
+        0
+    ],
+    "SUPPORT_7D.PNG": [
+        "SUPPORT_7D.PNG",
+        666732431,
+        0,
+        1.0,
+        0
+    ],
+    "SWITCH_1A.PNG": [
+        "SWITCH_1A.PNG",
+        1349286813,
+        0,
+        1.0,
+        0
+    ],
+    "SWITCH_1B.PNG": [
+        "SWITCH_1B.PNG",
+        3264251864,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_1A.PNG": [
+        "TARMAC_1A.PNG",
+        2861245327,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_1B.PNG": [
+        "TARMAC_1B.PNG",
+        273596662,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_1C.PNG": [
+        "TARMAC_1C.PNG",
+        1065413221,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_2A.PNG": [
+        "TARMAC_2A.PNG",
+        2156356988,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_2B.PNG": [
+        "TARMAC_2B.PNG",
+        1213928789,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_2C.PNG": [
+        "TARMAC_2C.PNG",
+        1679270982,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_3A.PNG": [
+        "TARMAC_3A.PNG",
+        2062132621,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_3B.PNG": [
+        "TARMAC_3B.PNG",
+        3232675332,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_4A.PNG": [
+        "TARMAC_4A.PNG",
+        1862575626,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_4B.PNG": [
+        "TARMAC_4B.PNG",
+        3118124515,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_4C.PNG": [
+        "TARMAC_4C.PNG",
+        1545476064,
+        0,
+        1.0,
+        0
+    ],
+    "TARMAC_4D.PNG": [
+        "TARMAC_4D.PNG",
+        3126491761,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1A.PNG": [
+        "TECH_1A.PNG",
+        1155971965,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1B.PNG": [
+        "TECH_1B.PNG",
+        329978700,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1C.PNG": [
+        "TECH_1C.PNG",
+        3315778735,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1D.PNG": [
+        "TECH_1D.PNG",
+        1997314054,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1E.PNG": [
+        "TECH_1E.PNG",
+        649179601,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1F.PNG": [
+        "TECH_1F.PNG",
+        3342031168,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_1G.PNG": [
+        "TECH_1G.PNG",
+        722469203,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_2A.PNG": [
+        "TECH_2A.PNG",
+        1951438350,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_2B.PNG": [
+        "TECH_2B.PNG",
+        3714291327,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_2C.PNG": [
+        "TECH_2C.PNG",
+        1494736700,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_2D.PNG": [
+        "TECH_2D.PNG",
+        4193295957,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_2E.PNG": [
+        "TECH_2E.PNG",
+        2439234722,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_2F.PNG": [
+        "TECH_2F.PNG",
+        3268409827,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_3A.PNG": [
+        "TECH_3A.PNG",
+        576230519,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_3B.PNG": [
+        "TECH_3B.PNG",
+        3638886070,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4A.PNG": [
+        "TECH_4A.PNG",
+        2625088208,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4B.PNG": [
+        "TECH_4B.PNG",
+        2785672913,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4C.PNG": [
+        "TECH_4C.PNG",
+        274309010,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4D.PNG": [
+        "TECH_4D.PNG",
+        1498938059,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4E.PNG": [
+        "TECH_4E.PNG",
+        2488452684,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4F.PNG": [
+        "TECH_4F.PNG",
+        3628389293,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4G.PNG": [
+        "TECH_4G.PNG",
+        2950653294,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4H.PNG": [
+        "TECH_4H.PNG",
+        2734704503,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4I.PNG": [
+        "TECH_4I.PNG",
+        1085672264,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4J.PNG": [
+        "TECH_4J.PNG",
+        2314780809,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_4K.PNG": [
+        "TECH_4K.PNG",
+        592854570,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_5A.PNG": [
+        "TECH_5A.PNG",
+        1918255721,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_5B.PNG": [
+        "TECH_5B.PNG",
+        1023986072,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_5C.PNG": [
+        "TECH_5C.PNG",
+        1316930731,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_5D.PNG": [
+        "TECH_5D.PNG",
+        1253791538,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_5E.PNG": [
+        "TECH_5E.PNG",
+        30792581,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_5F.PNG": [
+        "TECH_5F.PNG",
+        2538063508,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_6A.PNG": [
+        "TECH_6A.PNG",
+        3543625754,
+        0,
+        1.0,
+        0
+    ],
+    "TECH_6B.PNG": [
+        "TECH_6B.PNG",
+        3566507387,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1A.PNG": [
+        "TILE_1A.PNG",
+        575308505,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1B.PNG": [
+        "TILE_1B.PNG",
+        2851284472,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1C.PNG": [
+        "TILE_1C.PNG",
+        390198655,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1D.PNG": [
+        "TILE_1D.PNG",
+        3026753446,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1E.PNG": [
+        "TILE_1E.PNG",
+        2641412677,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1F.PNG": [
+        "TILE_1F.PNG",
+        3093509796,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_1G.PNG": [
+        "TILE_1G.PNG",
+        589572795,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_2A.PNG": [
+        "TILE_2A.PNG",
+        2271818046,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_2B.PNG": [
+        "TILE_2B.PNG",
+        4051487631,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_2C.PNG": [
+        "TILE_2C.PNG",
+        2101575912,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_2D.PNG": [
+        "TILE_2D.PNG",
+        1753729,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_2E.PNG": [
+        "TILE_2E.PNG",
+        3422671370,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_2F.PNG": [
+        "TILE_2F.PNG",
+        3955424011,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_3A.PNG": [
+        "TILE_3A.PNG",
+        740210871,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_3B.PNG": [
+        "TILE_3B.PNG",
+        2329401430,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_3C.PNG": [
+        "TILE_3C.PNG",
+        3349742305,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_3D.PNG": [
+        "TILE_3D.PNG",
+        742134408,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_3E.PNG": [
+        "TILE_3E.PNG",
+        395525939,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_3F.PNG": [
+        "TILE_3F.PNG",
+        4229735394,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_4A.PNG": [
+        "TILE_4A.PNG",
+        2355778484,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_4B.PNG": [
+        "TILE_4B.PNG",
+        482938693,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_4C.PNG": [
+        "TILE_4C.PNG",
+        2543690426,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_4D.PNG": [
+        "TILE_4D.PNG",
+        3685649603,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_4E.PNG": [
+        "TILE_4E.PNG",
+        714791160,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_5A.PNG": [
+        "TILE_5A.PNG",
+        3624733229,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_5B.PNG": [
+        "TILE_5B.PNG",
+        1791322540,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_5C.PNG": [
+        "TILE_5C.PNG",
+        1335421859,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_6A.PNG": [
+        "TILE_6A.PNG",
+        1035775794,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_6B.PNG": [
+        "TILE_6B.PNG",
+        2532019251,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_6C.PNG": [
+        "TILE_6C.PNG",
+        541536156,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_7A.PNG": [
+        "TILE_7A.PNG",
+        207743963,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_7B.PNG": [
+        "TILE_7B.PNG",
+        1264197386,
+        0,
+        1.0,
+        0
+    ],
+    "TILE_7D.PNG": [
+        "TILE_7D.PNG",
+        382926396,
+        0,
+        1.0,
+        0
+    ],
+    "VENT_1A.PNG": [
+        "VENT_1A.PNG",
+        3971150848,
+        0,
+        1.0,
+        0
+    ],
+    "VENT_1B.PNG": [
+        "VENT_1B.PNG",
+        2027331665,
+        0,
+        1.0,
+        0
+    ],
+    "WARN_1A.PNG": [
+        "WARN_1A.PNG",
+        1817237773,
+        0,
+        1.0,
+        0
+    ],
+    "WARN_2A.PNG": [
+        "WARN_2A.PNG",
+        2879003362,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_1A.PNG": [
+        "WOOD_1A.PNG",
+        2461922242,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_1B.PNG": [
+        "WOOD_1B.PNG",
+        2002373571,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_1C.PNG": [
+        "WOOD_1C.PNG",
+        3893402804,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_1D.PNG": [
+        "WOOD_1D.PNG",
+        1134892269,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_2A.PNG": [
+        "WOOD_2A.PNG",
+        3059049861,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_2B.PNG": [
+        "WOOD_2B.PNG",
+        17736452,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_2C.PNG": [
+        "WOOD_2C.PNG",
+        4261584371,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_2D.PNG": [
+        "WOOD_2D.PNG",
+        1006091818,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_3A.PNG": [
+        "WOOD_3A.PNG",
+        3706531212,
+        0,
+        1.0,
+        0
+    ],
+    "WOOD_3B.PNG": [
+        "WOOD_3B.PNG",
+        1278239197,
+        0,
+        1.0,
+        0
+    ],
+    "barrel.png": [
+        "barrel.png",
+        3717324194,
+        255,
+        1.0,
+        0
+    ],
+    "blood02.png": [
+        "blood02.png",
+        3969252824,
+        0,
+        1.0,
+        0
+    ],
+    "bluestone.png": [
+        "bluestone.png",
+        3925249395,
+        0,
+        1.0,
+        0
+    ],
+    "colorstone.png": [
+        "colorstone.png",
+        3516659258,
+        0,
+        1.0,
+        0
+    ],
+    "cyan.png": [
+        "cyan.png",
+        2492291203,
+        16777215,
+        1.0,
+        0
+    ],
+    "dylan_devred.png": [
+        "dylan_devred.png",
+        40402129,
+        0,
+        1.0,
+        0
+    ],
+    "error.png": [
+        "error.png",
+        2057408216,
+        0,
+        1.0,
+        0
+    ],
+    "flash.png": [
+        "flash.png",
+        4060449508,
+        0,
+        1.0,
+        0
+    ],
+    "greenlight.png": [
+        "greenlight.png",
+        575007017,
+        255,
+        1.0,
+        0
+    ],
+    "greystone.png": [
+        "greystone.png",
+        422298146,
+        0,
+        1.0,
+        0
+    ],
+    "mossy.png": [
+        "mossy.png",
+        1332300455,
+        0,
+        1.0,
+        0
+    ],
+    "pillar.png": [
+        "pillar.png",
+        290831178,
+        255,
+        1.0,
+        0
+    ],
+    "pistol.png": [
+        "pistol.png",
+        2390006167,
+        0,
+        1.0,
+        0
+    ],
+    "purplestone.png": [
+        "purplestone.png",
+        213972753,
+        0,
+        1.0,
+        0
+    ],
+    "redbrick.png": [
+        "redbrick.png",
+        1315001158,
+        0,
+        1.0,
+        0
+    ],
+    "security.png": [
+        "security.png",
+        1077746944,
+        0,
+        1.0,
+        0
+    ],
+    "smg_cock.png": [
+        "smg_cock.png",
+        342142156,
+        0,
+        1.0,
+        0
+    ],
+    "smg_fire.png": [
+        "smg_fire.png",
+        3187708776,
+        0,
+        1.0,
+        0
+    ],
+    "smg_reload.png": [
+        "smg_reload.png",
+        705289659,
+        0,
+        1.0,
+        0
+    ],
+    "soldier.png": [
+        "soldier.png",
+        4012345572,
+        0,
+        1.0,
+        0
+    ],
+    "soldier2.png": [
+        "soldier2.png",
+        254980602,
+        0,
+        1.0,
+        0
+    ],
+    "soldier3.png": [
+        "soldier3.png",
+        614970611,
+        0,
+        1.0,
+        0
+    ],
+    "wood.png": [
+        "wood.png",
+        2103827293,
+        0,
+        1.0,
+        0
+    ]
+}
