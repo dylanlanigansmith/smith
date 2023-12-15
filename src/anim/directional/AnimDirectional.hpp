@@ -75,6 +75,7 @@ protected:
     orient_callback_fn DeduceOrientationCallback; //returns orientation, sets flip, animstate, seq_name
     int m_playingForState = 0;
     std::string m_currentlyPlaying;
+    
     int m_orientation = DefaultOrientation;
     int m_direction = 0;
     int m_animstate = 0;

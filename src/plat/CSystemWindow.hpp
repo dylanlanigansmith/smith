@@ -28,6 +28,7 @@ public:
     auto Height() const { return height; }
 protected:
     bool SetupForPlatform(Platform::Platform_Types p){
+        GatherDisplayInfo();
         if(p != Platform::WIN){
             m_setup = true;
             if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, MSAA_BUFFER) != 0){
@@ -66,6 +67,40 @@ protected:
     void MakeFullScreen(){
         gfx_params.fullscreen = true;
     }
+    void GatherDisplayInfo()
+    {
+        auto displays = SDL_GetDisplays(&m_numdisplays);
+        if(displays == NULL){
+            gError("failed to get display list [ size? %d], %s", m_numdisplays, SDL_GetError()); return;
+        }
+        int highest_res = 0;
+        SDL_DisplayID best = 0;
+        for(int i = 0; i < m_numdisplays; ++i)
+        {
+            auto display_mode = SDL_GetCurrentDisplayMode(displays[i]);
+            if(display_mode == nullptr ){
+                gError("failed to get display info for %d, %s", i, SDL_GetError());
+            }
+            if(display_mode->w > highest_res){
+                highest_res = display_mode->w;
+                best = displays[i];
+            }
+            gLog("display #%d : %dx%d @ %.1fhz [%d/%d]", displays[i], display_mode->w, display_mode->h, display_mode->refresh_rate, i, m_numdisplays);
+
+        }
+        gLog("using display %d as main", best);
+        auto best_mode = SDL_GetCurrentDisplayMode(best);
+        if(best_mode == NULL){
+            gError("best display is null now so uh something went horribly wrong [%d]", best);
+        }
+        else
+            m_displayMode = *best_mode;
+
+
+        SDL_free(displays);
+    }
+
+
 
 private:
     int m_windowFlags;
@@ -74,4 +109,6 @@ private:
     bool m_setup;
     plat_graphics_params gfx_params;
     SDL_Window* m_SDLWindow;
+    int m_numdisplays;
+    SDL_DisplayMode m_displayMode;
 };

@@ -108,11 +108,18 @@ public:
         switch(type)
         {
             case Soldier_Command:
+                 m_move.m_flForwardSpeed *= 1.5f;
                 m_anim.ChangeBaseTexture("soldier3.png"); break;
             case Soldier_Med:
+               
+                m_stats.m_main_damage -= 3; m_stats.m_alt_damage += 2;
+                 m_stats.m_health = m_stats.m_maxhealth = 70;
                 m_anim.ChangeBaseTexture("soldier2.png"); break;
             case Soldier_Grunt:   
             default:
+                m_stats.m_health = m_stats.m_maxhealth = 30;
+                 m_move.m_flForwardSpeed *= 2.f;
+                m_stats.m_main_damage += 4; m_stats.m_alt_damage += 4;
                 m_anim.ChangeBaseTexture("soldier.png"); break;
               
         }

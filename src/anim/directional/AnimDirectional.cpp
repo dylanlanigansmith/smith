@@ -61,6 +61,7 @@ void CAnimDirectional::Draw(CRenderer *renderer, const sprite_draw_data &data)
 void CAnimDirectional::OnCreate()
 {
     Debug(false);
+    m_overrideTexture == nullptr;
 }
 
 void CAnimDirectional::OnSequenceStart(const std::string &seq_name)
@@ -126,10 +127,7 @@ void CAnimDirectional::ChangeBaseTexture(const std::string &texture_name)
     
     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
     auto newTexture = ITextureSystem->FindOrCreatetexture(texture_name);
-    for(auto& seq : m_seq)
-    {
-        seq.second->SetTexture(newTexture);
-    }
+    m_overrideTexture = newTexture;
     log("overrode texture to %s", texture_name.c_str());
 }
 

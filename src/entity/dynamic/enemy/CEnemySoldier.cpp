@@ -94,7 +94,7 @@ void CEnemySoldier::OnUpdate()
         if(isPlayerVisible(player, 45.0))
         {
           //  m_anim.log("HEY! %li", curTick);
-            engine->SoundSystem()->PlaySound("soldier_hey");
+             engine->SoundSystem()->PlayPositional ("soldier_hey", m_vecPosition);
             //play sound HEY
              m_view.lookAt(m_vecPosition, player_pos);
             m_path.Reset();
@@ -105,6 +105,7 @@ void CEnemySoldier::OnUpdate()
                 m_nextBehaviourChange = curTick ;
             }
             else{
+
                 m_behaviour = Behaviour_Default;
                 m_state = Aiming;
                 m_nextBehaviour = Behaviour_Aiming;
@@ -117,6 +118,8 @@ void CEnemySoldier::OnUpdate()
         
         if(!isPlayerVisible(player, 50.0))//wider fov
         {
+            m_path.Reset();
+            m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
            //path will still be to last spotted pt??
             m_view.lookAt(m_vecPosition, player_pos);
             m_behaviour = Behaviour_Default;
@@ -172,7 +175,7 @@ void CEnemySoldier::OnUpdate()
         m_state = Attacking;
         if(m_nextBehaviour != Behaviour_PostAttack)
         {
-            engine->SoundSystem()->PlaySound("mp5", 0.5);
+            
              Shoot(player);
             m_view.lookAt(m_vecPosition, player_pos, m_move.m_flYawSpeed);
             //playsound gun 
@@ -533,8 +536,9 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
 
 bool CEnemySoldier::isPlayerVisible(CPlayer *player, double fov)
 {
+    static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
     static bool ignore_player = PLATFORM.LaunchOptions().HasArg("peace");
-    if(ignore_player) return false;
+    if(ignore_player || IInputSystem->isDevMenuOpen()) return false;
     #ifdef IGNORE_PLAYER
     return false;
     #endif
@@ -608,9 +612,12 @@ int CEnemySoldier::Loot()
 
 void CEnemySoldier::Shoot(CPlayer *player)
 {
+
+   
     //ray cast??
     //how do we make it "fair"
     auto player_pos = player->GetPosition();
+     engine->SoundSystem()->PlayPositional ("mp5", m_vecPosition, 0.1, 0.6);
     float player_bounds = player->GetBounds();
     Ray_t ray = {
         .origin = Vector2(GetPosition()),

@@ -108,7 +108,7 @@ void CLevelSystem::OnEngineInitFinish()
   //  soldier->SetPosition(4.0, 10.5);
     //soldier->SetType(CEnemySoldier::Soldier_Grunt);
 
-    for(int i = 0; i < 15; ++i)
+    for(int i = 0; i < 16; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();
@@ -117,6 +117,10 @@ void CLevelSystem::OnEngineInitFinish()
         }
         sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
         sold->GetPathFinder()->Debug(false);
+        if(i % 3 == 0)
+            sold->SetType(CEnemySoldier::Soldier_Grunt);
+        if(i % 5 == 0)
+            sold->SetType(CEnemySoldier::Soldier_Med);
     }
 
    engine->SoundSystem()->PlaySound("st-song", 0.3f);

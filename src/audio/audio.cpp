@@ -37,11 +37,42 @@ void CSoundSystem::Shutdown()
 
     SDL_WaitThread(m_mainThread, NULL);
 }
-bool CSoundSystem::PlaySound(const std::string &name, float m_flVolume, bool m_bLoop)
+bool CSoundSystem::PlaySound(const std::string &name, float m_flVolume, float m_flPan, bool m_bLoop)
 {
-    SoundCommand cmd(name, m_flVolume, m_bLoop);
+    SoundCommand cmd(name, m_flVolume,m_flPan, m_bLoop);
     m_cmdQueue.pushCommand(cmd);
     return false;
+}
+
+bool CSoundSystem::PlayPositional(const std::string &name, const Vector2 &source, float min_vol, float max_vol)
+{
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    auto player = IEntitySystem->GetLocalPlayer();
+    Vector2 delta =   source - player->GetPosition() ;
+    delta = delta.Normalize();
+
+    Vector2 viewDir = player->Camera().m_vecDir.Normalize();
+
+    double distsqr = delta.LengthSqr();
+    
+    float vol = 1.f, pan = 0.f;
+    float scale = 1 / distsqr;
+    vol *= scale;
+    vol = std::max(vol, min_vol);
+    vol = std::min(vol, max_vol);
+
+    double angle = acos(viewDir.dotClamped(delta))  ; 
+
+    double cross = viewDir.cross(delta); 
+    pan = cos(angle - M_PI / 2);
+
+    float panDirection = (cross < 0) ? 1.f : -1.f;
+    pan *= panDirection;
+
+    
+    //dbg("playing pos sound %.3fv %.3f pan %.3f crs %.3f ang",vol, pan, cross, angle * RAD2DEGNUM );
+   
+    return PlaySound(name, vol, pan);
 }
 
 //aren't you glad you chose SDL3 
@@ -105,15 +136,32 @@ int CSoundSystem::Loop(void *sndsys)
             }
             
             SDL_memset(buf, SDL_GetSilenceValueForFormat(m_device.m_spec.format), cmd_data->m_len); //silence
-            SDL_MixAudioFormat(buf, cmd_data->m_buf, SMITH_AUDIOFMT, cmd_data->m_len, (SDL_MIX_MAXVOLUME / 2) * command.m_flVolume);
+            // Assume panning ranges from -1.0 (left) to 1.0 (right)
+             SDL_MixAudioFormat(buf, cmd_data->m_buf, SMITH_AUDIOFMT, cmd_data->m_len, (SDL_MIX_MAXVOLUME / 2) * command.m_flVolume);
+            float panning = command.m_flPan;
+            float leftVolume = (panning <= 0) ? 1 : (1 - panning);
+            float rightVolume = (panning >= 0) ? 1 : (1 + panning);
+          
+                // Iterate over your buffer, processing stereo pairs
+                for (uint32_t i = 0; i < cmd_data->m_len; i += 4) {  // 4 bytes for two 16-bit samples
+                    Sint16* leftSample = (Sint16*)(buf + i);
+                    Sint16* rightSample = (Sint16*)(buf + i + 2);
+
+                    // Apply volume adjustment
+                    *leftSample = (Sint16)(*leftSample * leftVolume);
+                    *rightSample = (Sint16)(*rightSample * rightVolume);
+                }
+            
+           
+           
 
             if(!streams.PutStreamData(cmd_data, buf, cmd_data->m_len)){
                 Error("soundcmd %s failed to send to stream", command.m_szName.c_str());
             }
-          //  SDL_PutAudioStreamData(m_streams[stream_to_use], buf, cmd_data->m_len);
+         
           
         }
-        SDL_DelayNS(4000);
+        SDL_DelayNS(100);
     }
     log("shutting down..");
     streams.Destroy();

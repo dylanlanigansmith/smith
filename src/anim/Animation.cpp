@@ -104,7 +104,10 @@ void CAnimation::PlaySequenceByName(const std::string &seq_name, bool no_interup
 void CAnimation::SwitchFrames(CAnimData *seq, int idx)
 {
     //ahahaha remember when we used to check for errors here 
-   
+    auto surf = seq->GetSurface();
+    if(m_overrideTexture != nullptr)
+        surf = m_overrideTexture->m_texture;
+
     SDL_FillSurfaceRect(*m_surface, NULL, 0);
     if(seq->IsAnimNoScale())
     {
@@ -114,10 +117,10 @@ void CAnimation::SwitchFrames(CAnimData *seq, int idx)
             no_scale.x = m_surface->w() - (fr.w / 2);
             no_scale.y = m_surface->h() - (fr.h / 2); //do we really wanna do this?
         }
-        SDL_BlitSurface(seq->GetSurface(), &(seq->GetFrames()[idx].m_rect), *m_surface, &(no_scale));
+        SDL_BlitSurface(surf, &(seq->GetFrames()[idx].m_rect), *m_surface, &(no_scale));
     }
     else
-        SDL_BlitSurfaceScaled(seq->GetSurface(), &(seq->GetFrames()[idx].m_rect), *m_surface, NULL);
+        SDL_BlitSurfaceScaled(surf, &(seq->GetFrames()[idx].m_rect), *m_surface, NULL);
     
 }
 

@@ -46,7 +46,7 @@ bool CRenderer::Create()
   windowSize.x = PLATFORM.SysWindow().Width();
   windowSize.y = PLATFORM.SysWindow().Height();
   log("%d %d ", windowSize.x, windowSize.y);
-  m_isUpScaling = (SCREEN_HEIGHT != windowSize.y);
+  m_isUpScaling = !(SCREEN_HEIGHT != windowSize.y);
 
 
   m_bBlur = true;
@@ -497,6 +497,12 @@ void CRenderer::SetupThreads()
                 } });
   }
 }
+void CRenderer::SetNewFullsize(const IVector2 &size)
+{
+   windowSize = size; log("set render size to %d %d", windowSize.x, windowSize.y); 
+   SDL_Rect view = {0,0,windowSize.x, windowSize.y};
+   SDL_SetRenderViewport(get(), NULL);
+}
 bool CRenderer::CreateRendererLinuxGL()
 {
   int numRenderers = SDL_GetNumRenderDrivers();
@@ -531,7 +537,7 @@ void CRenderer::Loop()
   static auto SpriteProfiler = IEngineTime->AddProfiler("Render::Sprites()");
   static auto SDLProfilerStart = IEngineTime->AddProfiler("Render::SDLRendererStart");
   static auto SDLProfiler = IEngineTime->AddProfiler("Render::SDLRendererEnd");
-  static const SDL_FRect scale = {0.f, 0.f, windowSize.x, windowSize.y};
+   
 
   SDLProfilerStart->Start();
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
@@ -575,10 +581,9 @@ void CRenderer::Loop()
     while (doneCount.load() < NUM_THREADS)
     {
       SDL_UnlockTexture(m_renderTexture);
-      if (!m_isUpScaling )
-        SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
-      else
-        SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
+     
+      SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
+    
       std::this_thread::yield();
     }
     startBlur.store(false);  
@@ -591,17 +596,13 @@ void CRenderer::Loop()
   SDL_UnlockTexture(m_blurTexture); //expensive
   if(!m_bBlur)
   {
-    if (!m_isUpScaling )
-      SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
-    else
-      SDL_RenderTexture(get(), m_renderTexture, NULL, &scale);
+    SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
   }
   
 
-  if (!m_isUpScaling )
+ 
     SDL_RenderTexture(get(), m_blurTexture, NULL, NULL);
-  else
-    SDL_RenderTexture(get(), m_blurTexture, NULL, &scale);
+  
 
   // R2::render_frame(this);
   RunImGui();

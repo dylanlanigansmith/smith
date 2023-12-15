@@ -1,0 +1,8 @@
+WASD + mouse for move & look
+R to reload
+number keys to switch guns
+shift to sprint
+
+Dev:
+backslash for dev menu
+ctrl for noclip

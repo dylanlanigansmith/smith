@@ -106,12 +106,38 @@ int CEngine::Run()
     static auto TotalRenderProfiler = IEngineTime->AddProfiler("Engine::RenderLoop()");
     m_SoundSystem.Init(0);
     shouldStopLoop = SDL_FALSE;
+    auto display_mode = &PLATFORM.window().m_displayMode;
+    
+   
+    static bool fullscreen = PLATFORM.window().GfxParams().fullscreen;
     while(!shouldStopLoop)
     {
         for(auto& element : interfaces.list())
             element.second->OnLoopStart();
         
-        
+        static auto nextFullScreenChange = IEngineTime->GetCurLoopTick(); //fullscreen code
+        if(IInputSystem->IsKeyDown(SDL_SCANCODE_F11) && nextFullScreenChange < IEngineTime->GetCurLoopTick()){
+            nextFullScreenChange = IEngineTime->GetCurLoopTick() + TICKS_PER_S;
+            fullscreen = !fullscreen;
+            if(fullscreen){
+                render->SetNewFullsize({display_mode->w, display_mode->h});
+                if( SDL_SetWindowFullscreen(m_SDLWindow, SDL_TRUE)  != 0){
+                    Error("failed to set window fullscreen to %d %d .. %s",display_mode->w, display_mode->h, SDL_GetError() );
+                } else{
+                    log("set fullscreen to %d %d ",display_mode->w, display_mode->h );
+                }       
+            }
+            else{
+                render->SetNewFullsize({PLATFORM.window().width, PLATFORM.window().height});
+                SDL_SetWindowFullscreen(m_SDLWindow, SDL_FALSE);
+                 SDL_SetWindowSize(m_SDLWindow, PLATFORM.window().width, PLATFORM.window().height);
+                if( SDL_SetWindowFullscreen(m_SDLWindow, SDL_FALSE)  != 0){
+                    Error("failed to set window to windowed @ %d %d .. %s",PLATFORM.window().width, PLATFORM.window().height, SDL_GetError() );
+                } else{
+                   log("set windowed %d %d ",PLATFORM.window().width, PLATFORM.window().height);
+                }  
+            }
+        }
 
         SDL_Event event;
         while (SDL_PollEvent(&event))

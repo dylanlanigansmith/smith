@@ -60,6 +60,7 @@ public:
 
     auto GetFullWidth() const { return windowSize.x; }
     auto GetFullHeight() const { return windowSize.y; }
+    void SetNewFullsize(const IVector2& size); 
     uint8_t Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god delete this
 private:
     bool CreateRendererLinuxGL();

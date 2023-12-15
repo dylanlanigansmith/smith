@@ -56,6 +56,7 @@ void CEditor::render(CRenderer *renderer)
     smith_renderer = renderer;
     static bool changedLastFrame = false;
     static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
+    IInputSystem->m_devMenuOpen = m_bIsOpen;
     if (IInputSystem->IsKeyDown(SDL_SCANCODE_BACKSLASH))
     {
         if (!changedLastFrame)
@@ -79,7 +80,7 @@ void CEditor::render(CRenderer *renderer)
             auto p = player->GetPosition();
             std::string str_playerpos = Util::stringf("(%.1f, %.1f, %.1f)", p.x, p.y, p.z);
             auto textSize = ImGui::CalcTextSize(str_playerpos.c_str());
-            static const ImVec2 position(smith_renderer->GetFullWidth()  - 10, smith_renderer->GetFullHeight() - 10);
+            const ImVec2 position(smith_renderer->GetFullWidth()  - 10, smith_renderer->GetFullHeight() - 10);
             draw->AddText(position - textSize, text_color, str_playerpos.c_str());
         }
         if (settings.show_cam)
@@ -88,7 +89,7 @@ void CEditor::render(CRenderer *renderer)
             auto d = player->Camera().m_vecDir;
             std::string str_camplane = Util::stringf("p(%.3f, %.3f) | d(%.3f, %.3f)", c.x, c.y, d.x, d.y);
             auto camtextSize = ImGui::CalcTextSize(str_camplane.c_str());
-            static const ImVec2 camposition(smith_renderer->GetFullWidth()  - 10, smith_renderer->GetFullHeight() - 25);
+            const ImVec2 camposition(smith_renderer->GetFullWidth()  - 10, smith_renderer->GetFullHeight() - 25);
             draw->AddText(camposition - camtextSize, text_color, str_camplane.c_str());
         }
         if (settings.fps)
@@ -125,7 +126,7 @@ void CEditor::render(CRenderer *renderer)
         }
             std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_max_health, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());
             auto camtextSize = ImGui::CalcTextSize(str_hp.c_str());
-            static const ImVec2 camposition(camtextSize.x + 35, smith_renderer->GetFullHeight() - 25);
+            const ImVec2 camposition(camtextSize.x + 35, smith_renderer->GetFullHeight() - 25);
             draw->AddText(camposition , text_color, str_hp.c_str());
 
     }
@@ -490,8 +491,8 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
         float offset_x = GRID_STEP * (float)pos.x + offset.x;
         float offset_y = GRID_STEP * (float)pos.y + offset.y;
 
-       
-        draw_list->AddCircleFilled(ImVec2(pos.x + offset_x, pos.y + offset_y), 10.f, IM_COL32(255,0,0,200), 12);
+        ImU32 col = ( ((CEnemySoldier*)(entity))->GetHealth() > 0) ?  IM_COL32(255,0,0,200) : IM_COL32(0,255,0,120);        
+        draw_list->AddCircleFilled(ImVec2(pos.x + offset_x, pos.y + offset_y), 10.f, col , 12);
     }
     if (node_open)
     {
