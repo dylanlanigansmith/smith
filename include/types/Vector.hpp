@@ -331,6 +331,10 @@ public:
   {
     return Vector(x + a, y + a, z + a);
   }
+  Vector operator+=(Vector const &a) const
+  {
+    return Vector(x + a.x, y + a.y, z + a.z);
+  }
   Vector operator-(Vector const &a) const
   {
     return Vector(x - a.x, y - a.y, z - a.z);

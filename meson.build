@@ -14,7 +14,7 @@ inc = include_directories(
     'thirdparty/magic_enum/include', 
     'thirdparty/enet/include', 
     'thirdparty/glm/',
-    'thirdparty/stb_image/'
+    'thirdparty/stb/'
     )
 
 subdir('thirdparty/imgui')

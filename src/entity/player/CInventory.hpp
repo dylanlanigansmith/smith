@@ -32,7 +32,12 @@ public:
     bool SlotFilled(uint8_t slot) { return (m_contents[slot] != nullptr);}
     auto& contents() { return m_contents; }
 
-
+    void AddAmmo(int amt, uint8_t type = 0)
+    {
+        if(m_contents[m_activeSlot]->GetReserveAmmo() < m_contents[m_activeSlot]->GetData().iMaxAmmo ){
+            m_contents[m_activeSlot]->GainAmmo(amt);
+        }
+    }
     void OnUpdate(){
         if(Active() == nullptr)
             return Error("active weapon bad reference in slot %d", m_activeSlot);
@@ -49,3 +54,4 @@ private:
 };
 
 using  inventory_t = CInventory<SMITH_PLAYER_INV_SLOTS>;
+

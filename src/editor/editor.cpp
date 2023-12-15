@@ -127,7 +127,7 @@ void CEditor::render(CRenderer *renderer)
             std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_max_health, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());
             auto camtextSize = ImGui::CalcTextSize(str_hp.c_str());
             const ImVec2 camposition(camtextSize.x + 35, smith_renderer->GetFullHeight() - 25);
-            draw->AddText(camposition , text_color, str_hp.c_str());
+            draw->AddText(20.f, camposition , text_color, str_hp.c_str());
 
     }
 

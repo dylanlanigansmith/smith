@@ -16,7 +16,7 @@ void CEnemySoldier::OnUpdate()
         if(m_isDying == false){
             m_nextBehaviourChange = curTick + 21;
             m_isDying = true;
-            m_state == Dying;
+            m_state = Dying;
         }
             
         if(m_state == Dying && curTick >  m_nextBehaviourChange){
@@ -50,7 +50,7 @@ void CEnemySoldier::OnUpdate()
             {
                  
                 empty = { empty.x + 0.4, empty.y + 0.4};
-                if( ( Vector2(m_vecPosition) - empty).LengthSqr()  > 7 )
+                if( ( Vector2(m_vecPosition) - empty).LengthSqr()  > 6 )
                     break;
                 empty = ILevelSystem->FindEmptySpace();
             }
@@ -94,15 +94,23 @@ void CEnemySoldier::OnUpdate()
         if(isPlayerVisible(player, 45.0))
         {
           //  m_anim.log("HEY! %li", curTick);
-             engine->SoundSystem()->PlayPositional ("soldier_hey", m_vecPosition);
+            
             //play sound HEY
              m_view.lookAt(m_vecPosition, player_pos);
             m_path.Reset();
             m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
             if(m_path.HasPath()){
-                 m_behaviour = Behaviour_Default;
+                //m_behaviour =  Behaviour_Reposition;
+                m_state = Default;
+                if(m_lastShout < curTick){
+                    engine->SoundSystem()->PlayPositional ("soldier_hey", m_vecPosition);
+                    m_lastShout = curTick + TICKS_PER_S * 4;
+                }
+                 
                 m_nextBehaviour = Behaviour_Reposition;
-                m_nextBehaviourChange = curTick ;
+                m_nextBehaviourChange = curTick + 2;
+
+                 m_headingTo = m_path.GetNextPoint(Vector2(m_vecPosition));  m_headingTo = { m_headingTo.x + HEAD_FIX, m_headingTo.y + HEAD_FIX};
             }
             else{
 
@@ -116,7 +124,7 @@ void CEnemySoldier::OnUpdate()
     if(m_behaviour == Behaviour_Reposition)
     {
         
-        if(!isPlayerVisible(player, 50.0))//wider fov
+        if(!isPlayerVisible(player, 50.0) && !m_path.HasPath())//wider fov
         {
             m_path.Reset();
             m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
@@ -124,10 +132,10 @@ void CEnemySoldier::OnUpdate()
             m_view.lookAt(m_vecPosition, player_pos);
             m_behaviour = Behaviour_Default;
             m_nextBehaviour = Behaviour_Patrol;
-            m_nextBehaviourChange = curTick + TICKS_PER_S;
+            m_nextBehaviourChange = curTick + TICKS_PER_S / 4;
             m_anim.dbg("wtf we lost em");
         }
-        else{
+    
             if(m_path.HasPath()){
                 auto nextPoint = m_path.GetNextPoint(IVector2(m_vecPosition));
                 double oldMove = m_move.m_flForwardSpeed;
@@ -148,8 +156,8 @@ void CEnemySoldier::OnUpdate()
                     m_nextBehaviourChange = curTick + 1;
                    //   m_anim.log("we gonna aim");
             }
-        }
     }
+    
     if(m_behaviour == Behaviour_Aiming){
         //aiming animation
         m_state = Aiming;
@@ -159,14 +167,14 @@ void CEnemySoldier::OnUpdate()
            // m_behaviour = Behaviour_Default;
             m_nextBehaviour = Behaviour_Attack;
             m_nextBehaviourChange = curTick + TICKS_PER_S / 3;
-            if(!isPlayerVisible(player, 75.0))//wider fov
+            if(!isPlayerVisible(player, 40.0))//wider fov
             {
                 
             //path will still be to last spotted pt??
                 m_view.lookAt(m_vecPosition, player_pos);
-               // m_behaviour = Behaviour_Default;
+                m_behaviour = Behaviour_Default;
                 m_nextBehaviour = Behaviour_Patrol;
-                m_nextBehaviourChange = curTick + TICKS_PER_S / 3;
+                m_nextBehaviourChange = curTick + TICKS_PER_S / 4;
                 
             }
         }
@@ -190,12 +198,18 @@ void CEnemySoldier::OnUpdate()
        
         
         if(Util::SemiRandRange(0, 100) > 75){
+            m_nextBehaviour = Behaviour_Aiming;
+             m_nextBehaviourChange = curTick;
             m_behaviour = Behaviour_Aiming;
                     m_state = Aiming;   
+            m_anim.log("lucky");
         }
         else{
             m_nextBehaviour = Behaviour_Reposition;
             m_nextBehaviourChange = curTick + 8;
+            m_path.Reset();
+            m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
+            m_anim.log("unlucky");
         }
     }
        
@@ -210,6 +224,7 @@ void CEnemySoldier::OnCreate()
 
     m_state = Default;
     m_behaviour = Behaviour_Patrol;
+    m_lastShout = 0;
     m_nextBehaviourChange = 0;
     m_nextBehaviour = -1; //these should be AI states not anim states
     m_move.m_flForwardSpeed = 0.03; //0.130

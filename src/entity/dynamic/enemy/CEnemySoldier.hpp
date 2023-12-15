@@ -5,7 +5,7 @@
 #include <entity/components/pathfinder/CPathFinder.hpp>
 #include <entity/components/pathfinder/precise/CPathVoxel.hpp>
 //#define IGNORE_PLAYER
-
+#include <logger/logger.hpp>
 struct EntView
 {
     Vector2 m_plane; //probs not needed
@@ -58,11 +58,11 @@ enum RelDir : int
 };
 
 
-class CEnemySoldier : public CBaseRenderable //CBaseDynamicEntity 
+class CEnemySoldier : public CBaseRenderable, private CLogger 
 {
     friend class CEditor;
 public:
-    CEnemySoldier(int m_iID) : CBaseRenderable(m_iID), m_stats(50),  m_anim(this, "soldier"), m_state(SoldierState::Default), m_path(this) {}
+    CEnemySoldier(int m_iID) : CBaseRenderable(m_iID), CLogger(this, std::to_string(m_iID)), m_stats(50),  m_anim(this, "soldier"), m_state(SoldierState::Default), m_path(this) {}
     ~CEnemySoldier() { delete m_Texture; }
     virtual void OnUpdate();
     virtual void OnCreate();
@@ -142,6 +142,8 @@ protected:
     sprite_draw_data draw;
 
     CPathFinder m_path;
+    
+    uint64_t m_lastShout;
       //  CPathVoxel m_path;
 public:
     enum SoldierBehaviour : int 

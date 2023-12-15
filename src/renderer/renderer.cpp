@@ -554,7 +554,7 @@ void CRenderer::Loop()
   doneCount.store(0); // startBlur.store(true);
   startRender.store(true, std::memory_order_release);
 
-  // Wait for all threads to finish
+  // wait for all threads to finish
   while (doneCount.load() < NUM_THREADS)
   {
 
@@ -627,11 +627,5 @@ void CRenderer::SetPixel(int x, int y, SDL_Color color) // @deprecated Switch To
 {
 #warning "Using SDLColor is deprecated"
   int index = (y * m_surface->pitch / 4) + x;
-  pixels[index] = Render::SDLColorToWorldColor(color);
+  pixels[index] = Render::SDLColorToWorldColor(color); //pretty sure this is safe to remove now
 }
-/*
-SDL_Color CRenderer::GetPixel(int x, int y)
-{
-   int index = (y * m_surface->pitch / 4) + x;
-  return Render::TextureToSDLColor( pixels[index]);
-}*/

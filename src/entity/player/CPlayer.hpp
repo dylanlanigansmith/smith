@@ -36,6 +36,8 @@ public:
     auto GetHealth() const { return m_health; }
     virtual float GetBounds() const override { return 0.25f; }
     virtual void OnCollisionWith(CBaseEntity* hit) override;
+
+    virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos) override;
 private:
     int m_health;
     int m_max_health;

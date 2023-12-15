@@ -127,6 +127,11 @@ void CPlayer::OnCollisionWith(CBaseEntity *hit)
 
 }
 
+void CPlayer::OnSetPosition(const Vector2 &old_pos, const Vector2 &new_pos)
+{
+  m_camera.m_vecPosition = new_pos;
+}
+
 void CPlayer::CreateMove()
 {
   static bool noclip = false;
@@ -175,31 +180,31 @@ void CPlayer::CreateMove()
   }
    double moveSpeed = m_move.m_flForwardSpeed *  speedMod;
   double strafeSpeed = m_move.m_flStrafeSpeed *  speedMod;
-
+  Vector velocity = {0,0,0};
   if (in_move.w)
   {
    
      if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x + Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.x += Camera().m_vecDir.x * moveSpeed;
+        velocity.x += Camera().m_vecDir.x * moveSpeed;
      if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false)
-        m_vecPosition.y += Camera().m_vecDir.y * moveSpeed;
+        velocity.y += Camera().m_vecDir.y * moveSpeed;
   }
   // move backwards if no wall behind you
   if (in_move.s)
   {
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x - Camera().m_vecDir.x * moveSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.x -= Camera().m_vecDir.x * moveSpeed;
+        velocity.x -= Camera().m_vecDir.x * moveSpeed;
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y - Camera().m_vecDir.y * moveSpeed, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.y -= Camera().m_vecDir.y * moveSpeed;
+        velocity.y -= Camera().m_vecDir.y * moveSpeed;
   }
   if (in_move.d)
   {
     float rightX = Camera().m_vecDir.y;
     float rightY = -Camera().m_vecDir.x;
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x + rightX * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.x += rightX  * strafeSpeed;
+        velocity.x += rightX  * strafeSpeed;
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + rightY * strafeSpeed, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.y += rightY  * strafeSpeed;
+        velocity.y += rightY  * strafeSpeed;
   }
 
   // move left
@@ -209,11 +214,20 @@ void CPlayer::CreateMove()
     float leftY = Camera().m_vecDir.x;
 
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x + leftX  * strafeSpeed, m_vecPosition.y, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.x += leftX  * strafeSpeed;
+        velocity.x += leftX  * strafeSpeed;
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * strafeSpeed, m_vecPosition.z}) == false || noclip)
-        m_vecPosition.y += leftY  * strafeSpeed;
+        velocity.y += leftY  * strafeSpeed;
   }
+  if(velocity.LengthSqr() > m_move.m_flForwardSpeed*m_move.m_flForwardSpeed){
+    //clamp
+    velocity = velocity.Normalize() *  m_move.m_flForwardSpeed;
 
+  }
+ // if(velocity.x != 0)
+  //  engine->log("%f ", velocity.Length2D());
+  
+  m_vecPosition.x += velocity.x;
+   m_vecPosition.y += velocity.y;
   if (!IInputSystem->UseMouseMovement())
   {
     bool canPitch = IInputSystem->AllowPitch();

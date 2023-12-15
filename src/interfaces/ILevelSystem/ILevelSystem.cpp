@@ -108,7 +108,7 @@ void CLevelSystem::OnEngineInitFinish()
   //  soldier->SetPosition(4.0, 10.5);
     //soldier->SetType(CEnemySoldier::Soldier_Grunt);
 
-    for(int i = 0; i < 16; ++i)
+    for(int i = 0; i < 21; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();
