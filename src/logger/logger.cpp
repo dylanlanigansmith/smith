@@ -131,7 +131,17 @@ void CLogger::warn(const char *fmt, ...)
     _logclr(ctxt, 33);
     _instance_logothers(ctxt);
 }
-
+void CLogger::error(const char *fmt, ...)
+{
+    std::string ctxt = m_szFmtName;
+    va_list args;
+    va_start(args, fmt);
+    std::string sfmt = _strf(fmt, args);
+    va_end(args);
+    ctxt.append(sfmt);
+    _logclr(ctxt, 33);
+    _instance_logothers(ctxt);
+}
 void CLogger::warn(const std::string &msg)
 {
     _logclr(msg, 33);

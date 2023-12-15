@@ -123,7 +123,7 @@ void CLevelSystem::OnEngineInitFinish()
             sold->SetType(CEnemySoldier::Soldier_Med);
     }
 
-   engine->SoundSystem()->PlaySound("st-song", 0.3f);
+   engine->SoundSystem()->PlaySound("Cat", 0.3f);
 }
 
 tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none

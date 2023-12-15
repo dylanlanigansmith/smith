@@ -6,7 +6,8 @@
 #include <types/CTime.hpp>
 #include <types/Vector.hpp>
 #include "soundcommand.hpp"
-
+#include "audio_types.hpp"
+#include "streamgroup.hpp"
 #define SMITH_AUDIOFMT SDL_AUDIO_S16
 #define SMITH_AUDIOSTREAMS 18 //hack
 
@@ -14,40 +15,12 @@
 
 //https://wiki.libsdl.org/SDL3/SDL_AudioSpec
 
-struct audiodevice_t
-{
-    SDL_AudioDeviceID m_deviceID;
-    SDL_AudioSpec m_spec;
-    audiodevice_t() { SDL_zero(m_spec); }
-};
-
-struct audiodata_t
-{
-    uint8_t* m_buf;
-    uint32_t m_len;
-    SDL_AudioSpec m_spec;
-    uint8_t m_volume;
-    uint64_t m_duration_ms;
-    audiodata_t() :  m_buf(NULL), m_len(0), m_volume(128), m_duration_ms(0) { SDL_zero(m_spec); }
-    ~audiodata_t() { if(m_buf != NULL) SDL_free(m_buf); }
-};
-
-
-struct audiostream_t
-{
-    SDL_AudioStream* stream = NULL;
-    bool in_use = false;
-    uint64_t duration = 0; //ms, not IEngineTime
-    uint64_t time_end = 0;
-    audiostream_t() : stream(NULL), in_use(false), duration(0), time_end(0) {}
-    void use_for(uint64_t cur_time, uint64_t dur) { duration = dur; time_end = cur_time + dur; in_use = true; }
-    void reset() { duration =  time_end = 0; in_use = false; }
-};
 
 
 
 class  /*LCD*/CSoundSystem : public CLogger
 {
+    friend class CEditor;
 public:
     CSoundSystem() : CLogger(this), m_iNumStreams(SMITH_AUDIOSTREAMS) {}
     bool Init(int plat);
@@ -80,6 +53,6 @@ private:
     SDL_Thread* m_mainThread;
     bool m_bVerbose;
     bool m_bShouldQuit;
-
+    CStreamGroup<SMITH_AUDIOSTREAMS> streams;
     
 };

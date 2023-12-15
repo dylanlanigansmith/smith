@@ -17,7 +17,9 @@ if not sources.contains('idontthinkthisisneeded')
 endif
 
 
-executable('smith', sources, include_directories : inc, 
+
+
+executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directories : inc, 
     dependencies : [
         x_dep,
         thread_dep,

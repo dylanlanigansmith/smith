@@ -16,8 +16,19 @@ void CResourceSystem::OnCreate()
     if(!IFileSystem) {
         Error("Failed acquire IFileSystem: got 0x%lx", (uintptr_t)IFileSystem); 
     }
+    const std::string res_path = IFileSystem->GetResourcePath();
+    log("using %s as resource folder", res_path.c_str());
+
     
-    log("using %s as resource folder", IFileSystem->GetResourcePath().c_str());
+
+    m_resource_subdirs = { 
+        {"material", IFileSystem->MakePath(res_path, "material")}, 
+        {"audio", IFileSystem->MakePath(res_path, "audio")},
+        {"definition", IFileSystem->MakePath(res_path, "definition")},
+        {"level", IFileSystem->MakePath(res_path, "level")},
+        };
+
+
 }
 
 void CResourceSystem::OnShutdown()
@@ -31,9 +42,18 @@ std::string CResourceSystem::GetResourcePath()
 
 std::string CResourceSystem::GetResourceSubDir(const std::string &folder)
 {
+    auto search = m_resource_subdirs.find(folder);
+    if(search != m_resource_subdirs.end()){
+        return search->second;
+    }
+    warn("adding folder %s to resource subdir list, this is likely unintended!!", folder.c_str());
     auto full_path = IFileSystem->MakePath(IFileSystem->GetResourcePath(), folder);
-    if (IFileSystem->FileExists(full_path))
+    if (IFileSystem->FileExists(full_path)){
+        if(!m_resource_subdirs.emplace(folder, full_path).second)
+            Error("failed to add resource subdir %s / [%s] to subdir list, this is likely a double error", folder.c_str(), full_path.c_str());
         return full_path;
+    }
+        
 
     Error("resource subdir %s not found [%s]", folder.c_str(), full_path.c_str());
     return std::string();
@@ -71,6 +91,11 @@ std::string CResourceSystem::FindResource(const std::string &subdir_path, const 
     }
 
     return ret;
+}
+
+std::string CResourceSystem::FindResourceFromSubdir(const std::string &subdir_name, const std::string &name)
+{
+    return FindResource(GetResourceSubDir(subdir_name), name);
 }
 
 inline std::string CResourceSystem::MergePathAndFileName(const std::string &path, const std::string &name)

@@ -46,6 +46,7 @@ public:
     virtual void warn(const std::string& msg) ;
     virtual void status(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void status(const std::string& msg);
+    virtual void error(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
     virtual void error(const char* file, int line, const char* fmt, ...) __attribute__((format(printf, 4, 5)));
     virtual bool Debug() const { return m_bDebug; }
     virtual bool Debug(bool set)  { m_bDebug = set; return m_bDebug; }

@@ -47,6 +47,8 @@ private:
     void drawLightView();
     void drawSystemView();
     void drawAnimView();
+
+    void drawSoundView();
     void Init();
 private:
     void InitTextureInfo();

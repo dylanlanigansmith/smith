@@ -39,7 +39,7 @@ public:
     inline std::string MergePathAndFileName(const std::string &path, const std::string &name){return path + name;}
     inline std::string AddExtension(const std::string& name, const std::string& ext = ".json"){return std::string(name).append(ext);    }
     std::string GetExtension(const std::string& name );
-
+    inline std::string RemoveExtension(const std::string& name_ext) { return name_ext.substr(0, name_ext.find_last_of(".")); } 
     std::string FindSubdirFromPath(const std::string& path);
     std::string StripPath(const std::string& path, const std::string& base = "");
 

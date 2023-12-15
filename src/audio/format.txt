@@ -16,3 +16,7 @@ https://linux.die.net/man/1/sox
 sox mp5r.wav -r48000 -e signed-integer -b16  mp5.wav
 
 sox eurobeat.mp3 -r48000 -e signed-integer -b16  eurobeat.wav
+
+sox Fizz.ogg -c2 -r48000 Fizz2.ogg 
+
+soxi for info

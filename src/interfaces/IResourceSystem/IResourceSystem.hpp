@@ -42,7 +42,7 @@ public:
 
     virtual std::string FindResourceFromPath(const std::string& path, const std::string& name); //path = to subdir, returns empty string on failure
     virtual std::string FindResource(const std::string& subdir_path, const std::string& name);
-
+    virtual std::string FindResourceFromSubdir(const std::string& subdir_name, const std::string& name);
     virtual std::vector<std::pair<std::string, std::string>> GetDirectoryStructure(const std::string& subdir);
 private:
     std::string FindSubdirFromPath(const std::string& path);
@@ -55,6 +55,8 @@ private:
     CFileSystem* IFileSystem;
 
 private:
-    std::string m_szResourcePath;
+   
     std::string m_szHomeDir;
+
+    std::unordered_map<std::string, std::string> m_resource_subdirs;
 };

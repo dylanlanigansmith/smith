@@ -12,6 +12,44 @@
 #include <data/CAnimData.hpp>
 #define MENULOG(fmt, ...) engine->log(fmt, __VA_ARGS__)
 
+void CEditor::drawSoundView()
+{
+    ImGui::SeparatorText("sound info");
+                
+    static float vol = 1.f;
+    static float pan = 0.f;
+    ImGui::SliderFloat("volume", &vol, 0.0f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("pan", &pan, -1.0f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    if (ImGui::Button("gunshot0"))
+    {
+        engine->SoundSystem()->PlaySound("dev_gunshot0", vol, pan);
+    }ImGui::SameLine();
+    if (ImGui::Button("mp5"))
+    {
+        engine->SoundSystem()->PlaySound("mp5", vol, pan);
+    }ImGui::SameLine();
+    if (ImGui::Button("hey"))
+    {
+            engine->SoundSystem()->PlaySound("soldier_hey", vol, pan);
+    }ImGui::SameLine();
+    if (ImGui::Button("music Ogg"))
+    {
+        engine->SoundSystem()->PlaySound("Cat", vol, pan);
+    } 
+    auto snd = engine->SoundSystem();
+    ImGui::Text("StreamGroup");
+    auto& streamgroup = snd->streams; 
+    for (auto& stream : streamgroup.m_group)
+    {
+        if(stream.in_use && stream.src){
+            ImGui::PushID(&stream);
+            ImGui::Text("stream: dur: %li ms  playing %s @ %.2f vol %.2f pan", stream.duration, stream.src->m_name, stream.src->m_volume, 99.f);
+            ImGui::PopID();
+        }
+    }
+
+}
+
 void CEditor::Init()
 {
     m_bHasInit = true;
@@ -154,28 +192,9 @@ void CEditor::render(CRenderer *renderer)
         {
             drawSystemView();
             
-            if (ImGui::CollapsingHeader("test Sound"))
+            if (ImGui::CollapsingHeader("Sound"))
             {
-                ImGui::SeparatorText("sound test");
-                auto snd = engine->SoundSystem();
-                static float vol = 1.f;
-                ImGui::SliderFloat("volume", &vol, 0.0f, 1.f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-                if (ImGui::Button("sound 1"))
-                {
-                    engine->SoundSystem()->PlaySound("dev_gunshot0", vol);
-                }
-                if (ImGui::Button("sound 2"))
-                {
-                    engine->SoundSystem()->PlaySound("dev_tests16", vol);
-                }
-                if (ImGui::Button("hey"))
-                {
-                     engine->SoundSystem()->PlaySound("soldier_hey");
-                }
-                if (ImGui::Button("music"))
-                {
-                    engine->SoundSystem()->PlaySound("van_Wiese_bass_beat", vol);
-                } //
+                drawSoundView();
             }
 
             ImGui::EndTabItem();

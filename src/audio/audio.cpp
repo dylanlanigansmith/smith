@@ -1,6 +1,8 @@
 #include "audio.hpp"
 #include "streamgroup.hpp"
 #include <engine/engine.hpp>
+
+#include "audiofiles.hpp"
 //https://github.com/libsdl-org/SDL_mixer/blob/main/include/SDL3_mixer/SDL_mixer.h
 
 bool CSoundSystem::Init(int plat)
@@ -93,13 +95,15 @@ int CSoundSystem::Loop(void *sndsys)
     SetupAudioDevice();
 
   
-    CStreamGroup<SMITH_AUDIOSTREAMS> streams(&m_device);
+    streams.SetDevice(&m_device);
     streams.Create();
 
     SDL_ResumeAudioDevice(m_device.m_deviceID);
 
     //LogAudioDevice();
-
+   
+    LoadAudioFile("Cat.ogg");
+    LogAudioData("Cat");
     //should just load the whole folder
     LoadAudioFile("dev_tests16.wav");
     LoadAudioFile("dev_test_scores.wav");
@@ -222,37 +226,23 @@ void CSoundSystem::SetupAudioDevice()
 void CSoundSystem::LoadAudioFile(const std::string &name, uint8_t format)
 {
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    std::string fullpath = IResourceSystem->FindResource(m_szAudioResourcePath, name);
-    std::string name_noext = name.substr(0, name.find_last_of("."));
-    if(fullpath.empty()){
-        Error("couldn't find %s in %s", name.c_str(), m_szAudioResourcePath.c_str()); return;
+
+    auto ad_ptr = AudioImport::Load(name, &m_device.m_spec);
+    if(ad_ptr == nullptr){
+        Error("couldn't load %s ", name.c_str()); return;
     }
-    auto ad_ptr = new audiodata_t();
-    auto added = soundboard.emplace(name_noext, ad_ptr);
+
+ 
+    auto added = soundboard.emplace(ad_ptr->m_name, ad_ptr);
     if(added.second == false){
-        Error("couldn't add %s to soundboard", name_noext.c_str()); return;
+        Error("couldn't add %s to soundboard", ad_ptr->m_name); return;
     }
     auto& audiodata = added.first->second; //audiodata_t
-
-    if(SDL_LoadWAV(fullpath.c_str(), &audiodata->m_spec, &audiodata->m_buf, &audiodata->m_len) != 0 ){
-         Error(" WAV %s failed to load from %s -> %s", added.first->first.c_str(),fullpath.c_str(),  SDL_GetError()); 
-         soundboard.erase(added.first);
-         delete ad_ptr;
-         log("removed %s from soundboard", name_noext.c_str());
-         return;
-    }
-
-     //check if format matches, todo: convert/also check sample rate
-    if(m_device.m_spec.format != audiodata->m_spec.format){
-        Error("format for %s (%x) incompatible with device format (%x)",name_noext.c_str(), audiodata->m_spec.format, m_device.m_spec.format);
-         delete ad_ptr;
-        soundboard.erase(added.first); //should automatically SDL_free
-        log("removed %s from soundboard", name_noext.c_str()); return;
-    }
+  
+   
     audiodata->m_duration_ms = GetSoundDuration(audiodata).ms();
     dbg("added %s to soundboard, new size (%li)", added.first->first.c_str(), soundboard.size());
     
-
 }
 
 audiodata_t* CSoundSystem::GetAudioByName(const std::string &name)

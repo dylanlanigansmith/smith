@@ -1,9 +1,18 @@
-#include "audio.hpp"
-
+#pragma once
+#include <common.hpp>
+#include <SDL3/SDL.h>
+#include <logger/logger.hpp>
+#include <queue>
+#include <types/CTime.hpp>
+#include <types/Vector.hpp>
+#include "soundcommand.hpp"
+#include "audio_types.hpp"
 template < size_t ARRAY_LEN >
 class CStreamGroup : public CLogger
 {
+    friend class CEditor;
 public:
+    CStreamGroup() : CLogger(this) ,  m_iNumStreams(ARRAY_LEN) { Debug(false); }
    CStreamGroup(audiodevice_t* m_device) : CLogger(this), //should be CSoundsystem::CStreamGrp
                                              m_iNumStreams(ARRAY_LEN), m_device(m_device) 
     {
@@ -54,7 +63,7 @@ public:
         }
 
         dbg("playing on stream %d for %li at %li", stream_to_use, audio_data->m_duration_ms, cur_time);
-        m_group[stream_to_use].use_for(cur_time, audio_data->m_duration_ms);
+        m_group[stream_to_use].use_for(cur_time, audio_data->m_duration_ms, audio_data);
         if(SDL_PutAudioStreamData(m_group[stream_to_use].stream, buf, audio_data->m_len) != 0){
             note("SDL_PutAudioStreamData failed, %s", SDL_GetError()); return false;
         }
@@ -62,6 +71,7 @@ public:
 
         return true;
     }
+    void SetDevice(audiodevice_t *dev) { m_device = dev; }
 private:
     int FindAvailableStream(uint64_t cur_time){
         if(RefreshStreams(cur_time) > 0){
@@ -88,6 +98,7 @@ private:
 
         return free_streams;
     }
+    
 private:
     size_t m_iNumStreams;
     std::array<audiostream_t, ARRAY_LEN> m_group;//>:(
