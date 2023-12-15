@@ -2,7 +2,7 @@
 #include <common.hpp>
 #include <interfaces/CBaseInterface.hpp>
 #include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
+
 #include <data/Texture.hpp>
 
 

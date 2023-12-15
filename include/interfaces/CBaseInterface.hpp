@@ -2,8 +2,9 @@
 #include <common.hpp>
 #include <logger/logger.hpp>
 
-class CBaseInterface : public CLogger
+class CBaseInterface : protected CLogger
 {
+    friend class CInterfaceList;
 public:
     CBaseInterface(std::string m_szName) : CLogger(m_szName),  m_szName(m_szName) {}
     const auto name() { return m_szName; }

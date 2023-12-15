@@ -30,6 +30,7 @@
 #define LOG_FILEGLOBAL false
 #define LOG_HOME_PATH std::string("/home/dylan")
 #define LOG_RESOURCE_PATH std::string("/code/smith/resource")
+#define DEV_BASEPATH std::string("/code/smith/")
 #define LOG_SUBDIR std::string("/logs")
 
 

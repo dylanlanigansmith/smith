@@ -12,14 +12,12 @@ CResourceSystem::~CResourceSystem()
 
 void CResourceSystem::OnCreate()
 {
-    std::string home = getenv("HOME"); // should be moved to IFileSystemLinux
-    if (!home.empty())
-        m_szHomeDir = home;
-    else
-        warn("Failed to find home directory");
-
-    m_szResourcePath = m_szHomeDir + LOG_RESOURCE_PATH;
-    log("using %s as resource folder", m_szResourcePath.c_str());
+    IFileSystem = engine->CreateInterface<CFileSystem>("IFileSystem");
+    if(!IFileSystem) {
+        Error("Failed acquire IFileSystem: got 0x%lx", (uintptr_t)IFileSystem); 
+    }
+    
+    log("using %s as resource folder", IFileSystem->GetResourcePath().c_str());
 }
 
 void CResourceSystem::OnShutdown()
@@ -28,13 +26,13 @@ void CResourceSystem::OnShutdown()
 
 std::string CResourceSystem::GetResourcePath()
 {
-    return m_szResourcePath;
+    return IFileSystem->GetResourcePath();
 }
 
 std::string CResourceSystem::GetResourceSubDir(const std::string &folder)
 {
-    std::string full_path = m_szResourcePath + std::string("/").append(folder) + std::string("/");
-    if (FileExists(full_path))
+    auto full_path = IFileSystem->MakePath(IFileSystem->GetResourcePath(), folder);
+    if (IFileSystem->FileExists(full_path))
         return full_path;
 
     Error("resource subdir %s not found [%s]", folder.c_str(), full_path.c_str());
@@ -42,57 +40,31 @@ std::string CResourceSystem::GetResourceSubDir(const std::string &folder)
 }
 std::vector<std::pair<std::string, std::string>> CResourceSystem::GetDirectoryStructure(const std::string& subdir)
 {
-      namespace fs = std::filesystem;
     auto path = GetResourceSubDir(subdir);
-    std::vector<std::pair<std::string, std::string>> dir_structure;
-    for (auto const &dir_entry : fs::recursive_directory_iterator(path))
-    {
-        if(dir_entry.is_directory()) continue;
-        std::string file = FindSubdirFromPath(StripResourcePath(dir_entry.path()));
-        std::string name = dir_entry.path().filename();
-       std::pair<std::string, std::string> to_add = {name, file};
- 
-        dir_structure.push_back(to_add);
-    }
-    std::sort(dir_structure.begin(), dir_structure.end(), [](const std::pair<std::string, std::string>& a, const std::pair<std::string, std::string>& b) {
-        return a.second < b.second; // This will sort by subdirectory
-    });
-    return dir_structure;
+    return IFileSystem->GetStructureAt(path);
 }
 std::string CResourceSystem::FindSubdirFromPath(const std::string& path)
 {
-    if(path.find_first_of("/") == std::string::npos) //might not be in a subdir
-        return std::string();
-    auto rootandsub =  path.substr(0, path.find_last_of("/")) ; //this stage is ex. "/material/nature"
-    return rootandsub.substr(rootandsub.find_last_of("/") + 1); // this is "nature"
-  
+    return IFileSystem->FindSubdirFromPath(path);
 }
+
 std::string CResourceSystem::StripResourcePath(const std::string& path)
 {
-    int len = m_szResourcePath.length();
-    return path.substr(len);
+    return IFileSystem->StripPath(path, IFileSystem->GetResourcePath());
 }
 std::string CResourceSystem::FindResourceFromPath(const std::string &path, const std::string &name)
 {
-    namespace fs = std::filesystem;
-
-    for (auto const &dir_entry : fs::recursive_directory_iterator(path))
-    {
-        std::string file = std::string(dir_entry.path());
-        if (file.find(name) != std::string::npos)
-            return file;
-    }
-
-    return std::string();
+     warn("calling deprecated function: CResourceSystem::FindResourceFromPath");
+    return IFileSystem->FindRecursively(path, name);
 }
 
 std::string CResourceSystem::FindResource(const std::string &subdir_path, const std::string &name)
 {
-    std::string ret = MergePathAndFileName(subdir_path, name);
-    if (FileExists(ret))
+    std::string ret = IFileSystem->MergePathAndFileName(subdir_path, name);
+    if (IFileSystem->FileExists(ret))
         return ret;
-    ret = std::string(); // why?
-    ret = FindResourceFromPath(subdir_path, name);
+    ret = std::string(); // blanked out since easy path didnt work
+    ret = IFileSystem->FindRecursively(subdir_path, name);
     if (ret.empty())
     {
         Error("unable to locate %s under subdir %s ", name.c_str(), subdir_path.c_str());
@@ -103,15 +75,14 @@ std::string CResourceSystem::FindResource(const std::string &subdir_path, const 
 
 inline std::string CResourceSystem::MergePathAndFileName(const std::string &path, const std::string &name)
 {
-    std::string full_path = path + name;
-    return full_path;
+    warn("calling deprecated function: CResourceSystem::MergePathAndFileName");
+    return IFileSystem->MergePathAndFileName(path, name);
 }
 
 bool CResourceSystem::FileExists(const std::string &path)
 {
-    if (std::filesystem::exists(path))
-        return true;
-    return false;
+   warn("calling deprecated function: CResourceSystem::FileExists");
+    return IFileSystem->FileExists(path);
 }
 
 /*
@@ -136,7 +107,7 @@ void CResourceSystem::OnResourceLoadStart()
 bool CResourceSystem::LoadTextureDefinition()
 {
     auto dir = GetResourceSubDir(TEX_DEF_SUBDIR);
-    auto path = MergePathAndFileName(dir, TEX_DEF_FILE);
+    auto path = IFileSystem->MergePathAndFileName(dir, TEX_DEF_FILE);
 
     int amt = 0;
     json tex_def = ReadJSONFromFile(path);
@@ -171,7 +142,7 @@ bool CResourceSystem::SaveTextureDefinition()
         amt++;
     }
     auto dir = GetResourceSubDir(TEX_DEF_SUBDIR);
-    auto path = MergePathAndFileName(dir, TEX_DEF_FILE);
+    auto path = IFileSystem->MergePathAndFileName(dir, TEX_DEF_FILE);
 
    WriteJSONToFile(tex_def, path);
 
@@ -192,7 +163,7 @@ bool CResourceSystem::WriteJSONToFile(const json &data, const std::string &path)
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
+        Error("CResourceSystem::WriteJSONToFile(data, %s) : %s", path.c_str(), e.what());
         return false;
     }
 
@@ -210,7 +181,8 @@ json CResourceSystem::ReadJSONFromFile(const std::string &path)
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
+        Error("CResourceSystem::ReadJSONFromFile(%s) : %s", path.c_str(), e.what());
+        
         return json();
     }
     return j_in;
@@ -222,7 +194,7 @@ bool CResourceSystem::LoadLevel(const std::string &name)
 {
      static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     auto dir = GetResourceSubDir(LEVEL_SUBDIR);
-    auto path = MergePathAndFileName(dir, AddExtension(name)); //findresource
+    auto path = IFileSystem->MergePathAndFileName(dir, AddExtension(name)); //findresource
 
     json j = ReadJSONFromFile(path);
     if(j.empty()) {
@@ -248,7 +220,7 @@ bool CResourceSystem::SaveLevel()
     auto& level = ILevelSystem->m_Level;
     auto j = level->ToJSON();
     auto dir = GetResourceSubDir(LEVEL_SUBDIR);
-    auto path = MergePathAndFileName(dir, AddExtension(level->getName()));
+    auto path = IFileSystem->MergePathAndFileName(dir, AddExtension(level->getName()));
 
     if( WriteJSONToFile(j, path)){
         warn("wrote level %s to file", level->getName().c_str()); return true;
@@ -262,7 +234,7 @@ bool CResourceSystem::SaveAnimations()
 {
     static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
     auto dir = GetResourceSubDir("definition");
-    auto path = MergePathAndFileName(dir, AddExtension("animation"));
+    auto path = IFileSystem->MergePathAndFileName(dir, IFileSystem->AddExtension("animation"));
 
     auto j = IAnimationSystem->ListToJson();
 
@@ -278,7 +250,7 @@ bool CResourceSystem::LoadAnimations()
 {
      static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
     auto dir = GetResourceSubDir("definition");
-    auto path = MergePathAndFileName(dir, AddExtension("animation"));
+    auto path = IFileSystem->MergePathAndFileName(dir, IFileSystem->AddExtension("animation"));
 
     json j = ReadJSONFromFile(path);
     if(j.empty()) {

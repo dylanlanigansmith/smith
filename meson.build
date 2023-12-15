@@ -13,7 +13,8 @@ inc = include_directories(
     'thirdparty/json/include', 
     'thirdparty/magic_enum/include', 
     'thirdparty/enet/include', 
-    'thirdparty/glm/'
+    'thirdparty/glm/',
+    'thirdparty/stb_image/'
     )
 
 subdir('thirdparty/imgui')

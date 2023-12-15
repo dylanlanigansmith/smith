@@ -8,53 +8,62 @@ CEngine::~CEngine()
 {
 }
 
-void CEngine::Start(const char* title)
+bool CEngine::Start(const char* title)
 {
     log("--smith-engine--");
+    
+
     if(SDL_Init(SDL_INIT_VIDEO) != 0){
-        Error("SDLInit failed: %s. Off to a great start I see!", SDL_GetError()); return;
+        Error("SDLInit failed: %s. Off to a great start I see!", SDL_GetError()); 
+        PLATFORM.Dialog().MessageBox("SDLInit failed: %s. Off to a great start I see!", SDL_GetError());
+        return false;
     }   
-    m_sysInfo.find();
-    log("smith init for %s , w/ cpu_cores: %i memory: %d MiB}", m_sysInfo.plat_name.c_str(), m_sysInfo.sys_cores, m_sysInfo.sys_ram);
-   
     log("starting window { %ix%i }", SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL);
+    if(!PLATFORM.window().SetupForPlatform(PLATFORM.GetPlatType())){
+         PLATFORM.Dialog().MessageBox("Window Setup Failed!");  return false;
+    }
+    if(!PLATFORM.window().CreateWindow(title, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL)){
+        Error("SDL_CreateWindow failed: %s", SDL_GetError()); 
+        PLATFORM.Dialog().MessageBox("SDL_CreateWindow failed: %s", SDL_GetError());
+        return false; 
+    }
+    m_SDLWindow = PLATFORM.window().m_SDLWindow; //this is something we can have now
 
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, MSAA_BUFFER);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA_SAMPLES);
-    SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, TEXTURE_SCALE_QUALITY, SDL_HINT_OVERRIDE);
-    m_SDLWindow = SDL_CreateWindow(title, SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, SDL_WINDOW_OPENGL);
-
-     note("init renderer with %d threads", m_sysInfo.render_threads_to_use);
-     if(m_sysInfo.render_threads_to_use < 8) warn("system core count does not meet the recommended specifications");
-     
+    if(GetSysInfo().render_threads_to_use < 8)
+         warn("system core count does not meet the recommended specifications"); //need that 700fps
+    
     render = new CRenderer(m_SDLWindow);
-    if(!render->Create()) return;
-    #ifdef SCREEN_FULLSCREEN
-    SDL_SetWindowFullscreen(m_SDLWindow, SDL_TRUE);
-  
-    #endif
-
-    SDL_ThreadPriority priority = SDL_THREAD_PRIORITY_HIGH;
-    if(int err = SDL_SetThreadPriority(priority); err != 0){
-        Error("Failed to set thread-priority '%s'  : (%i) %s ",magic_enum::enum_name(priority).data(), err, SDL_GetError() );
-    } else{
-        log("set threadpriority -> %s", magic_enum::enum_name(priority).data() ); //+10-15fps boost with -Og  -> should we do this now that we are multithreaded
+    if(!render->Create()) return false; //should do sdl quit etc even on fail
+   
+    if(PLATFORM.IsLinux()) //do thread priority
+    {
+        SDL_ThreadPriority priority = SDL_THREAD_PRIORITY_HIGH;
+        if(int err = SDL_SetThreadPriority(priority); err != 0){
+            Error("Failed to set thread-priority '%s'  : (%i) %s ",magic_enum::enum_name(priority).data(), err, SDL_GetError() );
+        } else{
+            log("set threadpriority -> %s", magic_enum::enum_name(priority).data() ); //+10-15fps boost with -Og  -> should we do this now that we are multithreaded
+        }
     }
-
+    
+    //seed the bad rng 
     srand(  time(nullptr) );
-#ifdef SMITHNETWORKED 
-    if(enet_initialize() != 0){
-        Error("failed to init network client %s", "stopping"); Shutdown();
-    }
 
-    const int maxConnections= 8, numChannels = 2, limit_in = 0, limit_out = 0;
-    client = enet_host_create(NULL,maxConnections, numChannels, limit_in, limit_out);
-    if(client == nullptr){
-        Error("failed to create network client %s", "stopping"); Shutdown();
-    }
-    status("created network client");
-#endif
+    
+    #ifdef SMITHNETWORKED 
+        if(enet_initialize() != 0){
+            Error("failed to init network client %s", "stopping"); Shutdown();
+        }
+
+        const int maxConnections= 8, numChannels = 2, limit_in = 0, limit_out = 0;
+        client = enet_host_create(NULL,maxConnections, numChannels, limit_in, limit_out);
+        if(client == nullptr){
+            Error("failed to create network client %s", "stopping"); Shutdown();
+        }
+        status("created network client");
+    #endif
     InitInterfaces();
+
+    //circular dependency hell
     for(auto& element : interfaces.list())
             element.second->OnResourceLoadStart();
     for(auto& element : interfaces.list())
@@ -62,6 +71,8 @@ void CEngine::Start(const char* title)
     for(auto& element : interfaces.list())
             element.second->OnEngineInitFinish();
     render->OnEngineInitFinish();
+
+    return true;
 }
 
 int CEngine::Run()
@@ -116,7 +127,10 @@ int CEngine::Run()
 int CEngine::Shutdown()
 {
     interfaces.Destroy();
+
+#ifdef SMITH_NETWORKED 
     enet_deinitialize();
+#endif
     render->Shutdown();
     warn("smith-engine shutdown");
     SDL_DestroyWindow(m_SDLWindow);
@@ -129,6 +143,7 @@ int CEngine::Shutdown()
 void CEngine::InitInterfaces()
 {
     //CoreEngine
+    interfaces.AddInterface<CFileSystem>();
     interfaces.AddInterface<CEngineTime>();
     interfaces.AddInterface<CInputSystem>();
 

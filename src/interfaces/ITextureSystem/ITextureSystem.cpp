@@ -2,6 +2,7 @@
 #include "engine/engine.hpp"
 #include <global.hpp>
 #include <util/hash_fnv1a.hpp>
+#include <data/image/CImageLoader.hpp>
 
 CTextureSystem::~CTextureSystem()
 {
@@ -10,11 +11,6 @@ CTextureSystem::~CTextureSystem()
 void CTextureSystem::OnCreate()
 {
 
-    int imgFlags = IMG_INIT_PNG;
-    if (!(IMG_Init(imgFlags) & imgFlags))
-    {
-        log("failed to init SDL3Img");
-    }
     m_hTextureError = HTEXTURE_INVALID;
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
     m_szTextureResourcePath = IResourceSystem->GetResourceSubDir("material");
@@ -43,6 +39,7 @@ void CTextureSystem::OnShutdown()
         SDL_DestroySurface(texture->m_texture);
         delete texture; //bye
     }
+   // IMG_Quit();
 }
 
 void CTextureSystem::OnLoopStart()
@@ -53,37 +50,28 @@ void CTextureSystem::OnLoopStart()
 
 SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path, uint32_t key)
 {
-     /*
-    Load an image from a filesystem path into a software surface.
-    An SDL_Surface is a buffer of pixels in memory accessible by the CPU.
-     Use this if you plan to hand the data to something else or manipulate it further in code.
-     There are no guarantees about what format the new SDL_Surface data will be; in many cases,
-      SDL_image will attempt to supply a surface that exactly matches the provided image,
-      but in others it might have to convert (either because the image is in a format that SDL doesn't directly support,
-       or because it's compressed data that could reasonably uncompress to various formats and SDL_image had to pick one).
-       You can inspect an SDL_Surface for its specifics, and use SDL_ConvertSurface to then migrate to any supported format.
-       If the image format supports a transparent pixel, SDL will set the colorkey for the surface.
-       You can enable RLE acceleration on the surface afterwards by calling: SDL_SetSurfaceColorKey(image, SDL_RLEACCEL, image->format->colorkey);
-       There is a separate function to read files from an SDL_RWops,
-       if you need an i/o abstraction to provide data from anywhere instead of a simple filesystem read;
-       that function is IMG_Load_RW(). If you are using SDL's 2D rendering API,
-       there is an equivalent call to load images directly into an SDL_Texture for use by the GPU without using a software surface:
-        call IMG_LoadTexture() instead. When done with the returned surface, the app should dispose of it with a call to SDL_DestroySurface().
-    */
+    
+    static CImageLoader img_loader;
+   
 
     SDL_Surface *load = NULL;
     SDL_DestroySurface(load); // idk the example did this
 
-    load = IMG_Load(path.c_str());
-    if (load == NULL){
-        log("failed loading texture file %s !", path.c_str());
-        return NULL;
+    if(img_loader.Load(path, &load) != 0){
+         warn("imgloader failed with texture file %s !", path.c_str());
+           return NULL;
     }
+  
+
+    if (load == NULL){
+          warn("imgloader returned null for file %s !", path.c_str());
+           return NULL;
+      }
    
     SDL_Surface *optimized = NULL;
-    //  SDL_DestroySurface(optimized);
+
      optimized = SDL_ConvertSurfaceFormat(load, SMITH_PIXELFMT);
-      // https://lazyfoo.net/tutorials/SDL/06_extension_libraries_and_loading_other_image_formats/index2.php
+ 
    
     if(key != 0u){
         SDL_SetSurfaceColorKey(optimized, SDL_TRUE, key);
@@ -93,7 +81,7 @@ SDL_Surface* CTextureSystem::LoadAndOptimizeSurface(const std::string& path, uin
     if(optimized != NULL)
         return optimized;
 
-    log("converting surface fmt failed: %s", SDL_GetError());
+    warn("converting surface fmt failed: %s", SDL_GetError());
     return NULL;
 }
 

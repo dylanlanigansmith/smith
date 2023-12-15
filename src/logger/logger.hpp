@@ -18,6 +18,7 @@
 
 class CLogger
 {
+    friend class CInterfaceList;
 public:
     CLogger() { m_szFmtName = "Log"; formatName();}
     CLogger(const std::string& name) : m_szFmtName(name){ formatName();} 
