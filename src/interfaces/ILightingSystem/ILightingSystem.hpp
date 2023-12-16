@@ -80,6 +80,10 @@ public:
     {
         const ivec3 vox_pos = tile->worldToSector(worldpos);
           voxel_t *vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
+
+
+        
+
          SetPixel(x, y, vox->m_light); return; /*
         Vector rel_pos = tile->worldToRelative(worldpos);
        // if(x > 630)

@@ -14,3 +14,8 @@ public:
 private:
    
 };
+
+/*
+need to serialize to json with standard sprite params and texture name saved and reigster to types like lighting
+
+*/

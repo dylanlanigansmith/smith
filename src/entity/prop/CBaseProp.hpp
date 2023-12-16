@@ -32,6 +32,9 @@ CBaseProp::CBaseProp(int m_iID) : CBaseRenderable(m_iID)
 
 void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int vOffset) 
 {
+    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+     auto tile = ILevelSystem->GetTileAtFast( m_vecPosition.x,  m_vecPosition.y);
      auto camera = renderer->GetActiveCamera();
     Vector2 relPos = {
          m_vecPosition.x - camera->m_vecPosition.x, 
@@ -102,10 +105,10 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
 
                 uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
                 SDL_Color color = Render::TextureToSDLColor(uColor);
-                if ( (color.r != 0) && (color.g != 0) && (color.b != 0) w)
+                if ( (color.r != 0) && (color.g != 0) && (color.b != 0) )
                 {
                     renderer->SetPixel(stripe, y, color);
-
+                    ILightingSystem->ApplyLightForTile(tile, true, true, m_vecPosition, stripe, y);
                     // paint pixel if it isn't black, black is the invisible color
                 }
             }

@@ -48,9 +48,8 @@ bool CRenderer::Create()
   log("%d %d ", windowSize.x, windowSize.y);
   m_isUpScaling = !(SCREEN_HEIGHT != windowSize.y);
 
-
   m_bBlur = true;
-  
+
   m_bBlurMethod = false;
   sigma = 8.3f;   // higher = softer
   kernelSize = 5; // higher = more area
@@ -126,11 +125,12 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
   const int topMargin = ksz;
   const int bottomMargin = height - ksz;
 
-  struct pixel_clr {
-    uint8_t a,b,g,r;
+  struct pixel_clr
+  {
+    uint8_t a, b, g, r;
   };
-//same code 3 times to semi unroll loop so that clamps only done when needed
-  if (startX == 0 || endX == width ) //all bounds checks needed
+  // same code 3 times to semi unroll loop so that clamps only done when needed
+  if (startX == 0 || endX == width) // all bounds checks needed
   {
     for (int y = startY; y < endY; ++y)
     {
@@ -148,13 +148,13 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
             {
               int sampleX = std::clamp(x + kx, 0, width - 1);
               int sampleY = std::clamp(y + ky, 0, height - 1);
-               pixel_clr c = ((pixel_clr *)surf->pixels)[(sampleY * pitch) + sampleX];
+              pixel_clr c = ((pixel_clr *)surf->pixels)[(sampleY * pitch) + sampleX];
 
               r += c.r;
               g += c.g;
               b += c.b;
               a += c.a;
-             
+
               count++;
             }
           }
@@ -165,12 +165,12 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
           b /= count;
           a /= count;
 
-           ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] =  { a,b,g,r  };
+          ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {a, b, g, r};
         }
       }
     }
   }
-  else //no X checks needed
+  else // no X checks needed
   {
     for (int y = startY; y < endY; ++y)
     {
@@ -188,13 +188,13 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
             {
               int sampleX = x + kx;
               int sampleY = std::clamp(y + ky, 0, height - 1);
-                pixel_clr c = ((pixel_clr *)surf->pixels)[(sampleY * pitch) + sampleX];
+              pixel_clr c = ((pixel_clr *)surf->pixels)[(sampleY * pitch) + sampleX];
 
               r += c.r;
               g += c.g;
               b += c.b;
               a += c.a;
-             
+
               count++;
             }
           }
@@ -205,12 +205,12 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
           b /= count;
           a /= count;
 
-           ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] =  { a,b,g,r  };
+          ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {a, b, g, r};
         }
       }
     }
   }
-//int y = startY; y < endY;
+  // int y = startY; y < endY;
   const int x_start = std::max(startX, leftMargin), x_end = std::min(endX, rightMargin);
   // Process central area without boundary checks
   for (int y = topMargin; y < bottomMargin; ++y)
@@ -244,18 +244,15 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
       b /= count;
       a /= count;
 
-      ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] =  { a,b,g,r  };// ((r) << 24) | ((g) << 16) | ((b) << 8) | ((a));
+      ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {a, b, g, r}; // ((r) << 24) | ((g) << 16) | ((b) << 8) | ((a));
     }
   }
 
-  //Render::Blur(): Avg. (325008 ns) (325 us) (0 ms) (0.000325 sec) Wed Dec 13 18:02:54 2023
-  
-  //Render::Blur(): Avg. (336435 ns) (336 us) (0 ms) (0.000336 sec) Wed Dec 13 18:07:48 2023
+  // Render::Blur(): Avg. (325008 ns) (325 us) (0 ms) (0.000325 sec) Wed Dec 13 18:02:54 2023
 
-  //Render::Blur(): Avg: { (332 us) (0 ms) }  Max:  (4942 us)  | Min: (319 us) @ Wed Dec 13 18:14:18 2023
+  // Render::Blur(): Avg. (336435 ns) (336 us) (0 ms) (0.000336 sec) Wed Dec 13 18:07:48 2023
 
-
-
+  // Render::Blur(): Avg: { (332 us) (0 ms) }  Max:  (4942 us)  | Min: (319 us) @ Wed Dec 13 18:14:18 2023
 }
 void CRenderer::applyRollingAverage(int startY, int endY, int kernelSize)
 {
@@ -499,9 +496,10 @@ void CRenderer::SetupThreads()
 }
 void CRenderer::SetNewFullsize(const IVector2 &size)
 {
-   windowSize = size; log("set render size to %d %d", windowSize.x, windowSize.y); 
-   SDL_Rect view = {0,0,windowSize.x, windowSize.y};
-   SDL_SetRenderViewport(get(), NULL);
+  windowSize = size;
+  log("set render size to %d %d", windowSize.x, windowSize.y);
+  SDL_Rect view = {0, 0, windowSize.x, windowSize.y};
+  SDL_SetRenderViewport(get(), NULL);
 }
 bool CRenderer::CreateRendererLinuxGL()
 {
@@ -537,7 +535,6 @@ void CRenderer::Loop()
   static auto SpriteProfiler = IEngineTime->AddProfiler("Render::Sprites()");
   static auto SDLProfilerStart = IEngineTime->AddProfiler("Render::SDLRendererStart");
   static auto SDLProfiler = IEngineTime->AddProfiler("Render::SDLRendererEnd");
-   
 
   SDLProfilerStart->Start();
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
@@ -572,7 +569,7 @@ void CRenderer::Loop()
   BlurProfiler->Start();
   if (m_bBlur)
   {
-    
+
     if (BLUR_SCALE != 1)
       SDL_BlitSurfaceScaled(m_lightsurface, NULL, m_downscale, NULL); // SDL_SoftStretchLinear
 
@@ -582,28 +579,24 @@ void CRenderer::Loop()
     while (doneCount.load() < NUM_THREADS)
     {
       SDL_UnlockTexture(m_renderTexture);
-     
-      SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
-    
+
+      SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); // do this while waiting for blur
+
       std::this_thread::yield();
     }
-    startBlur.store(false);  
-    
+    startBlur.store(false);
   }
 
   BlurProfiler->End();
   SDLProfiler->Start();
 
-  SDL_UnlockTexture(m_blurTexture); //expensive
-  if(!m_bBlur)
+  SDL_UnlockTexture(m_blurTexture); // expensive
+  if (!m_bBlur)
   {
-    SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); //do this while waiting for blur
+    SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); // do this while waiting for blur
   }
-  
 
- 
-    SDL_RenderTexture(get(), m_blurTexture, NULL, NULL);
-  
+  SDL_RenderTexture(get(), m_blurTexture, NULL, NULL);
 
   // R2::render_frame(this);
   RunImGui();
@@ -628,5 +621,5 @@ void CRenderer::SetPixel(int x, int y, SDL_Color color) // @deprecated Switch To
 {
 #warning "Using SDLColor is deprecated"
   int index = (y * m_surface->pitch / 4) + x;
-  pixels[index] = Render::SDLColorToWorldColor(color); //pretty sure this is safe to remove now
+  pixels[index] = Render::SDLColorToWorldColor(color); // pretty sure this is safe to remove now
 }
