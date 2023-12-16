@@ -108,6 +108,7 @@ void CEditor::render(CRenderer *renderer)
 
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     auto player = IEntitySystem->GetLocalPlayer();
     if (auto draw = ImGui::GetBackgroundDrawList(); draw) // just for scope really
     {
@@ -182,7 +183,9 @@ void CEditor::render(CRenderer *renderer)
     ImGui::SetNextWindowPos(windowPos);
     ImGui::SetNextWindowSize(windowSize);
     ImGui::SetNextWindowBgAlpha(nextAlpha);
-    ImGui::Begin("SmithEditor v0.0.0");
+    static auto map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->m_Level->getName());
+    
+    ImGui::Begin(map_name.c_str());
 
     // the code here can be a bit greasy because it is a dev tool but try not to make it too singletrack
     //^^ this didnt age well 12.13.23
@@ -475,7 +478,11 @@ void CEditor::drawMapView()
     // Editor::IVec2Str(tile.m_vecPosition).c_str(),
 }
 
-void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *draw_list)
+void CEditor::drawNewMapEdit()
+{
+}
+
+void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *draw_list, tile_t* lastTile)
 {
     // Use object uid as identifier. Most commonly you could also use the object pointer as a base ID.
     ImGui::PushID(entity);
@@ -558,7 +565,14 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
                 ImGui::Text("behaviour %s", magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour).data());
                 auto path = enemy->GetPathFinder();
-                
+                if(ImGui::Button("set to last selected tile")){
+                    if(lastTile != nullptr){
+                        Vector2 set = lastTile->m_vecPosition;
+                        set = { set.x + 0.3, set.y + 0.4};
+                        enemy->SetPosition(set);
+                        engine->info("set %s to {%.1f %.1f}", enemy->GetName().c_str(), set.x, set.y);
+                    }
+                }
                 if (path->HasPath())
                 {
                     ImGui::Text("%i / %li Steps", path->m_iPathIndex, path->m_iPathSize);
@@ -722,7 +736,7 @@ void CEditor::drawEntityView()
     {
         draw_list->AddLine(ImVec2(canvas_p0.x, y * GRID_STEP + canvas_p0.y), ImVec2(GRID_STEP * 64 + canvas_p0.x, y * GRID_STEP + canvas_p0.y), IM_COL32(200, 200, 200, 40));
     }
-
+    static tile_t* lastTile = nullptr;
     for (auto &row : world)
     {
 
@@ -745,6 +759,7 @@ void CEditor::drawEntityView()
             if (ImGui::InvisibleButton("##tile", {GRID_STEP, GRID_STEP}))
             { // ImGui::ImageButton
                 engine->log("%s", name.c_str());
+                lastTile = &tile;
             }
             ImGui::PopID();
         }
@@ -777,7 +792,7 @@ void CEditor::drawEntityView()
 
         // Iterate placeholder objects (all the same data)
         for (auto &ent : IEntitySystem->iterableList())
-            ShowEntityObject(ent, ImVec2{canvas_p0.x, canvas_p0.y}, draw_list);
+            ShowEntityObject(ent, ImVec2{canvas_p0.x, canvas_p0.y}, draw_list, lastTile);
 
         ImGui::EndTable();
     }

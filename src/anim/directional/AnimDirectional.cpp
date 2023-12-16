@@ -38,7 +38,9 @@ void CAnimDirectional::Draw(CRenderer *renderer, const sprite_draw_data &data)
             {
                 int d = (y - data.screen.y) * 256 - SCREEN_HEIGHT * 128 + data.renderSize.y * 128; // 256 and 128 factors to avoid floats
                 tex.y = ((d * m_surface->h()) / data.renderSize.y) / 256;
-                
+                if(renderer->Z2D[stripe][y] > 0.f &&  data.transform.y > renderer->Z2D[stripe][y]   ) continue; //god damn it i guess we do it this way 
+
+
                 Color color = m_surface->getColorAtPoint(tex.x, tex.y); // get current color from the texture
 
                 if (!color)

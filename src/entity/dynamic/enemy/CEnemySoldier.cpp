@@ -4,6 +4,7 @@
 
 void CEnemySoldier::OnUpdate()
 {
+    return;
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
      static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");

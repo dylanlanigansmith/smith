@@ -96,12 +96,13 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
         {
             for (int y = drawStartY; y < drawEndY; y++) // for every pixel of the current stripe
             {
+                 if(renderer->Z2D[stripe][y] > 0.f &&  transform.y > renderer->Z2D[stripe][y]   ) continue;
                 int d = (y - vMoveScreen) * 256 - SCREEN_HEIGHT * 128 + renderHeight * 128; // 256 and 128 factors to avoid floats
                 tex.y = ((d * m_vecTextureSize.y) / renderHeight) / 256;
 
                 uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
                 SDL_Color color = Render::TextureToSDLColor(uColor);
-                if ( (color.r != 0) && (color.g != 0) && (color.b != 0) &&  renderer->Z2D[stripe][y] <= 0u)
+                if ( (color.r != 0) && (color.g != 0) && (color.b != 0) w)
                 {
                     renderer->SetPixel(stripe, y, color);
 

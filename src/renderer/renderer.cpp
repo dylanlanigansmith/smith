@@ -550,6 +550,7 @@ void CRenderer::Loop()
   pixels = (uint32_t *)m_surface->pixels;
 
   WolfProfiler->Start();
+  SDL_memset(Z2D, 0, SCREEN_HEIGHT * SCREEN_WIDTH * sizeof(float));
 
   doneCount.store(0); // startBlur.store(true);
   startRender.store(true, std::memory_order_release);

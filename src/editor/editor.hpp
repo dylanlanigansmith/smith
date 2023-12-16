@@ -39,7 +39,9 @@ public:
     void render(CRenderer *renderer);
     bool isOpen() const { return m_bIsOpen; }
 private:
+
     void drawMapView();
+    void drawNewMapEdit();
     void drawEntityView();
     void drawResourceView();
     void drawMaterialView();
@@ -53,7 +55,7 @@ private:
 private:
     void InitTextureInfo();
     void TexturePicker(const char* title,tile_t* selectedTile, texture_t*& selectedTexture, SDL_Texture*& previewTexture, std::string& preview, ImGuiTextFilter* filter, uint8_t updatetype = 0);
-    void ShowEntityObject(CBaseEntity* entity, ImVec2 offset, ImDrawList *draw_list);
+    void ShowEntityObject(CBaseEntity* entity, ImVec2 offset, ImDrawList *draw_list, tile_t* lastTile = nullptr);
 
 private:
     texture_t* m_texLastSelected = nullptr;
