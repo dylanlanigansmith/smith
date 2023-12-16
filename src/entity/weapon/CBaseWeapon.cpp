@@ -187,7 +187,7 @@ bool CBaseWeapon::Shoot()
         if (side == 1 && rayDir.y < 0)
             tex.x = textW - tex.x - 1;
 
-        tex.y = 32 + Util::SemiRandRange(0, 16) - 8;
+        tex.y = 32 + Util::SemiRandRange(0, 24) - 12;
 
         const uint8_t dir[3] = {(step.x > 0), (step.y > 0), side & 0xFF};
         ILevelSystem->AddBulletHole(tile, tex, dir, 2.f); // 3 works well

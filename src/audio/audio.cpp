@@ -140,13 +140,13 @@ int CSoundSystem::Loop(void *sndsys)
             }
             
             SDL_memset(buf, SDL_GetSilenceValueForFormat(m_device.m_spec.format), cmd_data->m_len); //silence
-            // Assume panning ranges from -1.0 (left) to 1.0 (right)
+            // panning ranges from -1.0 (left) to 1.0 (right)
              SDL_MixAudioFormat(buf, cmd_data->m_buf, SMITH_AUDIOFMT, cmd_data->m_len, (SDL_MIX_MAXVOLUME / 2) * command.m_flVolume);
             float panning = command.m_flPan;
             float leftVolume = (panning <= 0) ? 1 : (1 - panning);
             float rightVolume = (panning >= 0) ? 1 : (1 + panning);
           
-                // Iterate over your buffer, processing stereo pairs
+                
                 for (uint32_t i = 0; i < cmd_data->m_len; i += 4) {  // 4 bytes for two 16-bit samples
                     Sint16* leftSample = (Sint16*)(buf + i);
                     Sint16* rightSample = (Sint16*)(buf + i + 2);

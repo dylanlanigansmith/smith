@@ -35,7 +35,17 @@ public:
     void AddAmmo(int amt, uint8_t type = 0)
     {
         if(m_contents[m_activeSlot]->GetReserveAmmo() < m_contents[m_activeSlot]->GetData().iMaxAmmo ){
-            m_contents[m_activeSlot]->GainAmmo(amt);
+            m_contents[m_activeSlot]->GainAmmo(amt); return;
+        }
+        else{
+            int lowest_reserve = m_contents[m_activeSlot]->GetReserveAmmo();
+            for(auto& wep : m_contents){
+                if(wep != nullptr)
+                    if(wep->GetReserveAmmo() < lowest_reserve){ //find lowest ammo for gun 
+                        wep->GainAmmo(amt); return;
+                    }
+            }
+            m_contents[m_activeSlot]->GainAmmo(amt); //just give some ammo
         }
     }
     void OnUpdate(){

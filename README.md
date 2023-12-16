@@ -19,7 +19,8 @@ TODO
         - sidenote: partially because it is really easy to hack your way out of messy build situations unlike CMake
         - never tried the Xcode integration but I hope it works (fav C++ ide), VSCode plugin locks up once a day but works well 
 - SDL3
-- stb_image header/library
+- stb_image header 
+- stb_vorbis header
 - Dear ImGUI
 - nlohmann/json 
     - why make things difficult, I have yet to master serialization and hope to structure my scene/entity saving in a way I can be proud of this time. This library isn't my choice for lightweight/simple apps, but is it ever nice to use.. 

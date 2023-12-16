@@ -45,7 +45,7 @@ audiodata_t *AudioImport::Load(const std::string &name_ext, SDL_AudioSpec *spec)
      engine->SoundSystem()->Error("couldn't find %s ", name_ext.c_str()); return nullptr;
     }
     std::string ext = IFileSystem->GetExtension(name_ext);
-    engine->log(ext);
+   
     std::string name_noext = IFileSystem->RemoveExtension(name_ext);
     if(name_noext.length() > MAX_AUDIOFILENAME){
         engine->SoundSystem()->Error("name %s too long! max len %d", name_noext.c_str(), MAX_AUDIOFILENAME);  return nullptr;

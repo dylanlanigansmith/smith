@@ -108,7 +108,7 @@ void CLevelSystem::OnEngineInitFinish()
   //  soldier->SetPosition(4.0, 10.5);
     //soldier->SetType(CEnemySoldier::Soldier_Grunt);
 
-    for(int i = 0; i < 21; ++i)
+    for(int i = 0; i < 3; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();
@@ -315,9 +315,10 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
 
 void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius)
 {
-    #define MAX_DECALS 100
-
+    #define MAX_DECALS 15
+    log("trying to add bullet hole");
     if(tile->m_nDecals > MAX_DECALS){
+         log("> max decals");
         int index = (tile->m_nDecals - 1) % MAX_DECALS;
         auto pDecals = tile->m_pDecals;
         for (int i = 0; i < index; ++i) {
@@ -335,10 +336,12 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
         pDecals->dir[0] = side[0];
         pDecals->dir[1] = side[1];
          tile->m_nDecals++;
+          log("> max added");
         return;
     }
 
     auto hole = new decal_t;
+     log("made new hole");
     hole->radius = radius;
     hole->m_pNextDecal = nullptr;
     hole->texturePosition = pos;
@@ -363,11 +366,17 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
         pDecals = pDecals->m_pNextDecal;
         d++;
     }
+    if(!pDecals){
+         log("hmm %d ", d);
+        delete hole; return;
+    }
+    pDecals->m_pNextDecal = hole;
     if(pDecals == nullptr || (pDecals && pDecals->m_pNextDecal == nullptr )){
+        log("no hole");
         delete hole; return;
     }
 
-   // log("%i %i", tile->m_nDecals, d);
+    log("%i %i", tile->m_nDecals, d);
     pDecals->m_pNextDecal = hole;
 }
 

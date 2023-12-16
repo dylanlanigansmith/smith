@@ -123,7 +123,8 @@ void CPlayer::OnCollisionWith(CBaseEntity *hit)
   if(!enemy->HasLoot()) return;
 
   int ammo = enemy->Loot();
-  GetActiveWeapon()->GainAmmo(ammo);
+  Inventory()->AddAmmo(ammo);
+  //GetActiveWeapon()->GainAmmo(ammo);
 
 }
 
