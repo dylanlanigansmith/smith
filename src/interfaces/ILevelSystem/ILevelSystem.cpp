@@ -58,7 +58,7 @@ void CLevelSystem::OnCreate()
 void CLevelSystem::OnEngineInitFinish()
 {
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    if(!IResourceSystem->LoadLevel("lvldev"))
+    if(!IResourceSystem->LoadLevel("lvldev")) //lvldev_light
         return;
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
@@ -80,8 +80,8 @@ void CLevelSystem::OnEngineInitFinish()
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(15.7, 9.5);
-    auto light = IEntitySystem->AddEntity<CGreenLight>();
-    light->SetPosition(19.5, 18.5);
+   // auto light = IEntitySystem->AddEntity<CGreenLight>();
+   // light->SetPosition(19.5, 18.5);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
     pillar->SetPosition(2, 12);
 /*
@@ -108,7 +108,7 @@ void CLevelSystem::OnEngineInitFinish()
   //  soldier->SetPosition(4.0, 10.5);
     //soldier->SetType(CEnemySoldier::Soldier_Grunt);
 
-    for(int i = 0; i < 3; ++i)
+    for(int i = 0; i < 0; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();

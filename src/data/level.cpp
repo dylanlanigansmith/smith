@@ -1,6 +1,6 @@
 #include "level.hpp"
 #include <engine/engine.hpp>
-
+#include <light/CLight.hpp>
 json CLevel::ToJSON()
 {
     auto meta = json::array(); // player flags like starting weapons or somethin

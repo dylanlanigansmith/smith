@@ -20,7 +20,12 @@ public:
 
         if(color_in.a() == MaxDark.a())
             color_in.a(lightColor.a());
-        return lightColor + color_in;
+        Color ret = lightColor + color_in;
+        if(ret.r() == 45 && ret.a() == 0){
+          //  gLog("out: %s in: %s", lightColor.s().c_str(), color_in.s().c_str());
+        }
+
+        return ret;
     }
 private:
     REGISTER_DEC_LIGHT(CLightOverhead);

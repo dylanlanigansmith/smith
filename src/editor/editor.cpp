@@ -1106,6 +1106,8 @@ void CEditor::drawLightView()
                 float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
                 ImGui::PushID(&tile);
                 ImGui::SetCursorPos(ImVec2(pos.x + GRID_STEP * pos.x, pos.y + GRID_STEP * pos.y));
+                Color lm_clr = ILightingSystem->GetLightAt({pos.x + 0.5, pos.y + 0.5, 0.1});
+                lm_clr.a(lm_clr.a() * visualizeAlphaMod);
                 Color vxvtr_clr = tile.getVoxelAt(1, 1, 1)->m_light;
 
                 // if you wanna really do this right then make a texture the size of the grid, and draw a mini lightmap on it.. or do 9 mini images with uv set and tint of avg column color
@@ -1113,7 +1115,9 @@ void CEditor::drawLightView()
                 draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
                 if (visualizeLighting)
                     draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP),
-                                        ImVec2(0, 0), ImVec2(1, 1), IM_COL32(vxvtr_clr.r(), vxvtr_clr.g(), vxvtr_clr.b(), vxvtr_clr.a() * visualizeAlphaMod));
+                                            ImVec2(0, 0), ImVec2(1, 1), Editor::ColorToIU32(lm_clr, true));
+                   // draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP),
+                    //                    ImVec2(0, 0), ImVec2(1, 1), IM_COL32(vxvtr_clr.r(), vxvtr_clr.g(), vxvtr_clr.b(), vxvtr_clr.a() * visualizeAlphaMod));
 
                 if (ImGui::InvisibleButton("##tile", {GRID_STEP, GRID_STEP}))
                 { // ImGui::ImageButton
@@ -1224,7 +1228,7 @@ void CEditor::drawLightView()
             float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
             float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
             auto ui_pos = ImVec2(pos.x + offset_x, pos.y + offset_y);
-            draw_list->AddCircle(ui_pos, 3.f, Editor::ColorToIU32(Color::Olive()), 6, 1.f);
+            draw_list->AddCircle(ui_pos, 1.f, Editor::ColorToIU32(Color::Olive()), 6, 1.f);
         }
     }
 
@@ -1284,6 +1288,19 @@ void CEditor::drawLightView()
                 auto &pos = selectedTile->m_vecPosition;
                 const char *type_name = Editor::GetEnumName((Level::Tile_Type)selectedTile->m_nType).data();
                 ImGui::Text("Tile @ {%i %i}, %s", pos.x, pos.y, type_name);
+                ImGui::Text("influential lights: %li", selectedTile->influential_lights.size());
+                if(ImGui::CollapsingHeader("view IL"))
+                {
+                   
+                    
+                    for(auto& light : selectedTile->influential_lights){
+                         ImGui::PushID(light);
+                         auto p = light->GetPosition();
+                         ImGui::Text("IL: %s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
+                         ImGui::PopID();
+                    }
+                }
+                
                 for (int x = 0; x < TILE_SECTORS; ++x)
                     for (int y = 0; y < TILE_SECTORS; ++y)
                         for (int z = 0; z < TILE_SECTORS; ++z)
@@ -1293,21 +1310,9 @@ void CEditor::drawLightView()
                             ImGui::PushID(&voxel);
                             Editor::ColorPreview(voxel->m_light);
                             ImGui::SameLine();
-                            ImGui::Text("{%i %i %i} | clr %s | [%i/6]", x, y, z, voxel->m_light.s().c_str(), voxel->m_neighborsize);
-                            static bool showNeigh = false;
-                            ImGui::Checkbox("neighbors", &showNeigh);
-                            if (showNeigh)
-                            {
-                                for (int i = 0; i < voxel->m_neighborsize; ++i)
-                                {
-                                    if (voxel->m_neighbors[i] != Color::None())
-                                    {
-                                        Editor::ColorPreview(voxel->m_neighbors[i]);
-                                        ImGui::SameLine();
-                                        ImGui::Text("nbr: %i / %s", i, voxel->m_neighbors[i].s().c_str());
-                                    }
-                                }
-                            }
+                            ImGui::Text("{%i %i %i} | clr %s ", x, y, z, voxel->m_light.s().c_str());
+                        
+                         
                             ImGui::PopID();
                         }
             }

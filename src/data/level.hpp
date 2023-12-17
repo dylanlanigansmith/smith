@@ -43,11 +43,8 @@ struct voxel_t{
 
     //lighting
     Color m_light = Color::None();
-    uint8_t m_neighborsize = 6;
-    Color m_neighbors[6] = {
-        Color::None(),Color::None(),Color::None(),
-        Color::None(),Color::None(),Color::None()
-    };
+   
+  
 
 };
 
@@ -69,6 +66,8 @@ enum Tile_Flags : int
     TileFlags_NONE = 0,
     TileFlags_NOCLIP = 1,
 };
+
+class CLight;
 
 struct tile_t
 {
@@ -93,6 +92,7 @@ struct tile_t
     uint8_t m_nType{};              //1/$#
     uint64_t m_nFlags;              //$!
     std::vector<hEntity> m_occupants;
+    std::vector<CLight* > influential_lights;
     voxel_t sectors[TILE_SECTORS][TILE_SECTORS][TILE_SECTORS];
     bool IsThinWall(){
         switch(m_nType)
