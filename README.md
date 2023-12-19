@@ -27,8 +27,8 @@
     - it is really good! they are doing a great job! 
 
 ### Gallery
-TODO
-
+![Picture of the first time it built on macOS](https://raw.githubusercontent.com/dylanlanigansmith/smith/main/docs/macos.png "The first time it ran on macOS")
+![Bad Example of the lighting](https://raw.githubusercontent.com/dylanlanigansmith/smith/main/docs/newnewlighting.png "A boring example of the lighting, which will likely look completely different in a week")
 
 ### Dependencies
 - Meson Buildsystem
