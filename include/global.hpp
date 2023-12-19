@@ -21,8 +21,16 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 360
 
+#ifdef __APPLE__
+
 #define SCREEN_WIDTH_FULL 1280 //2560
 #define SCREEN_HEIGHT_FULL 720 //1440
+
+#else
+#define SCREEN_WIDTH_FULL 1920 //2560
+#define SCREEN_HEIGHT_FULL 1080 //1440
+
+#endif
 //#define SCREEN_FULLSCREEN
 #define TICKS_PER_S 32
 //todo: make a non interface system / semi platform specific class that is a level below IResourceManager and handles raw FS / homedir stuff
