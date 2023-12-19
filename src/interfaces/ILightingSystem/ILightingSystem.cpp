@@ -152,4 +152,12 @@ void CLightingSystem::FromJSON(const nlohmann::json &j)
     status("added %li lights from json", light_list.size());
 }
 
-
+void CLightingSystem::OnPreLevelChange()
+{
+    for(auto& entry : light_list){
+        if(entry.second != nullptr)
+            delete entry.second;
+    }
+    light_list.clear();
+    log("cleared light list");
+}

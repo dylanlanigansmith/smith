@@ -44,7 +44,7 @@ public:
     virtual void CalculateLighting();
     virtual nlohmann::json ToJSON();
     virtual void FromJSON(const nlohmann::json& j);
-   
+    void OnPreLevelChange();
     inline Color Blend(Color color1, Color color2, uint8_t weight)
     {
 

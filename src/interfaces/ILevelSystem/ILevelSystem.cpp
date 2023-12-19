@@ -82,6 +82,9 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     log("loaded %s.json", map_name.c_str());
     if(changing)
     {
+        ILightingSystem->OnPreLevelChange(); //clears light list 
+        //imagine an event system
+        //imagine...
          ILightingSystem->RegenerateLighting();
     }
     else
