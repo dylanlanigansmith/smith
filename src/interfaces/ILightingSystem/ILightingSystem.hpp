@@ -84,15 +84,28 @@ public:
     }
     void inline ApplyLightForTile(tile_t *tile, bool posRayX, bool posRayY, const Vector &worldpos, int x, int y)
     {
-        int xIndex = std::clamp(static_cast<int>( std::round(worldpos.x * 10.f)), 0, MAP_SIZE * 10);
-        int yIndex = std::clamp(static_cast<int>(std::round(worldpos.y * 10.f)), 0, MAP_SIZE * 10);
-        int zIndex = std::clamp(static_cast<int>(std::round(worldpos.z * 10.f)), 0, 1 * 10);
-        
-        Color direct = lightmap[xIndex][yIndex][zIndex];
+        #define DIV 10
+        int xIndex = std::clamp(static_cast<int>( std::round(worldpos.x * DIV)), 0, MAP_SIZE * DIV);
+        int yIndex = std::clamp(static_cast<int>(std::round(worldpos.y * DIV)), 0, MAP_SIZE * DIV);
+        int zIndex = std::clamp(static_cast<int>(std::round(worldpos.z * DIV)), 0, 1 * DIV);
+         Color direct = lightmap[xIndex][yIndex][zIndex];
 
+           SetPixel(x, y, direct); return;
+           /*
+        if(xIndex >= MAP_SIZE * DIV || yIndex >= MAP_SIZE * DIV ){
+             SetPixel(x, y, direct); return;
+        }
+
+        Color cx = lightmap[xIndex + 1][yIndex][zIndex];
+        Color cy = lightmap[xIndex][yIndex + 1][zIndex];
+         
+         Color combo = CombineBlendedColors(cx,cy,direct);
+        
+       
+         SetPixel(x, y, LinearInterpolate(direct, combo, params.intensityModifier)); return;
        // if( !std::isnan(xIndex) && !std::isnan(yIndex) )
-      //      log("{%.4f %.4f %.4f}   %d %d %d %s",worldpos.x,worldpos.y,worldpos.z, xIndex, yIndex, zIndex, direct.s().c_str());
-         SetPixel(x, y, direct); return;
+      //      log("{%.4f %.4f %.4f}   %d %d %d %s",worldpos.x,worldpos.y,worldpos.z, xIndex, yIndex, zIndex, direct.s().c_str());*/
+        
     }
 
     Color GetLightAt(const Vector &worldpos){

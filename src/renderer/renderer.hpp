@@ -104,7 +104,7 @@ private:
     bool m_bBlur = false;
     bool m_bBlurGauss = true;
     int avg_kernelSize;
-
+    bool m_debug_onlylight = false;
     
     bool m_bThreadDone;
     double ZBuffer[SCREEN_WIDTH];

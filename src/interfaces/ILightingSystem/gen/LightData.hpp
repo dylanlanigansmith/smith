@@ -186,6 +186,22 @@ public:
         }   
     }
 
+/*
+The real thing needed:
+a better light model and attenuation
+
+also the code below f-ing sucks 
+like its so bad
+when it breaks again
+please dont add another patch
+please fix it
+I beg 
+I plead
+12/18/23
+
+*/
+
+
     void Calculate2()
     {
          //  Vector tile_pos = {tile.m_vecPosition.x, tile.m_vecPosition.y, 0.f};
@@ -200,21 +216,24 @@ public:
                         //
                         ILightingSystem->lightmap[xIndex][yIndex][zIndex] = Color(255,0,0,255);
                     }
-
+*/
             for(auto& a0 : ILightingSystem->lightmap){
                 for(auto& a1 : a0){
-                   // for(auto& a2: a1)
-                    //    a2 = Color(255,0,0,255);
+                    for(auto& a2: a1)
+                        a2 = Color(255,0,0,255); //for finding bugs easily
                 }
             }
-*/
+            for(auto& entry : ILightingSystem->light_list){
+                if(!entry.second->rays.empty())
+                    entry.second->rays.clear();
+            }
                          
 
 
 
-            for (float x = 0.f; x < MAP_SIZE ; x += 0.1f)
-                for (float y = 0.f; y < MAP_SIZE; y += 0.1f)
-                    for (float z = 0.f; z < 1.0; z += 0.1f)
+            for (double x = 0.f; x < MAP_SIZE ; x += 0.1f)
+                for (double y = 0.f; y < MAP_SIZE; y += 0.1f)
+                    for (double z = 0.f; z < 1.0; z += 0.1f)
                     {
                         
 
@@ -233,8 +252,7 @@ public:
                         }
                         auto tile_type = tile->m_nType;
                         Vector pos = {x,y,z};
-                       if(x > 9.f && x < 10.f && y > 9.f && y < 10.f)
-                            ILightingSystem->log("xyz [%.1f %.1f %.1f] pos[%f %f %f] ==  IDX{%d %d %d} at tile [%d %d]", x,y,z, pos.x, pos.y,pos.z, xIndex, yIndex, zIndex, tile->m_vecPosition.x, tile->m_vecPosition.y);
+                      
                      
 
                         
@@ -248,7 +266,7 @@ public:
                             auto light = entry.second;
                              auto p = light->GetPosition();
                             
-                            if((pos - light->GetPosition() ).Length3D() <= light->GetRange() ) //length 2d vs 3d makes a huge difference
+                            if((pos - light->GetPosition() ).Length2D() <= light->GetRange() ) //length 2d vs 3d makes a huge difference
                             {
                             //    ILightingSystem->log("trying light: %s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
                             //   ILightingSystem->log("^^^ IS INFLUENCE");
@@ -269,7 +287,10 @@ public:
 
                             continue;
                         }
-
+                        bool logpt = false;
+                        if((pos.z <= 0.2 || pos.z >= 0.9) && pos.x < 15.1 && pos.x > 14.9 && pos.y < 21.1 && pos.y > 20.9){
+                            logpt = true;
+                        }
                         for(auto& light : influential_lights)
                         {
                             
@@ -289,61 +310,87 @@ public:
                             int iterations = 0;
                             int expected_iterations = dist_to_point / step + 1;
                              auto& params = ILightingSystem->params;
+                            
+                             const double epsilon = 1e-6; // or another small value
+                            bool isWhole = (std::abs(pos.x - floor(pos.x)) < epsilon || std::abs(pos.y - floor(pos.y)) < epsilon);
                             while(1)
                             {
                                 iterations++;
                                 rayPos = rayPos + (ray.direction * step);
-                                if(floor(rayPos.x) == last_tile_pos.x && floor(rayPos.y) == last_tile_pos.y && last_tile_pos != tile->m_vecPosition) continue;
+                                if(logpt)
+                                    ILightingSystem->log(" %d RAY  {%.4f %.4f } TO {%.4f %.4f %.4f} t[%d %d] last[%d %d]  walls%d", iterations, rayPos.x, rayPos.y,  pos.x, pos.y,pos.z, last_tile_pos.x, last_tile_pos.y,
+                                            tile->m_vecPosition.x, tile->m_vecPosition.y, walls );
+                                 double rayDist = (Vector2(pos) - rayPos).Length();
+                                if(floor(rayPos.x) == last_tile_pos.x && floor(rayPos.y) == last_tile_pos.y && last_tile_pos != tile->m_vecPosition &&  (rayDist >= (step * 2)  )) continue;
                                 auto ray_tile = ILevelSystem->GetTileAt(rayPos.x, rayPos.y);
-                              
+                                if(logpt)
+                                    ILightingSystem->log(" %d DID ASSESS [%d %d]",iterations,  ray_tile->m_vecPosition.x, ray_tile->m_vecPosition.y);
 
                                 if(!ray_tile ) break; 
                                 last_tile_pos = ray_tile->m_vecPosition;
-                                 double rayDist = (Vector2(pos) - rayPos).Length();
-                             
+                                
+
                                 if(ray_tile->m_nType == Level::Tile_Wall)
                                 {
                                     
                                     walls++;
                                     if(ray_tile->m_vecPosition != tile->m_vecPosition || walls > 2){
-                                       light->rays.push_back({rayPos, pos, false});
+                                        if(logpt){
+                                            light->rays.push_back({rayPos, pos, false});
+                                            ILightingSystem->log("RAY  {%.4f %.4f } MISS FOR   {%.4f %.4f %.4f} t[%d %d] rt[%d %d]  %s  %d",rayPos.x, rayPos.y, pos.x, pos.y,pos.z,
+                                            tile->m_vecPosition.x, tile->m_vecPosition.y, ray_tile->m_vecPosition.x, ray_tile->m_vecPosition.y, (total_color == ILightingSystem->MaxDark()) ? "MAXDARK" : "HASLIGHT", walls );
+                                        }
+                                            
                                         break;
                                     }
                                         
                                 }
                                  if(tile_type == Level::Tile_Empty || (rayDist < (step * 2))){
-                                    if(last_tile_pos == tile->m_vecPosition || last_tile_pos == light_tile->m_vecPosition){
+                                   
+
+                                    if(last_tile_pos == tile->m_vecPosition || last_tile_pos == light_tile->m_vecPosition || (isWhole && IVector2::Rounded(pos) == IVector2::Rounded(rayPos))){
+                                        if(logpt)
+                                            ILightingSystem->log(" %d MADE IT IN <ray dist %f> step*2 <%f>  ltp [%d %d] p roudned [%d %d] ",iterations, rayDist, (step * 2), last_tile_pos.x, last_tile_pos.y, IVector2::Rounded(pos).x, IVector2::Rounded(pos).y  );
                                         total_color = light->CalculateInfluence(pos, total_color, params, ILightingSystem->MaxDark());
                                          if(total_color.r() == 45 && total_color.a() == 0){
-                                              ILightingSystem->log("{%.4f %.4f %.4f}   idx[%d %d %d]  total_color:  %s ",pos.x, pos.y,pos.z,xIndex, yIndex, zIndex, total_color.s().c_str());
-                                               auto p = light->GetPosition();
-                                              ILightingSystem->log("light: %s {%.1f %.1f %.1f } |color: %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
-                                               ILightingSystem->log(" pos->light %f dist light %f range", (pos - light->GetPosition() ).Length3D(), light->GetRange() );
+                                            //  ILightingSystem->log("{%.4f %.4f %.4f}   idx[%d %d %d]  total_color:  %s ",pos.x, pos.y,pos.z,xIndex, yIndex, zIndex, total_color.s().c_str());
+                                             //  auto p = light->GetPosition();
+                                            //  ILightingSystem->log("light: %s {%.1f %.1f %.1f } |color: %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
+                                             //  ILightingSystem->log(" pos->light %f dist light %f range", (pos - light->GetPosition() ).Length3D(), light->GetRange() );
                                          }
-                                        light->rays.push_back({rayPos, pos, true});
+                                         if(logpt){
+                                            light->rays.push_back({rayPos, pos, true});
+                                            ILightingSystem->log("RAY HIT (empty or dist) FOR   {%.4f %.4f %.4f} [%d %d %d]  %s ",pos.x, pos.y,pos.z,xIndex, yIndex, zIndex, (total_color == ILightingSystem->MaxDark()) ? "MAXDARK" : "HASLIGHT" );
+                                         }
+                                            
                                         break;
                                         
                                     }
 
                                 }
-                                 if( (rayDist < (step * 2)) && (last_tile_pos == tile->m_vecPosition ) )
+                              
+                                 if( (rayDist < (step * 2)) &&  ((last_tile_pos == tile->m_vecPosition ) || (isWhole && IVector2::Rounded(pos) == IVector2::Rounded(rayPos))) )
                                 {
                                   
                                     total_color = light->CalculateInfluence(pos, total_color, params, ILightingSystem->MaxDark()); 
-                                    light->rays.push_back({rayPos, pos, true});
+                                    if(logpt){
+                                            light->rays.push_back({rayPos, pos, true});
+                                            ILightingSystem->log("RAY HIT (wall) FOR   {%.4f %.4f %.4f} [%d %d %d]  %s ",pos.x, pos.y,pos.z,xIndex, yIndex, zIndex, (total_color == ILightingSystem->MaxDark()) ? "MAXDARK" : "HASLIGHT" );
+                                         }
                                     break;
                                 }
                                
-                                
+                                 if(logpt)
+                                    ILightingSystem->log(" %d END ASSESS <ray dist %f> step*2 <%f> %d is whole",iterations, rayDist, (step * 2), isWhole );
                                 
                             }
 
                         }
 
                        
-                      if(total_color == Color::None() || total_color.a() == 0 ){
+                      if(logpt){
                       //  if(pos.x < 9.1f && pos.x < 9.6f )
-                            // ILightingSystem->log("{%.4f %.4f %.4f}   %d %d %d  %s ",pos.x, pos.y,pos.z,xIndex, yIndex, zIndex, total_color.s().c_str());
+                             ILightingSystem->log(" end pos{%.4f %.4f %.4f}   %d %d %d  %s ",pos.x, pos.y,pos.z,xIndex, yIndex, zIndex, (total_color == ILightingSystem->MaxDark()) ? "MAX DARK" : total_color.s().c_str());
                       }
                       
                       

@@ -263,9 +263,9 @@ struct std::hash<IVector2>
 class Vector
 {
 public:
-  float x, y, z;
+ double x, y, z;
   Vector(float v) : x(v), y(v), z(v) {}
-  Vector(const float xx, const float yy, const float zz) : x(xx), y(yy), z(zz) {}
+  Vector(const double xx, const double yy, const double zz) : x(xx), y(yy), z(zz) {}
   Vector(const Vector2 &dumb)
   {
     x = dumb.x;
@@ -290,9 +290,9 @@ public:
     return (std::isfinite(this->x) && std::isfinite(this->y) && std::isfinite(this->z));
   }
 
-  inline float Length2D() const noexcept { return std::sqrt(x * x + y * y); }
-  inline float Length3D() const noexcept { return std::sqrt(x * x + y * y + z * z); }
-  inline float LengthSqr() const noexcept { return x * x + y * y + z * z; }
+  inline double Length2D() const noexcept { return std::sqrt(x * x + y * y); }
+  inline double Length3D() const noexcept { return std::sqrt(x * x + y * y + z * z); }
+  inline double LengthSqr() const noexcept { return x * x + y * y + z * z; }
   inline void Min(const Vector &rhs)
   {
     x = std::min(x, rhs.x);
@@ -307,14 +307,14 @@ public:
   }
   inline Vector Normalize() const
   {
-    float mag = Length3D();
+    double mag = Length3D();
     return Vector(x / mag, y / mag, z / mag);
   }
-  inline float Dot(const Vector &other) const
+  inline double Dot(const Vector &other) const
   {
     return x * other.x + y * other.y + z * other.z;
   }
-  inline float AbsDot(const Vector &rhs) const
+  inline double AbsDot(const Vector &rhs) const
   {
     return std::abs(x * rhs.x) + std::abs(y * rhs.y) + std::abs(z * rhs.z);
   }
@@ -344,7 +344,7 @@ public:
     return Vector(x * s, y * s, z * s);
   }
 
-  float &operator[](uint8_t i)
+ double &operator[](uint8_t i)
   {
     switch (i)
     {
@@ -358,7 +358,7 @@ public:
       return z;
     }
   }
-  float operator[](uint8_t i) const
+  double operator[](uint8_t i) const
   {
     switch (i)
     {

@@ -53,7 +53,8 @@ bool CRenderer::Create()
   m_bBlurMethod = false;
   sigma = 8.3f;   // higher = softer
   kernelSize = 5; // higher = more area
-  avg_kernelSize = 4;
+  avg_kernelSize = 8;
+  m_debug_onlylight = false;
   bool ret = false;
 
 #ifdef __linux__
@@ -119,6 +120,7 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
   static constexpr int width = SCREEN_WIDTH / BLUR_SCALE;
   static constexpr int height = SCREEN_HEIGHT / BLUR_SCALE;
   static const int pitch = surf->pitch / 4;
+  
   const int ksz = avg_kernelSize / 2;
   const int leftMargin = ksz;
   const int rightMargin = width - ksz;
@@ -579,8 +581,8 @@ void CRenderer::Loop()
     while (doneCount.load() < NUM_THREADS)
     {
       SDL_UnlockTexture(m_renderTexture);
-
-      SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); // do this while waiting for blur
+      if(!m_debug_onlylight)
+        SDL_RenderTexture(get(), m_renderTexture, NULL, NULL); // do this while waiting for blur
 
       std::this_thread::yield();
     }

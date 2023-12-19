@@ -1264,11 +1264,11 @@ void CEditor::drawLightView()
             ImGui::SliderFloat("A", &p->a, -0.2f, 5.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("B", &p->b, -0.2f, 5.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
             ImGui::SliderFloat("Min Intensity", &p->minIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
-            ImGui::SliderFloat("Alpha Mod", &p->alphaMod, 0.0f, 2.0f, "%.4f");
-            ImGui::SliderFloat("Color Mod", &p->colorModifier, 0.0f, 2.0f, "%.4f");
-            ImGui::SliderFloat("Final Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
-            ImGui::SliderFloat("Rolloff Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
-            ImGui::SliderFloat("Intensity Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
+            ImGui::SliderFloat("Rolloff", &p->rolloff, 0.0f, 2.0f, "%.4f");
+          //  ImGui::SliderFloat("Color Mod", &p->colorModifier, 0.0f, 2.0f, "%.4f");
+        ///    ImGui::SliderFloat("Final Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
+           // ImGui::SliderFloat("Rolloff Mod", &p->finalModifier, 0.0f, 2.0f, "%.4f");
+            ImGui::SliderFloat("Intensity Mod", &p->intensityModifier, 0.0f, 2.0f, "%.4f");
             ImGui::SliderFloat("InterpFrac", &p->interpFraction, 0.0f, 1.f, "%.4f");
             ImGui::Checkbox("Neighbor Blend", &p->neighbor_interp);
             ImGui::Checkbox("Dynamic", &p->dynamic);
@@ -1349,8 +1349,10 @@ void CEditor::drawLightView()
                     ImGui::SliderFloat("Brightness", &light->m_flBrightness, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
                     ImGui::SliderFloat("Intensity", &light->m_flIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
                     ImGui::SliderFloat("Range", &light->m_flRange, 0.0f, 50.0f, "%.4f");
-                    ImGui::SliderFloat("X", &light->m_vecPosition.x, 0.0f, 50.0f, "%.4f");
-                    ImGui::SliderFloat("Y", &light->m_vecPosition.y, 0.0f, 50.0f, "%.4f");
+
+                    static float lx = 0.f, ly = 0.f;
+                    ImGui::SliderDouble("X", &light->m_vecPosition.x, 0.0f, 50.0f, "%.4f");
+                    ImGui::SliderDouble("Y", &light->m_vecPosition.y, 0.0f, 50.0f, "%.4f");
                     Color s = Editor::colorPicker("Color", light->GetColor(), ImGuiColorEditFlags_DisplayRGB);
                     light->m_color = s;
 
@@ -1418,7 +1420,7 @@ void CEditor::drawSystemView()
         static auto RenderProfiler =  IEngineTime->GetProfiler("Render::LoopWolf()");
         RenderProfiler->DisplayForEditor(UI_W, UI_H);
 
-
+        ImGui::Checkbox("draw only light", &smith_renderer->m_debug_onlylight);
         ImGui::Text("==BLUR==");
         ImGui::Text((smith_renderer->m_bBlurMethod) ? "Using Gauss" : "Using MovingAvg" );
         ImGui::Checkbox("Gauss Blur", &smith_renderer->m_bBlurMethod);
@@ -1440,6 +1442,7 @@ void CEditor::drawSystemView()
         else
         {
             ImGui::InputInt("size", &smith_renderer->avg_kernelSize);
+            if(smith_renderer->avg_kernelSize < 1) smith_renderer->avg_kernelSize = 1;
         }
         
     }

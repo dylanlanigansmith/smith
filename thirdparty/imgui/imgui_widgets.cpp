@@ -3102,7 +3102,10 @@ bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, c
 {
     return SliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags);
 }
-
+bool ImGui::SliderDouble(const char* label, double* v, double v_min, double v_max, const char* format, ImGuiSliderFlags flags)
+{
+    return SliderScalar(label, ImGuiDataType_Double, v, &v_min, &v_max, format, flags);
+}
 bool ImGui::SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 {
     return SliderScalarN(label, ImGuiDataType_Float, v, 2, &v_min, &v_max, format, flags);
