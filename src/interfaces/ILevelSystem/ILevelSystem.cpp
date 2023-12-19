@@ -72,6 +72,7 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     {
         delete m_Level; m_Level = nullptr;
         IEntitySystem->RemoveAllButPlayer();
+         ILightingSystem->OnPreLevelChange(); //clears light list 
     } 
     else
     {
@@ -82,7 +83,7 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     log("loaded %s.json", map_name.c_str());
     if(changing)
     {
-        ILightingSystem->OnPreLevelChange(); //clears light list 
+       
         //imagine an event system
         //imagine...
          ILightingSystem->RegenerateLighting();
