@@ -28,8 +28,9 @@ public:
 
     bool PlaySound(const std::string& name, float m_flVolume = 1.f, float m_flPan = 0.f, bool m_bLoop = false);
     bool PlayPositional(const std::string& name, const Vector2& source, float min_vol = 0.1f, float max_vol = 0.85f);
+
+    int Loop();
 private:
-    int Loop(void* data);
     int GetAudioDriver(bool list = false);
     void SetupAudioDevice();
    

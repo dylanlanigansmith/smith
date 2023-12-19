@@ -98,10 +98,10 @@ Vector2 CInputSystem::GetLastMouseMove()
 
     static auto lastTick = IEngineTime->GetCurRenderTick();
     auto curTick =  IEngineTime->GetCurRenderTick();
-    auto updates = std::max( curTick - lastTick, 1ul);
+    auto updates = std::max( curTick - lastTick, (looptick_t)1);
     Vector2 lastMove = m_vecMouseMove / (double)updates;
     m_vecMouseMove = {0.f, 0.f};
-    lastTick = IEngineTime->GetCurRenderTick();
+        lastTick = IEngineTime->GetCurRenderTick();
     return lastMove;
 }
 

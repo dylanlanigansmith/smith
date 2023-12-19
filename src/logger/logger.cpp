@@ -19,7 +19,7 @@ void CLogger::formatName()
     m_bDebug = true;
 }
 
-inline void CLogger::_instance_log(const std::string &msg)
+void CLogger::_instance_log(const std::string &msg)
 {
     if(!m_bFileLogging && !m_bColorizeEverything){
         _log(msg);
@@ -36,12 +36,12 @@ inline void CLogger::_instance_log(const std::string &msg)
     else  _log(msg);
 }
 
-inline void CLogger::_instance_logfile_(const std::string &msg)
+void CLogger::_instance_logfile_(const std::string &msg)
 {
     m_fsLogFile << msg << std::endl; //auto flushes 
 }
 
-inline void CLogger::_instance_logothers(const std::string &msg)
+ void CLogger::_instance_logothers(const std::string &msg)
 {
     if(!m_bFileLogging) return;
     _instance_logfile_(msg);
@@ -234,7 +234,7 @@ bool CLogger::EndLogFileForInstance()
     return true;
 }
 
-inline std::string CLogger::_strf(const char *fmt, va_list list)
+ std::string CLogger::_strf(const char *fmt, va_list list)
 {
     char buf[1024];
     vsnprintf(buf, sizeof(buf), fmt, list);
@@ -263,12 +263,12 @@ void CLogger::_logf(const char *fmt, ...)
     _log(s);
 }
 
-inline void CLogger::_log(std::string msg)
+ void CLogger::_log(std::string msg)
 {
         std::cout << msg << std::endl; 
 }
 
-inline void CLogger::_logclr(std::string msg, uint8_t clr)
+ void CLogger::_logclr(std::string msg, uint8_t clr)
 {
 
     /* https://stackoverflow.com/questions/2616906/how-do-i-output-coloured-text-to-a-linux-terminal
@@ -316,7 +316,7 @@ inverse off      27
 
 std::vector<std::string> CLogger::history = {std::string(__TIME__), std::string(__DATE__)};
 
-inline void CLogger::_logfile(const std::string msg)
+ void CLogger::_logfile(const std::string msg)
 {
    history.push_back(msg);
 }

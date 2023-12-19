@@ -92,17 +92,17 @@ namespace Render
         {
 
         case Level::Tile_WallN:
-          wall = {{p.x, p.y}, {p.x + 1.0, p.y}}; pside = 0;
+          wall = {{(float)p.x, (float)p.y}, {(float)p.x + 1.0, (float)p.y}}; pside = 0;
           break;
         case Level::Tile_Door:
         case Level::Tile_WallE:
-          wall = {{p.x + 1.0, p.y}, {p.x + 1.0, p.y + 1.0}}; pside = 1;
+          wall = {{(float)p.x + 1.0, (float)p.y}, {(float)p.x + 1.0, (float)p.y + 1.0}}; pside = 1;
           break;
         case Level::Tile_WallS:
-          wall = {{p.x, p.y + 1}, {p.x + 1.0, p.y + 1.0}}; pside = 0;
+          wall = {{(float)p.x, (float)p.y + 1.0}, {(float)p.x + 1.0,(float) p.y + 1.0}}; pside = 0;
           break;
         case Level::Tile_WallW:
-          wall = {{p.x, p.y}, {p.x, p.y + 1.0}}; pside = 1;
+          wall = {{(float)p.x, (float)p.y}, {(float)p.x, p.y + 1.0}}; pside = 1;
           break;
         default:
           return wall;

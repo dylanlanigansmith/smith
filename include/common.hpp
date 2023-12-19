@@ -25,7 +25,7 @@
 
 
 
-#define M_PI		3.14159265358979323846f
+
 #define M_RADPI		57.295779513082f
 #define M_PI_F		((float)(M_PI))	
 #define RAD2DEG( x )  ( (float)(x) * (float)(180.f / M_PI_F) )

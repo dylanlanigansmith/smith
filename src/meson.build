@@ -1,9 +1,4 @@
 
-x_dep = dependency('x11')
-gl_dep = dependency('gl')
-sdl3_dep = dependency('sdl3')
-thread_dep = dependency('threads')
-
 
 
 c = run_command('find.sh', check: true)
@@ -18,6 +13,11 @@ endif
 
 
 if host_machine.system() == 'linux'
+
+x_dep = dependency('x11')
+gl_dep = dependency('gl')
+sdl3_dep = dependency('sdl3')
+thread_dep = dependency('threads')
 
 executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directories : inc, 
     dependencies : [
@@ -35,18 +35,26 @@ executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directo
 
 )
 elif host_machine.system() == 'darwin'
+
+
+
+
+#gl_dep = dependency('gl')
+sdl3_dep = dependency('sdl3')
+thread_dep = dependency('threads')
+
     executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directories : inc, 
     dependencies : [
-        x_dep,
+       # x_dep,
         thread_dep,
         sdl3_dep,
-        gl_dep,
+       # gl_dep,
         libimgui_dep,
         nlohmann_json_dep,
         magic_enum_dep,
        # [enet_lib]
     ],
-    cpp_args : [ '-Og','-Wno-unused', '-Wnarrowing', #'-fopt-info-vec-all'
+    cpp_args : [ '-Og','-Wno-unused', '-Wno-narrowing', '-fpermissive'
     ]
     )
 endif

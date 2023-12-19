@@ -1,4 +1,6 @@
 #pragma once
+
+#ifdef __linux__
 #include <renderer/renderer.hpp>
 #include "../renderer.hpp"
 #include <types/Vector.hpp>
@@ -161,3 +163,5 @@ namespace R2
        // SDL_RenderGeometry(renderer->get(), NULL, hello, 3, NULL, 3);
     }
 }
+
+#endif

@@ -7,6 +7,7 @@
             "label": "runServer",
             "type": "shell",
             "command": "${workspaceFolder}/builddir/server/src/smith-server"
-        }
+        },
+       
     ]
 }

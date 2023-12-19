@@ -4,6 +4,10 @@
 
 #include "audiofiles.hpp"
 //https://github.com/libsdl-org/SDL_mixer/blob/main/include/SDL3_mixer/SDL_mixer.h
+int CSoundSystem_Thread(void* data) {
+    CSoundSystem* soundSystem = static_cast<CSoundSystem*>(data);
+    return soundSystem->Loop();
+}
 
 bool CSoundSystem::Init(int plat)
 {
@@ -23,7 +27,7 @@ bool CSoundSystem::Init(int plat)
         warn("No Resource Path!");
         return false;
     }
-    m_mainThread = SDL_CreateThread((SDL_ThreadFunction)(&CSoundSystem::Loop), "CSoundSystem::Loop", this);
+    m_mainThread = SDL_CreateThread((SDL_ThreadFunction)(&CSoundSystem_Thread), "CSoundSystem::Loop", this);
     if(m_mainThread == NULL){
         Error("failed to create audio thread: %s", SDL_GetError()); 
     }
@@ -81,7 +85,7 @@ bool CSoundSystem::PlayPositional(const std::string &name, const Vector2 &source
 //(yes its more fun without documentation)
 //https://wiki.libsdl.org/SDL3/CategoryAudio
 // https://github.com/libsdl-org/SDL_mixer/blob/main/src/mixer.c#L343
-int CSoundSystem::Loop(void *sndsys)
+int CSoundSystem::Loop()
 {
     m_bShouldQuit = false;
     if(SDL_GetCurrentAudioDriver() == NULL)

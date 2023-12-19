@@ -6,7 +6,7 @@
 #include <chrono>
 #include <engine/engine.hpp>
 
-#include <GL/gl.h>
+
 #include <interfaces/interfaces.hpp>
 #include <interfaces/IEngineTime/IEngineTime.hpp>
 #include <imgui.h>
@@ -60,6 +60,11 @@ bool CRenderer::Create()
 #ifdef __linux__
   ret = CreateRendererLinuxGL();
 #endif
+
+#ifdef __APPLE__
+  ret = CreateRendererMacOS();
+#endif
+
 
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
@@ -519,6 +524,7 @@ bool CRenderer::CreateRendererLinuxGL()
   }
   log("created renderer-%s | max-texture {%ix%i}", m_RendererInfo.name, m_RendererInfo.max_texture_width, m_RendererInfo.max_texture_height);
 
+  
   m_gl = SDL_GL_GetCurrentContext();
   if (m_gl == nullptr)
   {
@@ -527,7 +533,24 @@ bool CRenderer::CreateRendererLinuxGL()
   }
   return (m_renderer != nullptr);
 }
+bool CRenderer::CreateRendererMacOS()
+{
+  int numRenderers = SDL_GetNumRenderDrivers();
+  log("found %i SDL renderers", numRenderers);
+  for (int i = 0; i < numRenderers; ++i)
+  {
+    log("%i - %s", i, SDL_GetRenderDriver(i));
+  }
+  m_renderer = SDL_CreateRenderer(m_SDLWindow, NULL, SDL_RENDERER_ACCELERATED);
+  if (0 > SDL_GetRendererInfo(m_renderer, &m_RendererInfo))
+  {
+    log("could not get post-init render info");
+    return false;
+  }
+  log("created renderer-%s | max-texture {%ix%i}", m_RendererInfo.name, m_RendererInfo.max_texture_width, m_RendererInfo.max_texture_height);
 
+  return (m_renderer != nullptr);
+}
 void CRenderer::Loop()
 {
   static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");

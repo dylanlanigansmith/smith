@@ -64,12 +64,12 @@ public:
      template <typename T> 
     static void TypedLog(T* thrower, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
 private:
-    inline static std::string _strf(const char* fmt, va_list list);
+    static std::string _strf(const char* fmt, va_list list);
     static std::string _timestr(bool full = false);
     static void _logf(const char* fmt, ...) __attribute__((format(printf, 1, 2))); 
-    inline static void _log(std::string msg);
-    inline static void _logfile(const std::string msg);
-    inline static void _logclr(std::string msg, uint8_t clr = 31);
+    static void _log(std::string msg);
+    static void _logfile(const std::string msg);
+    static void _logclr(std::string msg, uint8_t clr = 31);
     static std::vector<std::string> history;
     void formatName();
     static std::string formatName(std::string& name);
@@ -78,9 +78,9 @@ private:
     static std::ofstream& __fs() { if(!gLogToFile) _logclr("Accessing gLogStream with gLogTofile Off!!!"); static std::ofstream f; return f;  }
 private:
     inline bool shouldLogFile() { return m_bFileLogging && m_fsLogFile.is_open(); }
-    inline void _instance_log(const std::string& msg);
-    inline void _instance_logfile_(const std::string& msg);
-    inline void _instance_logothers(const std::string& msg); //basically wrapper for logfile with a check for if we are file logging
+    void _instance_log(const std::string& msg);
+    void _instance_logfile_(const std::string& msg);
+    void _instance_logothers(const std::string& msg); //basically wrapper for logfile with a check for if we are file logging
    
 
     static inline std::string _stripPath(const std::string& path){

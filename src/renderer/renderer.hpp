@@ -64,6 +64,7 @@ public:
     float Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god delete this
 private:
     bool CreateRendererLinuxGL();
+    bool CreateRendererMacOS();
     void RunImGui();
     void LoopWolf(int minX, int maxX, bool sprites = true);
 
