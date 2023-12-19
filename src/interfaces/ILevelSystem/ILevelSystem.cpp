@@ -321,7 +321,7 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
     return GetTextureAt(x,y, TileTexture_Floor);
 }
 
-void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius)
+void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius) //How did I break these!?
 {
     #define MAX_DECALS 15
     log("trying to add bullet hole");

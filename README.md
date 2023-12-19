@@ -49,5 +49,6 @@
 
 
 ### License/Usage
-- use the code all you want but the files in /resource are either: randomly found online, or bought from itch.io in the past and not mine to share. acquire them yourself. I only have these resources in this repo for ease of my personal development. 
+- MIT license, see LICENSE for details
+- the files in /resource are either: randomly found online, or bought from itch.io in the past and not mine to share. acquire them yourself. I only have these resources in this repo for ease of my personal development. 
 
