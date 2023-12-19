@@ -72,18 +72,7 @@ bool CEngine::Start(const char* title)
     srand(  time(nullptr) );
 
     
-    #ifdef SMITHNETWORKED 
-        if(enet_initialize() != 0){
-            Error("failed to init network client %s", "stopping"); Shutdown();
-        }
-
-        const int maxConnections= 8, numChannels = 2, limit_in = 0, limit_out = 0;
-        client = enet_host_create(NULL,maxConnections, numChannels, limit_in, limit_out);
-        if(client == nullptr){
-            Error("failed to create network client %s", "stopping"); Shutdown();
-        }
-        status("created network client");
-    #endif
+ 
     InitInterfaces();
 
     //circular dependency hell
@@ -177,9 +166,7 @@ int CEngine::Shutdown()
 {
     interfaces.Destroy();
 
-#ifdef SMITH_NETWORKED 
-    enet_deinitialize();
-#endif
+
     render->Shutdown();
     warn("smith-engine shutdown");
     SDL_DestroyWindow(m_SDLWindow);

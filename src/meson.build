@@ -17,7 +17,7 @@ if not sources.contains('idontthinkthisisneeded')
 endif
 
 
-
+if host_machine.system() == 'linux'
 
 executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directories : inc, 
     dependencies : [
@@ -28,11 +28,26 @@ executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directo
         libimgui_dep,
         nlohmann_json_dep,
         magic_enum_dep,
-        [enet_lib]
+       # [enet_lib]
     ],
     cpp_args : [ '-Og','-Wno-unused', '-Wnarrowing', #'-fopt-info-vec-all'
     ]
 
 )
-
+elif host_machine.system() == 'darwin'
+    executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directories : inc, 
+    dependencies : [
+        x_dep,
+        thread_dep,
+        sdl3_dep,
+        gl_dep,
+        libimgui_dep,
+        nlohmann_json_dep,
+        magic_enum_dep,
+       # [enet_lib]
+    ],
+    cpp_args : [ '-Og','-Wno-unused', '-Wnarrowing', #'-fopt-info-vec-all'
+    ]
+    )
+endif
 #

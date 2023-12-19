@@ -4,11 +4,11 @@
 #include <logger/logger.hpp>
 #include <renderer/renderer.hpp>
 #include <interfaces/interfaces.hpp>
-#include <enet/enet.h>
+
 #include <audio/audio.hpp>
 #include <plat/platform.hpp>
 
-//#define SMITHNETWORKED
+
 
 
 class CEngine : public CLogger
@@ -39,7 +39,7 @@ public:
 protected:
     void InitInterfaces();
     int Shutdown();
-    ENetHost* client;
+   
 
 private:
     CSoundSystem m_SoundSystem;
