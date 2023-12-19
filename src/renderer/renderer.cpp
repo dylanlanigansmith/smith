@@ -98,7 +98,7 @@ void CRenderer::OnEngineInitFinish()
   SetLightingRenderInfo();
   ILightingSystem->SetupBlending();
 
-  ILightingSystem->CalculateLighting();
+  
   SDL_SetTextureBlendMode(m_blurTexture, SDL_BLENDMODE_BLEND);
   SDL_SetSurfaceBlendMode(m_downscale, SDL_BLENDMODE_NONE);
   SDL_SetSurfaceBlendMode(m_lightsurface, SDL_BLENDMODE_NONE);
@@ -554,12 +554,22 @@ bool CRenderer::CreateRendererMacOS()
 void CRenderer::Loop()
 {
   static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-  static auto WolfProfiler = IEngineTime->AddProfiler("Render::LoopWolf()");
+ 
   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+  
+  static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+   static auto WolfProfiler = IEngineTime->AddProfiler("Render::LoopWolf()");
   static auto BlurProfiler = IEngineTime->AddProfiler("Render::Blur()");
   static auto SpriteProfiler = IEngineTime->AddProfiler("Render::Sprites()");
   static auto SDLProfilerStart = IEngineTime->AddProfiler("Render::SDLRendererStart");
   static auto SDLProfiler = IEngineTime->AddProfiler("Render::SDLRendererEnd");
+
+  auto player = IEntitySystem->GetLocalPlayer();
+  if(!ILevelSystem->IsLevelLoaded()) goto nolevel;
+
+
+ 
 
   SDLProfilerStart->Start();
   SDL_LockTextureToSurface(m_renderTexture, NULL, &m_surface);
@@ -584,7 +594,7 @@ void CRenderer::Loop()
     std::this_thread::yield();
   }
   SpriteProfiler->Start();
-  auto player = IEntitySystem->GetLocalPlayer();
+  
   RenderSprites(player); // yk it might b cool to render the viewmodel at full res
   player->RenderView(this);
   SpriteProfiler->End();
@@ -622,6 +632,10 @@ void CRenderer::Loop()
   }
 
   SDL_RenderTexture(get(), m_blurTexture, NULL, NULL);
+
+
+//sorry not sorry
+nolevel:
 
   // R2::render_frame(this);
   RunImGui();

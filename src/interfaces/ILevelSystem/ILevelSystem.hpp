@@ -5,6 +5,14 @@
 #include <data/level.hpp>
 #define MAP_SIZE 24
 
+enum LevelSystemState : int 
+{
+    LevelSystem_None = 0,
+    LevelSystem_Init,
+    LevelSystem_Loaded
+};
+
+
 class CLevelSystem : public CBaseInterface
 {
     friend class CResourceSystem;
@@ -12,7 +20,7 @@ class CLevelSystem : public CBaseInterface
     friend class CLightingSystem; friend class LightData;
 public:
 
-    CLevelSystem() : CBaseInterface("ILevelSystem") { }
+    CLevelSystem() : CBaseInterface("ILevelSystem"), m_levelState(LevelSystem_None) { }
     ~CLevelSystem() override {}
     virtual void OnCreate() override;
     virtual void OnShutdown() override;
@@ -52,6 +60,12 @@ public:
     bool IsCollision(CBaseEntity* ent, const Vector& origin, const Vector& goal); //false = no collision
     bool IsWallCollision(const Vector& origin, const Vector& goal);
     auto GetPlayerStart() const { return m_Level->m_vecPlayerStart; }
+
+    bool LoadLevel(const std::string& map_name);
+
+    auto State() const { return m_levelState; }
+    auto IsLevelLoaded() const { return m_levelState == LevelSystem_Loaded; }
+    auto CurrentLevelName() const { return (m_Level && IsLevelLoaded()) ? m_Level->getName() : std::string("no level loaded"); }
 private:
     void LoadAndFindTexturesForMap();
     void AddMapTexture(int id, const std::string& name);
@@ -60,7 +74,7 @@ private:
     CLevel* m_Level;
     CTextureSystem* m_TextureSystem;
     std::unordered_map<int, hTexture> level_textures; //for geometry UNUSED
-
-   
+    
+    int m_levelState;
 
 };

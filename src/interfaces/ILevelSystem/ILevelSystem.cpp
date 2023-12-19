@@ -52,31 +52,49 @@ then it is done
 
 void CLevelSystem::OnCreate()
 {
-   
+  // m_Level = new CLevel({24,24});
+  // m_Level->MakeEmptyLevel(-1);
+    m_levelState = LevelSystem_Init;
+    m_Level == nullptr;
 }
-
-void CLevelSystem::OnEngineInitFinish()
+bool CLevelSystem::LoadLevel(const std::string &map_name)
 {
+
+    bool changing = (m_Level != nullptr && m_levelState == LevelSystem_Loaded);
+    note("%s level %s!", changing ? "changing to" : "loading", map_name.c_str());
+    m_levelState = LevelSystem_Init;
+
+    
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    if(!IResourceSystem->LoadLevel("lvldev")) //lvldev_light
-        return;
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-    m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+      static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+    if(changing)
+    {
+        delete m_Level; m_Level = nullptr;
+        IEntitySystem->RemoveAllButPlayer();
+    } 
+    else
+    {
 
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-    auto pstart =GetPlayerStart();
-    IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, 0);
-  //   constexpr Color sun = Color(255, 195, 0, 170);
-   // ILightingSystem->AddLight<CLightOverhead>({9.1f, 9.4f, 1.f}, Color::CandleLight(), 0.5, 0.6f, 4.0);
-  //  ILightingSystem->AddLight<CLightOverhead>({17.5f, 19.3f, 1.9f}, sun, 0.7, 0.7, 16.0);
-   // ILightingSystem->AddLight<CLightOverhead>({21.8f, 4.5f, 1.9f}, sun, 0.7, 0.7, 16.0);
-   // ILightingSystem->AddLight<CLightOverhead>({17.2f, 7.8f, 1.9f}, sun, 0.7, 0.7, 16.0);
+    }
+    if(!IResourceSystem->LoadLevel(map_name)) //lvldev_light
+        return false;
+    log("loaded %s.json", map_name.c_str());
+    if(changing)
+    {
+         ILightingSystem->RegenerateLighting();
+    }
+    else
+    {
+         ILightingSystem->CalculateLighting();
+    }
    
-    // ILightingSystem->AddLight<CLightOverhead>({11.6f, 9.3f, 1.zzzz9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
-   //  ILightingSystem->AddLight<CLightOverhead>({6.3f, 12.3f, 1.9f}, Color::FluorescentLight(), 0.6, 0.6, 4.0);
+    
+    auto pstart = GetPlayerStart();
+    
+    
+    IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, 0);
 
-   //  ILightingSystem->AddLight<CLightOverhead>({8.6f, 22.2f, 1.9f}, Color::CoolBlueLight(), 0.6, 0.6, 4.5);
-   //   ILightingSystem->AddLight<CLightOverhead>({15.6f, 22.2f, 1.9f}, Color::DimRedLight(), 0.6, 0.6, 6.0);
     LoadAndFindTexturesForMap();
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(15.7, 9.5);
@@ -85,29 +103,6 @@ void CLevelSystem::OnEngineInitFinish()
      auto pillar = IEntitySystem->AddEntity<CPillar>();
     pillar->SetPosition(2, 12);
 /*
-    auto enemy = IEntitySystem->AddEntity<CBaseEnemy>();
-    enemy->SetPosition(9, 19);
-   // enemy->Freeze(true);
-   auto enemy2 = IEntitySystem->AddEntity<CBaseEnemy>();
-   enemy2->SetPosition(12, 22);
-    // enemy2->Freeze(true);
-    auto enemy3 = IEntitySystem->AddEntity<CBaseEnemy>();
-    enemy3->SetPosition(8, 2); */
-    // enemy3->Freeze(true);
-
-
-   // auto soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-   // soldier->SetPosition(pstart.x - 3, pstart.y);
-   // soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-   // soldier->SetPosition(11.6, 9.8);
-   // soldier->SetType(CEnemySoldier::Soldier_Med);
-  //  soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-  //  soldier->SetPosition(3.4, 22.7);
-
- //   soldier = IEntitySystem->AddEntity<CEnemySoldier>();
-  //  soldier->SetPosition(4.0, 10.5);
-    //soldier->SetType(CEnemySoldier::Soldier_Grunt);
-
     for(int i = 0; i < 0; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
@@ -122,8 +117,19 @@ void CLevelSystem::OnEngineInitFinish()
         if(i % 5 == 0)
             sold->SetType(CEnemySoldier::Soldier_Med);
     }
-
+*/
    engine->SoundSystem()->PlaySound("Cat", 0.3f);
+   m_levelState = LevelSystem_Loaded;
+
+   note("load level %s success", m_Level->getName().c_str());
+    return true;
+}
+
+void CLevelSystem::OnEngineInitFinish()
+{
+    m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
+   // LoadLevel("lvldev");
 }
 
 tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none
@@ -279,8 +285,6 @@ void CLevelSystem::AddMapTexture(int id, const std::string& name)
          log("failed to add map texture to db for mapid %i handle %i", id, hTex); return;
     }
 }
-
-
 
 
 

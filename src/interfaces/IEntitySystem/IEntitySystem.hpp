@@ -60,6 +60,8 @@ public:
             m_iRenderableEntities++;
         return ent;
     }
+
+    void RemoveAllButPlayer();
     const auto& iterableList() { return entity_list; }
 
     static constexpr auto CreateType(const char* str) { return Util::fnv1a::Hash64(str); }

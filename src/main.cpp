@@ -23,3 +23,15 @@ int main(int argc, char** argv)
 
    return err; 
 }
+
+#ifdef __APPLE__ //move this to a header 
+#include <TargetConditionals.h> 
+#ifdef TARGET_OS_IPHONE 
+//example
+#endif
+#endif
+
+
+#ifdef TARGET_OS_IPHONE
+//https://docs.conan.io/2.0/reference/tools/meson/mesontoolchain.html
+#endif

@@ -110,7 +110,7 @@ void CEditor::render(CRenderer *renderer)
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
     auto player = IEntitySystem->GetLocalPlayer();
-    if (auto draw = ImGui::GetBackgroundDrawList(); draw) // just for scope really
+    if (auto draw = ImGui::GetBackgroundDrawList(); draw && ILevelSystem->IsLevelLoaded()) // just for scope really
     {
         static constexpr auto text_color = IM_COL32(255, 255, 255, 255);
 
@@ -183,7 +183,8 @@ void CEditor::render(CRenderer *renderer)
     ImGui::SetNextWindowPos(windowPos);
     ImGui::SetNextWindowSize(windowSize);
     ImGui::SetNextWindowBgAlpha(nextAlpha);
-    static auto map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->m_Level->getName());
+
+    static auto map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->CurrentLevelName()   );
     
     ImGui::Begin(map_name.c_str());
 
@@ -193,6 +194,15 @@ void CEditor::render(CRenderer *renderer)
     {
         if (ImGui::BeginTabItem("Dev View"))
         {
+            ImGui::Text("level");
+            if(ImGui::Button("load lvldev")){
+                ILevelSystem->LoadLevel("lvldev");
+                map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->CurrentLevelName()   );
+            }
+            if(ImGui::Button("load lvldev_light")){
+                ILevelSystem->LoadLevel("lvldev_light");
+                map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->CurrentLevelName()   );
+            }
             drawSystemView();
             
             if (ImGui::CollapsingHeader("Sound"))

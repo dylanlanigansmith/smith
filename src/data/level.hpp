@@ -235,6 +235,7 @@ public:
       m_szLevelName = "default";
     }
     virtual ~CLevel(){
+        
     }
 
     void MakeEmptyLevel(hTexture def)
