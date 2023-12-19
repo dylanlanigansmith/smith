@@ -2,9 +2,10 @@
 #include <engine/engine.hpp>
 #define HEAD_FIX 0.35f
 
+REGISTER_DEF_ENT(CEnemySoldier);
+
 void CEnemySoldier::OnUpdate()
 {
-    return;
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
      static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");

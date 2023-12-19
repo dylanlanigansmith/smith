@@ -41,7 +41,7 @@ public:
     virtual void OnRenderEnd() = 0;
     virtual void Render(CRenderer* renderer) = 0;
     virtual hTexture GetTextureHandle() { return m_hTexture; }
-protected:
+
 
     virtual void CalculateDrawInfo(sprite_draw_data& data)
     {
@@ -99,6 +99,7 @@ protected:
         data.screen = { screen_x, vMoveScreen};
         data.transform = { transform.x, transform.y};
     }
+protected:
     hTexture m_hTexture;
     texture_t* m_Texture;
     IVector2 m_vecTextureSize;

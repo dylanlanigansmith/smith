@@ -125,8 +125,7 @@ void CResourceSystem::OnEngineInitFinish()
 
 void CResourceSystem::OnResourceLoadStart()
 {
-    LoadTextureDefinition();
-    LoadAnimations();
+    //this is now semi-deprecated
 }
 
 bool CResourceSystem::LoadTextureDefinition()

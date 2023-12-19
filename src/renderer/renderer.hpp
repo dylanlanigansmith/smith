@@ -32,7 +32,7 @@ public:
     inline void SetZBuffer(int idx, double val){
         ZBuffer[idx] = val;
     }
-    void SetPixel(int x, int y, SDL_Color color);
+   
 
     inline void SetPixel(int x, int y, const Color color)
     {

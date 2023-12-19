@@ -1,15 +1,23 @@
 #include "ILevelSystem.hpp"
 #include <engine/engine.hpp>
-#include <entity/prop/objects/CBarrel.hpp>
-#include <entity/prop/objects/CGreenLight.hpp>
-#include <entity/prop/objects/CPillar.hpp>
-#include <entity/dynamic/CBaseEnemy.hpp>
-#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+
+
+
+
+
+
 #include <data/level.hpp>
 #include <util/misc.hpp>
 #include <renderer/render_helpers.hpp>
 
 #include <light/lights.hpp>
+
+#include <entity/dynamic/CBaseEnemy.hpp>
+#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+#include <entity/prop/objects/CBarrel.hpp>
+#include <entity/prop/objects/CGreenLight.hpp>
+#include <entity/prop/objects/CPillar.hpp>
+#include <entity/level/CBaseDoorControl.hpp>
 /*
 For Editor:
 
@@ -81,31 +89,26 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     if(!IResourceSystem->LoadLevel(map_name)) //lvldev_light
         return false;
     log("loaded %s.json", map_name.c_str());
-    if(changing)
-    {
-       
-        //imagine an event system
-        //imagine...
-         ILightingSystem->RegenerateLighting();
-    }
-    else
-    {
-         ILightingSystem->CalculateLighting();
-    }
-   
+    LoadAndFindTexturesForMap();
+    
     
     auto pstart = GetPlayerStart();
     
     
     IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, 0);
 
-    LoadAndFindTexturesForMap();
+    
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(15.7, 9.5);
    // auto light = IEntitySystem->AddEntity<CGreenLight>();
    // light->SetPosition(19.5, 18.5);
      auto pillar = IEntitySystem->AddEntity<CPillar>();
     pillar->SetPosition(2, 12);
+
+    //19 16
+    auto doorctl = IEntitySystem->AddEntity<CBaseDoorControl>();
+    doorctl->SetTarget({19,16});
+
 /*
     for(int i = 0; i < 0; ++i)
     {
@@ -122,6 +125,20 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
             sold->SetType(CEnemySoldier::Soldier_Med);
     }
 */
+
+    if(changing)
+    {
+       
+        //imagine an event system
+        //imagine...
+         ILightingSystem->RegenerateLighting();
+    }
+    else
+    {
+         ILightingSystem->CalculateLighting();
+    }
+   
+
    engine->SoundSystem()->PlaySound("Cat", 0.3f);
    m_levelState = LevelSystem_Loaded;
 
@@ -133,7 +150,7 @@ void CLevelSystem::OnEngineInitFinish()
 {
     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
 
-   // LoadLevel("lvldev");
+    LoadLevel("lvldev");
 }
 
 tile_t *CLevelSystem::GetTileNeighbor(tile_t *tile, int dir) //nullptr if none
@@ -201,7 +218,9 @@ bool CLevelSystem::IsCollision(CBaseEntity* caller, const Vector& origin, const 
             auto bounds = ent->GetBounds() + 0.1;
             if( (pos - Vector2(goal)).LengthSqr() <=  bounds*bounds){
             //    warn("too long %f %f", (pos - Vector2(origin)).LengthSqr(),  bounds*bounds);
+                ent->WhenCollidedBy(caller);
                 caller->OnCollisionWith(ent);
+                
                 if(ent->IsBlocking())
                     return true;
             }
@@ -324,7 +343,7 @@ texture_t* CLevelSystem::GetTexturePlane(bool is_floor, int x, int y)
 void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t* side, float radius) //How did I break these!?
 {
     #define MAX_DECALS 15
-    log("trying to add bullet hole");
+ //   log("trying to add bullet hole");
     if(tile->m_nDecals > MAX_DECALS){
          log("> max decals");
         int index = (tile->m_nDecals - 1) % MAX_DECALS;
@@ -344,12 +363,12 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
         pDecals->dir[0] = side[0];
         pDecals->dir[1] = side[1];
          tile->m_nDecals++;
-          log("> max added");
+      //    log("> max added");
         return;
     }
 
     auto hole = new decal_t;
-     log("made new hole");
+   //  log("made new hole");
     hole->radius = radius;
     hole->m_pNextDecal = nullptr;
     hole->texturePosition = pos;
@@ -357,7 +376,7 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
     hole->dir[0] = side[0];
     hole->dir[1] = side[1];
 
-    if(tile->m_nDecals <= 0){
+    if(tile->m_nDecals <= 0 || tile->m_pDecals == nullptr){
            tile->m_nDecals = 1;
            tile->m_pDecals = hole;
            return;
@@ -365,26 +384,25 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
     decal_t* pDecals = tile->m_pDecals;
     tile->m_nDecals++;
     int d = 0;
-    while (pDecals != nullptr && pDecals->m_pNextDecal != nullptr)
+    while (1)
     {
-        
-        auto c_pDecals = pDecals->m_pNextDecal;
-
-        if( c_pDecals->m_pNextDecal == nullptr) break;
+        if(!pDecals){
+            log("bullet hole hmm %d ", d);
+            delete hole; return;
+        }
+        if(pDecals->m_pNextDecal == nullptr) break;
         pDecals = pDecals->m_pNextDecal;
+         
         d++;
     }
-    if(!pDecals){
-         log("hmm %d ", d);
-        delete hole; return;
-    }
+  
     pDecals->m_pNextDecal = hole;
     if(pDecals == nullptr || (pDecals && pDecals->m_pNextDecal == nullptr )){
         log("no hole");
         delete hole; return;
     }
 
-    log("%i %i", tile->m_nDecals, d);
+   // log("%i %i", tile->m_nDecals, d);
     pDecals->m_pNextDecal = hole;
 }
 

@@ -11,10 +11,13 @@
 #include <util/hash_fnv1a.hpp>
 
 
+typedef std::map<std::string, CBaseEntity*(*)()> register_entity_t; 
+typedef std::pair<const std::string, CBaseEntity*(*)()> registered_ent_t;
 
 
 class CEntitySystem : public CBaseInterface
 {
+    friend class CEditor;
 public:
     CEntitySystem() : CBaseInterface("IEntitySystem") {  m_iRenderableEntities = 0;}
     ~CEntitySystem() override;
@@ -65,9 +68,28 @@ public:
     const auto& iterableList() { return entity_list; }
 
     static constexpr auto CreateType(const char* str) { return Util::fnv1a::Hash64(str); }
+
+    static auto GetRegistry(){
+        if(!ent_registry){
+            ent_registry =  new register_entity_t();
+        }
+        return ent_registry;
+    }
+
+    template <typename T>
+    static CBaseEntity* AddEntByRegistry()
+    {
+        return _interface()->AddEntity<T>();
+    }
+   
 private:
+    static CEntitySystem* _interface();
     virtual void CreateLocalPlayer();
 private:
     int m_iRenderableEntities;
     std::vector<CBaseEntity*> entity_list;
+
+    static register_entity_t* ent_registry;
 };
+
+

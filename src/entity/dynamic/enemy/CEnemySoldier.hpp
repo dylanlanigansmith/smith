@@ -6,6 +6,8 @@
 #include <entity/components/pathfinder/precise/CPathVoxel.hpp>
 //#define IGNORE_PLAYER
 #include <logger/logger.hpp>
+
+#include ENTREG_INC
 struct EntView
 {
     Vector2 m_plane; //probs not needed
@@ -94,7 +96,7 @@ public:
     auto GetPathFinder() { return &m_path; }
     virtual void WalkTowards(const Vector2& pos);
     int DeduceSequenceForOrientation(int* flip, int* anim_state, int* frame, std::string& seq_name);
-
+    virtual bool IsShootable() const { return true; }
     bool isPlayerVisible(CPlayer* player, double fov = 40.0);
     bool isPlayerWithinFOV( const Vector2 &playerPosition, double FOVAngleDegrees);
     bool CastRayToPlayer(const Vector2 &playerPosition, float playerBounds);
@@ -145,6 +147,8 @@ protected:
     
     uint64_t m_lastShout;
       //  CPathVoxel m_path;
+
+      
 public:
     enum SoldierBehaviour : int 
     {
@@ -175,4 +179,8 @@ public:
         Soldier_Med = 1,
         Soldier_Command = 3
     };
+
+private:
+
+    REGISTER_DEC_ENT(CEnemySoldier);
 };

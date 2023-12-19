@@ -16,11 +16,11 @@ bool CSoundSystem::Init(int plat)
             Error("failed to init SDLAudio %s", SDL_GetError());
             return false;
         }
-        log("SDL_Audio Init");
+        dbg("SDL_Audio Init");
     }
 
     m_bVerbose = true;
-    log("start thread.");
+    dbg("starting..");
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
     m_szAudioResourcePath = IResourceSystem->GetResourceSubDir("audio");
     if(m_szAudioResourcePath.empty()){
@@ -95,7 +95,7 @@ int CSoundSystem::Loop()
             Error("No Audio Driver Found. Fatal (%d)", driver); return 1;
         }
     }
-    log("audio driver: %s", SDL_GetCurrentAudioDriver());
+    note("audio driver: %s", SDL_GetCurrentAudioDriver());
     SetupAudioDevice();
 
   
@@ -106,20 +106,7 @@ int CSoundSystem::Loop()
 
     //LogAudioDevice();
    
-    LoadAudioFile("Cat.ogg");
-    LogAudioData("Cat");
-    //should just load the whole folder
-    LoadAudioFile("dev_tests16.wav");
-    LoadAudioFile("dev_test_scores.wav");
-    LoadAudioFile("van_Wiese_bass_beat.wav");
-    LoadAudioFile("dev_gunshot0.wav");
-    LoadAudioFile("soldier_hey.wav");
-    LoadAudioFile("mp5.wav");
-    LoadAudioFile("st-song.wav");
-    LoadAudioFile("empty-gun.wav");
-   // LogAudioData("van_Wiese_bass_beat");
-   // LogAudioData("dev_tests16");
-   // LogAudioData("dev_test_scores");
+    LoadSoundFiles();
   
     auto test = GetAudioByName("van_Wiese_bass_beat");
     auto shot = GetAudioByName("dev_gunshot0");
@@ -171,7 +158,7 @@ int CSoundSystem::Loop()
         }
         SDL_DelayNS(100);
     }
-    log("shutting down..");
+    warn("shutting down..");
     streams.Destroy();
     SDL_free(buf);
     for(auto& snd : soundboard){
@@ -305,4 +292,24 @@ Time_t CSoundSystem::GetSoundDuration(audiodata_t *audio)
     double seconds = (double)sampleLen / (double)audio->m_spec.freq;
 
     return Time_t(seconds);
+}
+
+bool CSoundSystem::LoadSoundFiles()
+{
+    LoadAudioFile("Cat.ogg");
+   // LogAudioData("Cat");
+    //should just load the whole folder
+    LoadAudioFile("dev_tests16.wav");
+    LoadAudioFile("dev_test_scores.wav");
+    LoadAudioFile("van_Wiese_bass_beat.wav");
+    LoadAudioFile("dev_gunshot0.wav");
+    LoadAudioFile("soldier_hey.wav");
+    LoadAudioFile("mp5.wav");
+    LoadAudioFile("st-song.wav");
+    LoadAudioFile("empty-gun.wav");
+   // LogAudioData("van_Wiese_bass_beat");
+   // LogAudioData("dev_tests16");
+   // LogAudioData("dev_test_scores");
+
+    return false;
 }

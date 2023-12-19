@@ -20,8 +20,9 @@ int CImageLoader::Load(const std::string &img_path, SDL_Surface **surf)
     }
 
     int width, height, channels;
+    width = height = channels = 0;
     unsigned char *img = stbi_load(img_path.c_str(), &width, &height, &channels, 0);
-    if (img == NULL)
+    if (img == NULL || !width || !height || !channels)
     {
         Error("failed to load image %dx%d @ %s", width, height, img_path.c_str());
         return 1;
@@ -39,7 +40,7 @@ int CImageLoader::Load(const std::string &img_path, SDL_Surface **surf)
     *surf = SDL_CreateSurface(width, height, format);
 
     SDL_Surface *raw = SDL_CreateSurfaceFrom((void *)img, width, height, (*surf)->pitch, format);
-    if(raw != NULL)
+    if(raw != NULL && *surf != NULL)
         SDL_BlitSurface(raw, NULL, *surf, NULL);
     
     SDL_DestroySurface(raw);

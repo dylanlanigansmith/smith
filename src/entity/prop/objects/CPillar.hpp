@@ -2,7 +2,7 @@
 
 #include "../CStaticProp.hpp"
 
-
+#include ENTREG_INC
 class CPillar : public CStaticProp
 {
 public:
@@ -12,26 +12,8 @@ public:
     virtual void OnDestroy();
     virtual void CreateRenderable();
     virtual void Render(CRenderer *renderer);
-
+    
 private:
+    REGISTER_DEC_ENT(CPillar);
 };
-void CPillar::OnCreate()
-{
-    SET_ENT_SUBNAME();
 
-   CreateRenderable();
-}
-
-void CPillar::OnDestroy()
-{
-}
-
-void CPillar::CreateRenderable()
-{
-    SetupTexture("pillar.png");
-}
-
-void CPillar::Render(CRenderer *renderer)
-{
-   DrawProp(renderer);
-}

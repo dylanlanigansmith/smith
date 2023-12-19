@@ -2,7 +2,11 @@
 
 #include "../CStaticProp.hpp"
 
-#include <SDL3/SDL.h>
+
+
+#include ENTREG_INC
+
+
 class CBarrel : public CStaticProp
 {
 public:
@@ -12,29 +16,7 @@ public:
     virtual void OnDestroy();
     virtual void CreateRenderable();
     virtual void Render(CRenderer *renderer);
-
-private:
-};
-void CBarrel::OnCreate()
-{
-    SET_ENT_SUBNAME();
-
-   CreateRenderable();
-}
-
-void CBarrel::OnDestroy()
-{
-}
-
-void CBarrel::CreateRenderable()
-{
-    SetupTexture("barrel.png");
-    
    
-
-}
-
-void CBarrel::Render(CRenderer *renderer)
-{
-   DrawProp(renderer);
-}
+private:
+     REGISTER_DEC_ENT(CBarrel);
+};

@@ -9,6 +9,8 @@
 #include <util/misc.hpp>
 
 #include <entity/dynamic/enemy/CEnemySoldier.hpp>
+#include <entity/level/CBaseDoorControl.hpp>
+
 #include <data/CAnimData.hpp>
 #define MENULOG(fmt, ...) engine->log(fmt, __VA_ARGS__)
 
@@ -504,13 +506,15 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
     ImGui::TableNextRow();
     ImGui::TableSetColumnIndex(0);
     ImGui::AlignTextToFramePadding();
-    bool node_open = ImGui::TreeNode("Entity", "%s_%u", entity->GetName().c_str(), entity->GetID());
+
+    bool node_open = (entity->GetSubclass().empty()) ?  ImGui::TreeNode("Entity", "%s [%u]", entity->GetName().c_str(), entity->GetID()) 
+                                                    : ImGui::TreeNode("Entity", "%s::%s [%u]", entity->GetName().c_str(), entity->GetSubclass().c_str(), entity->GetID()) ;
     ImGui::TableSetColumnIndex(1);
-    ImGui::Text("%s", entity->GetSubclass().c_str());
     auto pos = entity->GetPosition();
     const float GRID_STEP = 32.f;
 
     static const auto csoldier= CEntitySystem::CreateType("CEnemySoldier");
+    static const auto cdoorctl = CEntitySystem::CreateType("CBaseDoorControl");
     if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && entity->GetID() > 0 && (entity->GetType() != csoldier))
     {
         auto rdr = (CBaseRenderable *)entity;
@@ -556,7 +560,19 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             ImGui::SetNextItemWidth(-FLT_MIN);
 
             ImGui::Text("Position {%.2f, %.2f, %.1f}", pos.x, pos.y, pos.z);
-
+            if(lastTile){
+                ImGui::Text("last selected tile {%d %d}", lastTile->m_vecPosition.x, lastTile->m_vecPosition.y);
+                ImGui::SameLine();
+                if(ImGui::SmallButton("set pos ##lasttile")){
+                        if(lastTile != nullptr){
+                            Vector2 set = lastTile->m_vecPosition;
+                            set = { set.x + 0.3, set.y + 0.4};
+                            entity->SetPosition(set);
+                            engine->info("set %s to {%.1f %.1f}", entity->GetName().c_str(), set.x, set.y);
+                        }
+                }
+            }
+                
             //  ImGui::InputFloat("##value", &placeholder_members[i], 1.0f);
             //  else
             //  ImGui::DragFloat("##value", &placeholder_members[i], 0.01f);
@@ -575,14 +591,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
                 ImGui::Text("behaviour %s", magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour).data());
                 auto path = enemy->GetPathFinder();
-                if(ImGui::Button("set to last selected tile")){
-                    if(lastTile != nullptr){
-                        Vector2 set = lastTile->m_vecPosition;
-                        set = { set.x + 0.3, set.y + 0.4};
-                        enemy->SetPosition(set);
-                        engine->info("set %s to {%.1f %.1f}", enemy->GetName().c_str(), set.x, set.y);
-                    }
-                }
+                
                 if (path->HasPath())
                 {
                     ImGui::Text("%i / %li Steps", path->m_iPathIndex, path->m_iPathSize);
@@ -637,6 +646,38 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
                 {
                     ILevelSystem->m_Level->m_vecPlayerStart = Vector2(player->GetPosition());
                 }
+            }
+            else if(entity->GetType() == cdoorctl)
+            {
+                auto doorctl = (CBaseDoorControl*)entity;
+                ImGui::Text("Door Controller");
+                if(doorctl->IsSetup())
+                {
+
+                    ImGui::Text("[%d %d]  %.3f | %s", doorctl->m_tilepos.x, doorctl->m_tilepos.y, doorctl->m_door.m_ajar,
+                     magic_enum::enum_name((door_data::door_state)doorctl->m_door.m_state).data());
+                    if(ImGui::SmallButton("open")) doorctl->m_door.Open();
+                    ImGui::SameLine();
+                    if(ImGui::SmallButton("close")) doorctl->m_door.Close();
+
+                    std::string_view dirstr = magic_enum::enum_name((door_data::door_dir)doorctl->Direction() );
+                    if(ImGui::BeginCombo("DoorDir", dirstr.data()) ){
+                        for(int i = 0; i < door_data::door_dir::DOORDIR_SIZE; ++i )
+                        {
+                            auto dirname = magic_enum::enum_name((door_data::door_dir)i );
+                            ImGui::PushID(&dirname);
+                            if(ImGui::Selectable(dirname.data(), doorctl->Direction() == i)){
+                                doorctl->m_door.params.m_direction = i;
+
+                            }
+                            ImGui::PopID();
+                        }
+
+                        ImGui::EndCombo();
+                    }
+
+                } else ImGui::Text("Not Setup!!! ");
+               
             }
 
             ImGui::NextColumn();
@@ -786,12 +827,58 @@ void CEditor::drawEntityView()
         once = true;
     }
 
-    if (!ImGui::Begin("Example: Property editor", &pOpen))
+    if (!ImGui::Begin("Scene Entity View", &pOpen))
     {
         ImGui::End();
         return;
     }
+    static std::string_view add_preview = "--";
+    static registered_ent_t* selectedEntType = nullptr;
 
+    if(IEntitySystem->GetRegistry() != nullptr) {
+        if(ImGui::BeginCombo("###entaddcombo", add_preview.data())){
+            for(auto& registry : *IEntitySystem->GetRegistry())
+            {
+                ImGui::PushID(registry.first.c_str());
+                if(ImGui::Selectable(registry.first.c_str(), selectedEntType == &registry)){
+                    selectedEntType = &registry;
+
+                }
+                ImGui::PopID();
+            }
+            if(selectedEntType != nullptr){
+                add_preview = selectedEntType->first;
+            } else{
+                add_preview = "--";
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine();
+        if(ImGui::SmallButton("Add")){
+             if(selectedEntType != nullptr){
+                auto ent = selectedEntType->second();
+                if(!ent){
+                    gError("editor failed to add entity %s", selectedEntType->first.c_str());
+                } else{
+                    
+                     if(lastTile != nullptr){ //todo multiple occupants
+                        ent->SetPosition({lastTile->m_vecPosition.x + 0.5f, lastTile->m_vecPosition.y + 0.5f, 0.f});
+                        
+                     }
+                     else{
+                        auto r = ILevelSystem->FindEmptySpace();
+                        ent->SetPosition(r.x, r.y, 0.f);
+                     } engine->note("added entity %s %s [%d] and set position to {%.3f %.3f}", ent->GetName().c_str(), ent->GetSubclass().c_str(), ent->GetID(), ent->GetPosition().x, ent->GetPosition().y);
+                     
+                }
+               
+                
+             }
+        }
+    }
+   
+        
+ 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
     if (ImGui::BeginTable("##split", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
     {
@@ -1298,18 +1385,7 @@ void CEditor::drawLightView()
                 auto &pos = selectedTile->m_vecPosition;
                 const char *type_name = Editor::GetEnumName((Level::Tile_Type)selectedTile->m_nType).data();
                 ImGui::Text("Tile @ {%i %i}, %s", pos.x, pos.y, type_name);
-                ImGui::Text("influential lights: %li", selectedTile->influential_lights.size());
-                if(ImGui::CollapsingHeader("view IL"))
-                {
-                   
-                    
-                    for(auto& light : selectedTile->influential_lights){
-                         ImGui::PushID(light);
-                         auto p = light->GetPosition();
-                         ImGui::Text("IL: %s {%.1f %.1f %.1f } | %s", light->GetName().c_str(), p.x, p.y, p.z, light->GetColor().s().c_str());
-                         ImGui::PopID();
-                    }
-                }
+              
                 
                 for (int x = 0; x < TILE_SECTORS; ++x)
                     for (int y = 0; y < TILE_SECTORS; ++y)

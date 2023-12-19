@@ -1,6 +1,8 @@
 #include "IEntitySystem.hpp"
 #include <engine/engine.hpp>
 
+register_entity_t* CEntitySystem::ent_registry = nullptr;
+
 CEntitySystem::~CEntitySystem()
 {
     
@@ -88,6 +90,12 @@ void CEntitySystem::RemoveAllButPlayer()
     if(entity_list.size() != 1){
         Error("failed to remove all entities but localplayer. initial size %li, freed count %li new size %li", b4, cleaned, entity_list.size());
     }
+}
+
+CEntitySystem* CEntitySystem::_interface()
+{
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    return IEntitySystem;
 }
 
 void CEntitySystem::CreateLocalPlayer()

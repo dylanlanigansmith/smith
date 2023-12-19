@@ -14,6 +14,8 @@ void CTextureSystem::OnCreate()
     m_hTextureError = HTEXTURE_INVALID;
     static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
     m_szTextureResourcePath = IResourceSystem->GetResourceSubDir("material");
+
+    IResourceSystem->LoadTextureDefinition();
 }
 
 void CTextureSystem::OnResourceLoadEnd()

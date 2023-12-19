@@ -27,7 +27,7 @@ struct weapon_data_t{
     uint32_t iMaxAmmo;
     uint8_t nAmmoType;
 
-    float GetDamage(){
+    float GetDamage() const {
         return Util::SemiRandRange(flDamage - iDamageMod / 1.5, flDamage + iDamageMod / 2);
     }
 };
@@ -47,6 +47,8 @@ public:
     virtual void OnShoot() = 0;
     virtual void SetOwnerEntity(hEntity m_iOwnerID) { this->m_iOwnerID = m_iOwnerID; OnSetOwnerEntity();}
 
+
+    virtual float GetDamage() const { return m_data.GetDamage(); }
     auto& GetName() const { return m_szName; }
 
 

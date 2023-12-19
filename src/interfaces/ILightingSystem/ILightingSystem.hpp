@@ -40,6 +40,7 @@ public:
     virtual void OnEngineInitFinish() override;
 
     virtual void SetupBlending();
+    void RegenerateLightingForDynamicTile(tile_t* tile);
     virtual void RegenerateLighting();
     virtual void CalculateLighting();
     virtual nlohmann::json ToJSON();
@@ -116,75 +117,7 @@ public:
         return lightmap[xIndex][yIndex][zIndex];
     }
 
-    inline void ApplyLightForTile2(tile_t *tile, bool posRayX, bool posRayY, const Vector &worldpos, int x, int y)
-    {
-        
-
-        const ivec3 vox_pos = tile->worldToSector(worldpos);
-        Color total_color = MaxDark();
-        auto tile_type = tile->m_nType;
-        Vector2 pos = worldpos;
-        for (auto &light : tile->influential_lights)
-        {
-            Vector2 light_pos = Vector2(light->GetPosition());
-            Ray_t ray = {
-                .origin = light_pos,
-                .direction = Vector2(worldpos - light->GetPosition()).Normalize()};
-            Vector2 rayPos = ray.origin;
-            const double step = 0.16;
-
-            int hit = 0;
-
-            const double dist_to_point = (Vector2(pos) - light_pos).Length();
-            auto light_tile_pos = IVector2(light_pos);
-            IVector2 last_tile_pos = light_tile_pos;
-            int walls = 0;
-            int iterations = 0;
-            int expected_iterations = dist_to_point / step + 1;
-
-            while (1)
-            {
-                iterations++;
-                rayPos = rayPos + (ray.direction * step);
-                if (floor(rayPos.x) == last_tile_pos.x && floor(rayPos.y) == last_tile_pos.y && last_tile_pos != tile->m_vecPosition)
-                    continue;
-                auto ray_tile = LevelSystem->GetTileAt(rayPos.x, rayPos.y);
-
-                if (!ray_tile)
-                    break;
-                last_tile_pos = ray_tile->m_vecPosition;
-                double rayDist = (Vector2(pos) - rayPos).Length();
-
-                if (ray_tile->m_nType == Level::Tile_Wall)
-                {
-                    walls++;
-                    if (ray_tile->m_vecPosition != tile->m_vecPosition || walls > 2)
-                    {
-                        // failure
-                        break;
-                    }
-                }
-                if (tile_type == Level::Tile_Empty || (rayDist < (step * 2)))
-                {
-                    if (last_tile_pos == tile->m_vecPosition || last_tile_pos == light_tile_pos)
-                    {
-                        total_color = light->CalculateInfluence(pos, total_color, params, MaxDark());
-                        break;
-                    }
-                }
-                if ((rayDist < (step * 2)) && (last_tile_pos == tile->m_vecPosition))
-                {
-
-                    total_color = light->CalculateInfluence(pos, total_color, params, MaxDark());
-                    break;
-                }
-            }
-        }
-
-        // voxel_t *vox = tile->getVoxelAt(vox_pos.x, vox_pos.y, vox_pos.z);
-        SetPixel(x, y, total_color);
-    }
-   
+    
   
 
     inline Color LinearInterpolate(const Color &start, const Color &end, float fraction)
@@ -223,7 +156,7 @@ public:
             Error("this error literally cant happen but %s", name.c_str()); return light; 
           }
         
-        log("added light via cname %s", light->GetName().c_str());
+       
         return light;
     }
 

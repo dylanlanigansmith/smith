@@ -22,6 +22,23 @@ void CLightingSystem::SetupBlending()
     // SDL_SetTextureBlendMode(m_lighttexture, SDL_BLENDMODE_BLEND);
 }
 
+void CLightingSystem::RegenerateLightingForDynamicTile(tile_t *tile)
+{
+    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForDynamicTile()"); //that just rolls off the tongue
+    RegenProfiler->Start();
+    if(!tile || !tile->HasState()) return;
+    if(tile->m_pState->light_pts.empty()) return;
+    auto& light_pts = tile->m_pState->light_pts;
+    LightData ld(this);
+    for(const auto& update : light_pts){
+        auto& pt = update.first;
+        ld.UpdateLightForPoint(pt.x, pt.y, pt.z, update.second);
+    }
+    log("updated size %li", light_pts.size());
+    RegenProfiler->EndAndLog();
+}
+
 void CLightingSystem::RegenerateLighting()
 {
     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
@@ -145,7 +162,7 @@ void CLightingSystem::FromJSON(const nlohmann::json &j)
             (float)j_pos.at(2),
         });
 
-        log("Added light from file: %s, %s, pos{%.1f, %.1f, %.1f}, brt %.3f, int %.3f, rng%.3f",
+        dbg("Added light from file: %s, %s, pos{%.1f, %.1f, %.1f}, brt %.3f, int %.3f, rng%.3f",
             light->GetName().c_str(), light->GetColor().s().c_str(), light->GetPosition().x, light->GetPosition().y, light->GetPosition().z, light->GetBrightness(), light->GetIntensity(), light->GetRange());
     }
 

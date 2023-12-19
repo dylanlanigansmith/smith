@@ -31,13 +31,15 @@ public:
 
     CCamera* m_pCamera() { return &m_camera; } //not a good system
 
-    virtual void OnHit(int damage);
+    virtual void OnHit(int damage, int position = 0);
 
     auto GetHealth() const { return m_health; }
     virtual float GetBounds() const override { return 0.25f; }
     virtual void OnCollisionWith(CBaseEntity* hit) override;
 
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos) override;
+
+    virtual bool IsShootable() const { return true; }
 private:
     int m_health;
     int m_max_health;

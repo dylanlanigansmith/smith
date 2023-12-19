@@ -6,11 +6,12 @@
 #include <util/hash_fnv1a.hpp>
 
 
+#define ENTREG_INC <interfaces/IEntitySystem/EntRegistry.hpp>
 
 #define SET_ENT_NAME() this->m_szName = Util::getClassName(this)
 #define SET_ENT_SUBNAME() this->m_szSubclass = Util::getClassName(this)
 #define SET_ENT_TYPE() this->m_nType = Util::fnv1a::Hash64(this->m_szName.c_str())
-#define ENT_SETUP() SET_ENT_NAME(); SET_ENT_TYPE();
+#define ENT_SETUP() SET_ENT_NAME(); SET_ENT_TYPE(); 
 
 //typedef uint32_t hEntity;
 
@@ -46,7 +47,10 @@ public:
     virtual void OnDestroy() = 0;
     virtual float GetBounds() const { return 0.34f; }
     virtual void OnCollisionWith(CBaseEntity* hit) {}
+    virtual void WhenCollidedBy(CBaseEntity* hitter) {}
     virtual bool IsBlocking() const { return true; }
+    virtual bool IsShootable() const { return false; }
+    virtual void OnHit(int damage, int position = 0) {}
 protected:
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos) {}
 protected:

@@ -91,7 +91,7 @@ void CPlayer::RenderView(CRenderer *renderer)
   m_viewmodel.Render(renderer);
 }
 
-void CPlayer::OnHit(int damage)
+void CPlayer::OnHit(int damage, int position )
 {
   m_health -= damage;
   
@@ -310,13 +310,13 @@ void CPlayer::CreateMove()
     }
   }
   if (m_camera.m_flPitch > 0)
-    m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
+      m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
   if (m_camera.m_flPitch < 0)
-    m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * pitchSpeed);
+      m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * pitchSpeed);
   if (m_vecPosition.z > 0)
-    m_vecPosition.z = std::max<double>(0, m_vecPosition.z - 100 * moveSpeed);
+      m_vecPosition.z = std::max<double>(0, m_vecPosition.z - 100 * moveSpeed);
   if (m_vecPosition.z < 0 && !isCrouching)
-    m_vecPosition.z = std::min<double>(0, m_vecPosition.z + 100 * moveSpeed);
+      m_vecPosition.z = std::min<double>(0, m_vecPosition.z + 100 * moveSpeed);
 
 
     if(noclip)

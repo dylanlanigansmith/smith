@@ -5,8 +5,9 @@
 #include "IInputSystem/IInputSystem.hpp"
 #include "IResourceSystem/IResourceSystem.hpp"
 #include "ITextureSystem/ITextureSystem.hpp"
-#include "IEntitySystem/IEntitySystem.hpp"
+
 #include "ILevelSystem/ILevelSystem.hpp"
+#include "IEntitySystem/IEntitySystem.hpp"
 #include "ILightingSystem/ILightingSystem.hpp"
 #include "IAnimationSystem/IAnimationSystem.hpp"
 #include "IFileSystem/IFileSystem.hpp"

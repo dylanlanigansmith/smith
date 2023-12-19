@@ -30,12 +30,19 @@ executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directo
         magic_enum_dep,
        # [enet_lib]
     ],
-    cpp_args : [ '-Og','-Wno-unused', '-Wnarrowing', #'-fopt-info-vec-all'
+    cpp_args : [ '-Og',
+    '-Wno-unused', 
+    '-Wno-narrowing',
+    '-Wno-ignored-attributes',
+    '-Wno-attributes',
+    '-Wno-format', 
+    '-Wno-overloaded-virtual',
+    '-Wno-sign-compare',
+     #'-fopt-info-vec-all'
     ]
 
 )
 elif host_machine.system() == 'darwin'
-
 
 
 
@@ -45,16 +52,14 @@ thread_dep = dependency('threads')
 
     executable('smith', [sources, '../thirdparty/stb/stb_vorbis.c'], include_directories : inc, 
     dependencies : [
-       # x_dep,
         thread_dep,
         sdl3_dep,
-       # gl_dep,
         libimgui_dep,
         nlohmann_json_dep,
         magic_enum_dep,
        # [enet_lib]
     ],
-    cpp_args : [ '-Og','-Wno-unused', '-Wno-narrowing', '-fpermissive'
+    cpp_args : [ '-Og','-Wno-unused', '-Wno-narrowing', '-fpermissive' #bad
     ]
     )
 endif

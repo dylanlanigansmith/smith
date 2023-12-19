@@ -7,8 +7,9 @@
 #include "CBaseSerializable.hpp"
 #include <util/hash_fnv1a.hpp>
 #include <data/level/level_types.hpp>
-
+#include <light/CLight.hpp>
 #include <types/Color.hpp>
+
 //https://lodev.org/cgtutor/raycasting4.html
 
 enum Tile_Texture : uint8_t
@@ -19,12 +20,18 @@ enum Tile_Texture : uint8_t
     TileTexture_SIZE,
 };
 
+class CBaseDoorControl; 
 
 struct tile_state //local tile storage for future use
 {
-    uint8_t m_iState[3];
-    float m_flState[2];
-    bool m_bState;
+    bool m_isDoor;
+    union{
+        CBaseDoorControl* m_doorctl;
+        void* m_controller;
+    };
+    std::vector<std::pair<Vector, CLight*>> light_pts;
+    tile_state() : m_isDoor(false) {}
+    tile_state(CBaseDoorControl* m_doorctl) : m_isDoor(true), m_doorctl(m_doorctl) {}
 };
 
 struct decal_t
@@ -84,7 +91,7 @@ struct tile_t
     texture_t* m_pTextureCeiling = nullptr;//READONLY //$!
     texture_t* m_pTextureFloor = nullptr;//READONLY   //$!
     tile_state* m_pState  = nullptr;                  //$!
-    float m_flLight = 1.f;      //$# //not usable
+    float m_flDoor = 1.f;      //$# //not usable
     uint8_t m_nDecals{};        //1/$#
     decal_t* m_pDecals = nullptr;  //$8 
     float m_flCeiling = 0.f;        //$#
@@ -92,7 +99,6 @@ struct tile_t
     uint8_t m_nType{};              //1/$#
     uint64_t m_nFlags;              //$!
     std::vector<hEntity> m_occupants;
-    std::vector<CLight* > influential_lights;
     voxel_t sectors[TILE_SECTORS][TILE_SECTORS][TILE_SECTORS];
     bool IsThinWall(){
         switch(m_nType)
@@ -207,6 +213,12 @@ struct tile_t
 
         return true;
     }
+
+    inline bool HasState() {
+        return (m_pState != nullptr && IsThinWall()); //aka is a tiletype with state
+    }
+
+
 };
 
 /*
@@ -302,7 +314,7 @@ protected:
     {
          auto t = json::array();
          t = { tile.id, tile.m_vecPosition.x, tile.m_vecPosition.y, tile.m_hTexture, tile.m_hTextureCeiling, tile.m_hTextureFloor,
-          tile.m_flLight, tile.m_nDecals, tile.m_flCeiling, tile.m_flFloor, tile.m_nType, tile.m_nFlags};
+          tile.m_flDoor, tile.m_nDecals, tile.m_flCeiling, tile.m_flFloor, tile.m_nType, tile.m_nFlags};
                 
         return t;
     }
@@ -318,7 +330,7 @@ protected:
             .m_pTextureCeiling = nullptr,
             .m_pTextureFloor = nullptr,
             .m_pState = nullptr,
-            .m_flLight =  j.at(6),
+            .m_flDoor =  j.at(6),
             .m_nDecals =  j.at(7),
             .m_pDecals = nullptr,
             .m_flCeiling = j.at(8),

@@ -13,7 +13,7 @@ class CProfiler : public CLogger
     friend class CEditor;
 public: 
     CProfiler(CEngineTime* IEngineTime, const std::string& m_szProfilerName, const std::size_t samples = 60) : 
-        CLogger(this, m_szProfilerName),IEngineTime(IEngineTime), m_sampleCount(samples), m_szProfilerName(m_szProfilerName) {
+        CLogger(this, m_szProfilerName),IEngineTime(IEngineTime),  m_szProfilerName(m_szProfilerName), m_sampleCount(samples) {
             m_timeMin.set(0xFFFFFFFFFFFFFFFFull);
             m_timeMax.set(0);
              index = 0;
@@ -26,12 +26,12 @@ public:
   
     std::string GetAvgString(){
         auto avg = GetAvg();
-        return Util::stringf("%s: Avg. (%li ns) (%li us) (%i ms) (%f sec)", m_szProfilerName.c_str(),
+        return Util::stringf("%s: Avg. (%li ns) (%li us) (%u ms) (%f sec)", m_szProfilerName.c_str(),
         avg.ns(), avg.us(), avg.ms(),avg.sec());
     }
      std::string GetString(){
         auto avg = GetAvg();
-        return Util::stringf("%s: Avg: { (%li us) (%li ms) }  Max:  (%li us)  | Min: (%li us)", m_szProfilerName.c_str(),
+        return Util::stringf("%s: Avg: { (%li us) (%u ms) }  Max:  (%li us)  | Min: (%li us)", m_szProfilerName.c_str(),
          avg.us(), avg.ms(), GetMax().us(), GetMin().us());
     }
     Time_t GetAvg() const{
@@ -51,7 +51,7 @@ public:
     Time_t GetMin() const{
         return m_timeMin;
     }
-    Time_t ResetData(){
+    void ResetData(){
         m_timeMin.set(0xFFFFFFFFFFFFFFFFull);
         m_timeMax.set(0);
         for(auto time : rolling_values){
@@ -60,7 +60,7 @@ public:
     }
     void EndAndLog(){
         End();
-        warn("last time (%li ns) (%li us) (%li ms) (%f sec)", m_lastTime.ns(), m_lastTime.us(), m_lastTime.ms(), m_lastTime.sec());
+        warn("last time (%li ns) (%li us) (%u ms) (%f sec)", m_lastTime.ns(), m_lastTime.us(), m_lastTime.ms(), m_lastTime.sec());
     }
 
     const auto& History() const { return rolling_values; }
@@ -72,11 +72,12 @@ protected:
     void DisplayForEditor(int ui_w, int ui_h);
 
 private:
-    
+     CEngineTime* IEngineTime;
+      std::string m_szProfilerName;
     const int m_sampleCount;
     int index;
-    CEngineTime* IEngineTime;
-    std::string m_szProfilerName;
+   
+   
     Timer_t m_timer;
     Time_t m_lastTime;
     Time_t m_timeMin;

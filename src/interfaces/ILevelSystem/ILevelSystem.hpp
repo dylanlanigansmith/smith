@@ -41,6 +41,9 @@ public:
     inline tile_t* GetTileAtFast(int x, int y){
         return m_Level->GetTileAtFast(x,y);
     }
+     inline tile_t* GetTileAtFast(const IVector2& w){
+        return m_Level->GetTileAtFast(w.x,w.y);
+    }
     inline  tile_t* GetTileSafe(int x, int y){
         x = std::clamp(x, 0, MAP_SIZE - 1); 
         y = std::clamp(y, 0, MAP_SIZE - 1); 

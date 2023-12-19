@@ -8,26 +8,29 @@
 #include <interfaces/interfaces.hpp>
 #include <entity/player/CPlayer.hpp>
 #include <iostream>
+#include <entity/level/CBaseDoorControl.hpp>
+
 struct raycast_data_t
 {
     const Vector playerPos;
-    const int playerPitch;
+   
     const Vector2 rayDir;
+     const int playerPitch;
     IVector2 step; // what direction to step in x or y-direction (either +1 or -1)
     IVector2 mapPos;
     Vector2 sideDist; // length of ray from current position to next x or y-side
     Vector2 deltaDist;  // length of ray from one x or y-side to next x or y-side
     double perpDist = 0.0;
-    int side = -1;  // was a NS or a EW wall hit?
-    tile_t* hitTile = nullptr;
     
+    tile_t* hitTile = nullptr;
+    int side = -1;  // was a NS or a EW wall hit?
     //prevent copying
     raycast_data_t( raycast_data_t const&) = delete;
     raycast_data_t& operator=(raycast_data_t const&) = delete;
 
 
     inline raycast_data_t(const Vector& playerPos,  const Vector2& rayDir, int playerPitch = 0) : 
-       playerPos(playerPos), rayDir(rayDir),  playerPitch(playerPitch), side(-1), hitTile(nullptr){
+       playerPos(playerPos), rayDir(rayDir),  playerPitch(playerPitch),  hitTile(nullptr), side(-1){
 
         deltaDist = {
             (rayDir.x == 0) ? 1e30 : std::abs(1 / rayDir.x),
@@ -255,13 +258,22 @@ namespace Render
         // perform DDA
         uint32_t transparentHits = 0;
         int safety = 0;
+        bool checkedOurTile = false;
+        bool checking = false;
         while (hit == 0)
         {
              safety++;
              if(safety > 250){
                 engine->Error("hit DDA safety {%i %i}", ray.mapPos.x, ray.mapPos.y); return;
             }
-            hit = Render::RunDDA(ray, ILevelSystem);
+            
+            if(playerTileType >= Level::Tile_Door && !checkedOurTile){
+                ray.hitTile = ILevelSystem->GetTileAt(playerPos.x, playerPos.y);
+                ray.side = 0;
+                hit = playerTileType; checking = true;
+            } 
+            else hit = Render::RunDDA(ray, ILevelSystem);
+
             if(ray.hitTile == nullptr) continue; // we got bigger issues
             if (hit == 0) continue;
             if (hit >= Level::Tile_Door )
@@ -269,9 +281,8 @@ namespace Render
                 auto& tile = ray.hitTile;
 
               
-                auto p = tile->m_vecPosition;
-                auto wall = Render::GetLineForWallType(p, tile->m_nType, &ray.side);
-                Vector2 rayPos = {ray.mapPos.x,ray.mapPos.y};
+                auto wall = Render::GetLineForWallType(tile->m_vecPosition, tile->m_nType, &ray.side);
+                //Vector2 rayPos = {ray.mapPos.x,ray.mapPos.y};
                 Vector2 startPos = playerPos;
                 Ray_t ray1 = {
                     .origin = startPos,
@@ -289,25 +300,30 @@ namespace Render
                 thickness.max = { wall.p1.x + wall_thick, wall.p1.y };
                 else 
                 thickness.max = { wall.p1.x , wall.p1.y + wall_thick };
+                 checking = false;
+                 checkedOurTile = true;
                 if (!Util::RayIntersectsLineSegment(ray1, wall, intersect))
                 {
-                   
+                  
                     hit = 0; 
                     continue;
                 }
-                if(!Util::RayIntersectsBox(ray1, thickness)) //todo add thickness
+              
+                if(!Util::RayIntersectsBox(ray1, thickness)) //does this actually do anything
                 {   
                     hit = 0; continue;
                 }
+                bool hasState = tile->HasState();
+                bool isDoor = (hasState) ? (tile->m_pState && tile->m_pState->m_isDoor) : false;
                 auto material = ILevelSystem->GetTextureAt(ray.mapPos.x, ray.mapPos.y); //just use tile 
                 auto texture = material->m_texture;
-                if(material->isTransparent())
+                if(material->isTransparent() || (isDoor && tile->m_pState->m_doorctl->UsingYAxis()) )
                 {
-                  
+                   
                     transparentHits++;
                     if(transparentHits >  skipTransparent)
                     {
-                        // engine->log("out rip           ");
+                        
                         DrawLineAtX(x, 0, renderer, m_Camera, playerPos, ILightingSystem, ILevelSystem, skipTransparent + 1);
                     }
                     else{
@@ -323,10 +339,37 @@ namespace Render
                 
                 Render::CalcDrawHeightBounds(ray, draw);
                 Render::GetTexturePosition_ThinWall(ray, draw, intersect);
-            
+                bool dirtyY= false;
+                if(hasState && isDoor)
+                {
+                 
+                    float drawstate = tile->m_pState->m_doorctl->GetDrawState() / 100.f;
+                    switch (tile->m_pState->m_doorctl->Direction())
+                    {
+                        case door_data::DoorDir_Up:
+                            draw.drawEnd -= draw.lineHeight * drawstate;
+                            draw.drawEnd = std::clamp(draw.drawEnd, 0, SCREEN_HEIGHT);
+                            dirtyY = true;
+                            break;
+                        case door_data::DoorDir_Down:
+                            draw.drawStart -= draw.lineHeight * drawstate;
+                            draw.drawStart = std::clamp(draw.drawStart, 0, SCREEN_HEIGHT);
+                            dirtyY = true;
+                            break;
+                        case door_data::DoorDir_LeftToRight:
+                            if(draw.wallX > drawstate){
+                                    hit = 0; continue;
+                                } break;
+                        case door_data::DoorDir_RightToLeft: 
+                        default:
+                                if(draw.wallX < drawstate){
+                                    hit = 0; continue;
+                                }
+                    }   
+                }
+               
+                   
                 
-            
-            
                 for (int y = draw.drawStart; y < draw.drawEnd; y++)
                 {
                 Render::UpdateTextureCoords_ThinWall(draw);
@@ -352,10 +395,11 @@ namespace Render
                     renderer->Z2D[x][y] = ray.perpDist;
               
                 didDraw = true;
-        
+                
+                
                 }
             }
-            
+            if(didDraw) break;
         }
 
         if(didDraw){

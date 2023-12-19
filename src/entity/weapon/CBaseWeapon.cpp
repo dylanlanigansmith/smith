@@ -2,6 +2,7 @@
 #include <engine/engine.hpp>
 #include <entity/dynamic/CBaseEnemy.hpp>
 #include <entity/dynamic/enemy/CEnemySoldier.hpp>
+#include <entity/level/CBaseDoorControl.hpp>
 inline bool HitDetectPixelPerfect(CPlayer *player, CEnemySoldier *ent, IVector2 *textpos)
 {
     auto crosshair_color = ent->GetPixelAtPoint(player->m_pCamera(), {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2}, textpos);
@@ -59,11 +60,14 @@ bool CBaseWeapon::Shoot()
                 if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
                     dbg("hit");
                     int pos = Util::SemiRandRange(0, 8) * -1;
-                    hit_ent->OnHit(Util::SemiRandRange(8, 16), pos);
+                    hit_ent->OnHit(Util::SemiRandRange(8, 16), pos); //damage isnt real!!!
 
                     return true;
                 }
             }
+           // else if(ent->IsShootable()){
+           //     ent->OnHit(GetDamage());
+           // }
         }
     }
     int screenx = (SCREEN_WIDTH / 2);
@@ -159,6 +163,23 @@ bool CBaseWeapon::Shoot()
                 }
             }
         }
+        if(tile->IsThinWall() && tile->HasState()){
+            if(tile->m_pState->m_isDoor)
+            {
+                auto wall = Render::GetLineForWallType(tile->m_vecPosition, tile->m_nType);
+                Vector2 intersection;
+                Ray_t ray = {
+                    .origin = pos,
+                    .direction = rayDir.Normalize()
+                };
+                if (Util::RayIntersectsLineSegment(ray, wall, intersection))
+                {
+                    tile->m_pState->m_doorctl->OnHit(GetDamage());
+                    break;
+                }
+            }
+        }
+
         // Check if ray has hit a wall o
         if (tile->m_nType == Level::Tile_Wall )
             hit = 1;

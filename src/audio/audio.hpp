@@ -41,6 +41,8 @@ private:
     void LogAudioDevice();
 
     Time_t GetSoundDuration(audiodata_t* audio);
+
+    bool LoadSoundFiles();
 private:
     SoundQueue m_cmdQueue;
     float m_flVolumeMaster;

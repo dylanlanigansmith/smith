@@ -29,8 +29,10 @@ public:
     virtual void Freeze(bool set) { m_bFrozen = set; }
 
     virtual uint32_t GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos);
-
+    virtual bool IsShootable() const { return true; }
     auto GetPathFinder() { return &path; }
+    virtual void CalculateDrawInfo(IVector2* drawStart,IVector2* drawEnd, IVector2* renderSize, IVector2* screen, Vector2* tform ,
+                                     CCamera* camera, double wScale, double vScale, int vOffset);
 protected:
     virtual void SetupTexture(const std::string& name);
     virtual void DrawEnemy(CRenderer* renderer, double wScale = 1.0, double vScale = 1.0, int vOffset = 0.0);
@@ -38,8 +40,7 @@ protected:
     virtual void CreateMove(IVector2 dir);
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos);
     
-    virtual void CalculateDrawInfo(IVector2* drawStart,IVector2* drawEnd, IVector2* renderSize, IVector2* screen, Vector2* tform ,
-                                     CCamera* camera, double wScale, double vScale, int vOffset);
+   
 
     virtual void UpdateBBox();
 protected:

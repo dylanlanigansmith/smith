@@ -172,7 +172,10 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
           b /= count;
           a /= count;
 
-          ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {a, b, g, r};
+           ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {(uint8_t)a, 
+                                                              (uint8_t)b, 
+                                                              (uint8_t)g, 
+                                                              (uint8_t)r};
         }
       }
     }
@@ -212,7 +215,10 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
           b /= count;
           a /= count;
 
-          ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {a, b, g, r};
+          ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {(uint8_t)a, 
+                                                              (uint8_t)b, 
+                                                              (uint8_t)g, 
+                                                              (uint8_t)r};
         }
       }
     }
@@ -251,7 +257,10 @@ void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
       b /= count;
       a /= count;
 
-      ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {a, b, g, r}; // ((r) << 24) | ((g) << 16) | ((b) << 8) | ((a));
+      ((pixel_clr *)(m_blur->pixels))[(y * pitch) + x] = {(uint8_t)a, 
+                                                              (uint8_t)b, 
+                                                              (uint8_t)g, 
+                                                              (uint8_t)r}; // ((r) << 24) | ((g) << 16) | ((b) << 8) | ((a));
     }
   }
 
@@ -656,9 +665,4 @@ void CRenderer::RunImGui()
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void CRenderer::SetPixel(int x, int y, SDL_Color color) // @deprecated Switch To Color class
-{
-#warning "Using SDLColor is deprecated"
-  int index = (y * m_surface->pitch / 4) + x;
-  pixels[index] = Render::SDLColorToWorldColor(color); // pretty sure this is safe to remove now
-}
+
