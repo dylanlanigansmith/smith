@@ -5,6 +5,22 @@
 #include <data/level.hpp>
 
 #include ENTREG_INC
+/*
+Todo:
+different types (for double doors)
+fix up->down bug
+
+a fucking events system
+
+buttons and shit to toggle doors 
+
+"triggers" for automatic doors and level changes
+
+a way to save all this shit with the leveldef
+
+then a game!
+*/
+
 
 class CBaseDoorControl;
 
@@ -136,6 +152,7 @@ protected:
         } 
         assert(m_door.m_tile->m_pState->m_doorctl == this);
         dbg("now controlling tile {%d %d}", m_door.m_tile->m_vecPosition.x, m_door.m_tile->m_vecPosition.y);
+        m_door.Close();
     }
 protected:
     IVector2 m_tilepos;

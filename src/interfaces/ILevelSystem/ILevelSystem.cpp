@@ -109,8 +109,12 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     auto doorctl = IEntitySystem->AddEntity<CBaseDoorControl>();
     doorctl->SetTarget({19,16});
 
-/*
-    for(int i = 0; i < 0; ++i)
+      auto doorctl2 = IEntitySystem->AddEntity<CBaseDoorControl>();
+    doorctl2->SetTarget({16,3});
+    doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
+    
+
+    for(int i = 0; i < 12; ++i)
     {
         auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
         auto empty = FindEmptySpace();
@@ -124,7 +128,7 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
         if(i % 5 == 0)
             sold->SetType(CEnemySoldier::Soldier_Med);
     }
-*/
+
 
     if(changing)
     {

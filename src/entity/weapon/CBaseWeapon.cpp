@@ -60,7 +60,7 @@ bool CBaseWeapon::Shoot()
                 if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
                     dbg("hit");
                     int pos = Util::SemiRandRange(0, 8) * -1;
-                    hit_ent->OnHit(Util::SemiRandRange(8, 16), pos); //damage isnt real!!!
+                    hit_ent->OnHit(GetDamage(), pos); //damage isnt real!!!
 
                     return true;
                 }
@@ -156,7 +156,7 @@ bool CBaseWeapon::Shoot()
                     if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
                        
                         int pos = Util::SemiRandRange(0, 8) * -1;
-                        hit_ent->OnHit(Util::SemiRandRange(m_data.flDamage - m_data.iDamageMod / 1.5, m_data.flDamage + m_data.iDamageMod / 2), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
+                        hit_ent->OnHit(GetDamage(), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
 
                         return true;
                     }
@@ -164,7 +164,7 @@ bool CBaseWeapon::Shoot()
             }
         }
         if(tile->IsThinWall() && tile->HasState()){
-            if(tile->m_pState->m_isDoor)
+            if(tile->m_pState->m_isDoor && !tile->m_pState->m_doorctl->IsOpen())
             {
                 auto wall = Render::GetLineForWallType(tile->m_vecPosition, tile->m_nType);
                 Vector2 intersection;
