@@ -108,36 +108,35 @@ bool CPathVoxel::Search(const Vector2 &start, const Vector2 &goal)
 //
 std::vector<Vector2> CPathVoxel::GetNeighbours(const Vector2& pos)
 {
-    static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+    
     std::vector<Vector2 > ret;
 
-    auto ptile = m_levelSystem->GetTileAt(pos.x, pos.y );
+    auto ptile = ILevelSystem->GetTileAt(pos.x, pos.y );
     auto rel_pos = ptile->worldToSector({pos.x, pos.y, 0});
    const double s = 0.35;
    std::vector<Vector2> nbrs = { {pos.x, pos.y + s}, {pos.x, pos.y - s}, {pos.x + s, pos.y}, {pos.x - s, pos.y}, { pos.x, pos.y }  };
    for(auto& nbr : nbrs ){
-        auto tile = m_levelSystem->GetTileAt(nbr.x, nbr.y );
+        auto tile = ILevelSystem->GetTileAt(nbr.x, nbr.y );
         auto rel  = tile->worldToSector(nbr);
         auto c = tile->getSectorCenterRelativeCoords(rel.x, rel.y, rel.z);
         nbr = {c.x + floor(nbr.x), c.y + floor(nbr.y)};
    }
    for(auto& nbr : nbrs )
    {
-        auto tile = m_levelSystem->GetTileAt(nbr.x, nbr.y );
+        auto tile = ILevelSystem->GetTileAt(nbr.x, nbr.y );
         
         if(!tile) continue;
         if(tile->m_nType == Level::Tile_Wall) continue;
 
         const double tol = 0.0;/*
         if(nbr.x > (1 - tol))
-            if(m_levelSystem->GetTileAt(IVector2::Rounded(nbr.x, floor(nbr.y) ) )->m_nType == Level::Tile_Wall ) continue;
+            if(ILevelSystem->GetTileAt(IVector2::Rounded(nbr.x, floor(nbr.y) ) )->m_nType == Level::Tile_Wall ) continue;
         if(nbr.y > (1 - tol))
-            if(m_levelSystem->GetTileAt(IVector2::Rounded(floor(nbr.x), nbr.y ) )->m_nType == Level::Tile_Wall ) continue;
+            if(ILevelSystem->GetTileAt(IVector2::Rounded(floor(nbr.x), nbr.y ) )->m_nType == Level::Tile_Wall ) continue;
         if(nbr.y < (tol))
-            if( auto t = m_levelSystem->GetTileAt(nbr.x, nbr.y - tol ); t && t->m_nType == Level::Tile_Wall ) continue;
+            if( auto t = ILevelSystem->GetTileAt(nbr.x, nbr.y - tol ); t && t->m_nType == Level::Tile_Wall ) continue;
         if(nbr.x < (tol))
-            if( auto t = m_levelSystem->GetTileAt(nbr.x  - tol, nbr.y ); t && t->m_nType == Level::Tile_Wall ) continue;*/
+            if( auto t = ILevelSystem->GetTileAt(nbr.x  - tol, nbr.y ); t && t->m_nType == Level::Tile_Wall ) continue;*/
      
         if(tile->m_nType >= Level::Tile_Door){
             std::array<IVector2, 3> bad_pts;
@@ -198,9 +197,9 @@ std::vector<Vector2> CPathVoxel::GetNeighbours(const Vector2& pos)
 
 double CPathVoxel::FindCost(const Vector2 &old_pos, const Vector2 &new_pos)
 {
-    static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    auto tile = m_levelSystem->GetTileAt(new_pos);
-    auto old_tile = m_levelSystem->GetTileAt(old_pos);
+    
+    auto tile = ILevelSystem->GetTileAt(new_pos);
+    auto old_tile = ILevelSystem->GetTileAt(old_pos);
     if(!tile)
         return 100.0;
     auto rel = tile->worldToSector(new_pos);

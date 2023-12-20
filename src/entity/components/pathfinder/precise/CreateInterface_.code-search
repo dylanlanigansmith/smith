@@ -1,0 +1,365 @@
+# Query: CreateInterface<
+# ContextLines: 1
+
+129 results - 33 files
+
+src/anim/Animation.cpp:
+  56  auto &CAnimation::IAnimationSystem()
+  57: {  static auto animsys = engine->CreateInterface<CAnimationSystem>("IAnimationSystem"); return animsys; }
+  58  
+
+src/anim/directional/AnimDirectional.cpp:
+    6  {
+    7:     
+    9  
+
+  129      
+  130:    
+  131      auto newTexture = ITextureSystem->FindOrCreatetexture(texture_name);
+
+src/anim/viewmodel/AnimViewmodel.cpp:
+  5  {
+  6:     
+  8     
+
+src/audio/audio.cpp:
+   23      dbg("starting..");
+   24:    
+   25      m_szAudioResourcePath = IResourceSystem->GetResourceSubDir("audio");
+
+   54  {
+   55:    
+   56      auto player = IEntitySystem->GetLocalPlayer();
+
+  218  {
+  219:    
+  220  
+
+src/audio/audiofiles.cpp:
+   39  {
+   40:   
+   42  
+
+  106  {
+  107:    
+  109  
+
+src/data/level.cpp:
+  15      auto lights = json::object();
+  16:    
+  17      auto lightdata = ILightingSystem->ToJSON();
+
+  52      }
+  53:     
+  54      auto light_data = j.at("lighting");
+
+src/data/image/CImageLoader.cpp:
+   9      Debug(false);
+  10:   
+  11      if (!IFileSystem->FileExists(img_path))
+
+src/editor/editor.cpp:
+    67  {
+    68:    
+    69  
+
+    97      static bool changedLastFrame = false;
+    98:    
+    99      IInputSystem->m_devMenuOpen = m_bIsOpen;
+
+   110  
+   111:  
+   114      auto player = IEntitySystem->GetLocalPlayer();
+
+   265      // imgui demo 2366
+   266:    
+   269  
+
+   500      ImGui::PushID(entity);
+   501:    
+   505      // Text and Tree nodes are less high than framed widgets, using AlignTextToFramePadding() we add vertical spacing to make the tree lines equal high.
+
+   710  
+   711:   
+   713      // there is an example for this in the imguidemo
+   714:    
+   715      static ImVec2 scrolling(0.0f, 0.0f);
+
+   961  {
+   962:    
+
+  1061  {
+  1062:    
+  1065      ImGui::SeparatorText("Material Editor");
+
+  1142  {
+  1143:  
+  1148  
+
+  1488  {
+  1489:    
+  1490      if(ImGui::CollapsingHeader("Performance"))
+
+  1540  {
+  1541:     
+  1575      static SDL_Texture* anim_preview = NULL;
+
+src/engine/engine.cpp:
+  187  }
+  188: //CreateInterface<
+  189  
+
+src/engine/engine.hpp:
+  29          {
+  30:             return interfaces.CreateInterface<T>(name);
+  31          }
+
+src/entity/CBaseEntity.cpp:
+  5  {
+  6:     
+  7      IVector2 newmapPos = {int(x), int(y)};
+
+src/entity/components/animation/CAnimationController.cpp:
+  14      int start_y = SCREEN_HEIGHT - frame_height + m_vecOffset.y;
+  15:     
+  17          auto worldPos = m_pParent->GetPosition();
+
+src/entity/components/pathfinder/CPathFinder.cpp:
+   83  {
+   84:     static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+   85      std::vector<IVector2 > ret;
+
+  110  {
+  111:     static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+  112      auto tile = m_levelSystem->GetTileAt(new_pos);
+
+src/entity/components/pathfinder/precise/CPathVoxel.cpp:
+   59      Reset();
+   60:    
+   61      auto tile_goal = IlevelSystem->GetTileAt(goal);
+
+  110  {
+  111:     static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+  112:     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+  113      std::vector<Vector2 > ret;
+
+  200  {
+  201:     static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+  202      auto tile = m_levelSystem->GetTileAt(new_pos);
+
+src/entity/dynamic/CBaseEnemy.cpp:
+  133  {
+  134:    
+  136  
+
+  294      CalculateDrawInfo(&drawStart,&drawEnd, &renderSize, &screen, &transform, camera, wScale, vScale, vOffset);
+  295:  
+  297      auto texture = m_Texture->m_texture;
+
+src/entity/dynamic/enemy/CEnemySoldier.cpp:
+   10  {
+   11:   
+   13:      
+  280      double moveSpeed = m_move.m_flForwardSpeed;
+
+  304  {
+  305:    
+  306      auto player = IEntitySystem->GetLocalPlayer();
+
+  587  {
+  588:    
+  589      static bool ignore_player = PLATFORM.LaunchOptions().HasArg("peace");
+
+  617  {
+  618:     
+  619       Ray_t ray = {
+
+  674      };
+  675:    
+  676      if(Util::RayIntersectsCircle(ray, player_pos, player_bounds)) //this is literally CastRayToPlayer...
+
+src/entity/level/CBaseDoorControl.cpp:
+  10          
+  11:        
+  12          if(m_door.inTransition())
+
+src/entity/level/CBaseDoorControl.hpp:
+  69  
+  70:         
+  71          assert(ILevelSystem->ValidTilePosition(tile_pos));
+
+src/entity/player/CPlayer.cpp:
+   16    CreateMove();
+   17:  
+   18    static auto lastHealthGain = IEngineTime->GetCurLoopTick();
+
+  138    static bool noclip = false;
+  139:   
+  140:   
+
+src/entity/prop/CBaseProp.cpp:
+   9  {
+  10:    
+  12       auto tile = ILevelSystem->GetTileAtFast( m_vecPosition.x,  m_vecPosition.y);
+
+src/entity/weapon/CBaseWeapon.cpp:
+   15  {
+   16:     
+   19      static auto owner = static_cast<CPlayer *>(m_pOwner);
+
+  221  {
+  222:     
+
+  243  {
+  244:   
+  245      m_pOwner = IEntitySystem->GetEntity<CBaseRenderable>(m_iOwnerID);
+
+src/interfaces/IAnimationSystem/IAnimationSystem.cpp:
+  42  {
+  43:     
+  44      for(auto& key : js.items()){
+
+  58  {
+  59:   
+  61  
+
+  68      Debug(false);
+  69:   
+  70      IResourceSystem->LoadAnimations();
+
+src/interfaces/IEntitySystem/IEntitySystem.cpp:
+  27  {
+  28:    
+  30      if(!ILevelSystem->IsLevelLoaded()) return;
+
+  97  {
+  98:   
+  99      return IEntitySystem;
+
+src/interfaces/IInputSystem/IInputSystem.cpp:
+  96  {
+  97:     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+  98  
+
+src/interfaces/ILevelSystem/ILevelSystem.cpp:
+   75      
+   76:    
+   79      if(changing)
+
+  154  {
+  155:     m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+  156  
+
+  202      //to raycast everything we would have to either dda or deduce direction and get face coords, or check all 4 lol
+  203:    
+  204    //  return IsWallCollision(origin, goal);
+
+src/interfaces/ILightingSystem/ILightingSystem.cpp:
+   9  {
+  10:     static auto pLightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+  11      return pLightingSystem;
+
+  26  {
+  27:     
+  28      static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForDynamicTile()"); //that just rolls off the tongue
+
+  43  {
+  44:    
+  45      auto &level = ILevelSystem->m_Level;
+
+  67  {
+  68:     
+  69      log("Building lighting info");
+  70:     
+  71      LevelSystem = ILevelSystem;
+
+  98  {
+  99:    
+  100      if (rel.x < 0 || rel.x >= 3 || rel.y < 0 || rel.y >= 3 || rel.z < 0 || rel.z >= 3)
+
+src/interfaces/ILightingSystem/gen/LightData.hpp:
+  10      {
+  11:        
+  12      }
+
+src/interfaces/IResourceSystem/IResourceSystem.cpp:
+   14  {
+   15:    
+   16      if(!IFileSystem) {
+
+  138  
+  139:     
+  140      for (const auto &key : tex_def)
+
+  154  {
+  155:    
+  156      json tex_def = json::object();
+
+  218  {
+  219:      
+  220      auto dir = GetResourceSubDir(LEVEL_SUBDIR);
+
+  240  {
+  241:    
+  242      if(ILevelSystem->m_Level ==  nullptr) return false;
+
+  258  {
+  259:    
+  260      auto dir = GetResourceSubDir("definition");
+
+  274  {
+  275:      
+  276      auto dir = GetResourceSubDir("definition");
+
+src/interfaces/ITextureSystem/ITextureSystem.cpp:
+   14      m_hTextureError = HTEXTURE_INVALID;
+   15:    
+   16      m_szTextureResourcePath = IResourceSystem->GetResourceSubDir("material");
+
+   48  {
+   49:   // static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+   50     // IResourceSystem->SaveTextureDefinition();
+
+  265  
+  266:    
+  267      
+
+src/logger/logger.cpp:
+  203  {
+  204:    
+
+src/renderer/renderer.cpp:
+   96  {
+   97:  
+   98    SetLightingRenderInfo();
+
+  110  {
+  111:  
+  112  
+
+  118  {
+  119:   
+  120  }
+
+  564  {
+  565:  
+
+src/renderer/renderwolf.cpp:
+   45  {
+   46:  
+   49    
+   50:  
+   51    // level system should handle these
+
+   88  {
+   89:  
+   91    const double vertPos = 0.5; //
+
+  206  {
+  207:    
+  208   
+
+src/renderer/render2/render2.hpp:
+  113          static render_data rd;
+  114:        
+  116  

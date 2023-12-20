@@ -90,9 +90,8 @@ public:
             m_state = Aiming;
         }
     }
+    virtual bool TakesDamage() const { return true; }
 
-    auto GetHealth() const { return m_stats.m_health; }
-    auto GetMaxHealth() const { return m_stats.m_maxhealth; }
     auto GetPathFinder() { return &m_path; }
     virtual void WalkTowards(const Vector2& pos);
     int DeduceSequenceForOrientation(int* flip, int* anim_state, int* frame, std::string& seq_name);

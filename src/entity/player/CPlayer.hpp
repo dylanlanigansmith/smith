@@ -33,7 +33,7 @@ public:
 
     virtual void OnHit(int damage, int position = 0);
 
-    auto GetHealth() const { return m_health; }
+    virtual bool TakesDamage() const { return true; }
     virtual float GetBounds() const override { return 0.25f; }
     virtual void OnCollisionWith(CBaseEntity* hit) override;
 

@@ -4,6 +4,18 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include <ctime>
+
+CTextureSystem* ITextureSystem = nullptr;
+CEngineTime* IEngineTime = nullptr;
+CInputSystem* IInputSystem = nullptr;
+CResourceSystem* IResourceSystem = nullptr;
+CFileSystem* IFileSystem = nullptr;
+CLevelSystem* ILevelSystem = nullptr;
+CEntitySystem* IEntitySystem = nullptr;
+CLightingSystem* ILightingSystem = nullptr;
+CAnimationSystem* IAnimationSystem = nullptr;
+
+
 CEngine::~CEngine()
 {
 }
@@ -89,8 +101,7 @@ bool CEngine::Start(const char* title)
 
 int CEngine::Run()
 {
-    static auto IInputSystem = CreateInterface<CInputSystem>("IInputSystem");
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+    
     static auto UpdateProfiler = IEngineTime->AddProfiler("Engine::PostRenderUpdate()");
     static auto TotalRenderProfiler = IEngineTime->AddProfiler("Engine::RenderLoop()");
     m_SoundSystem.Init(0);
@@ -174,28 +185,28 @@ int CEngine::Shutdown()
 
     return 0;
 }
-
+//CreateInterface<
 
 void CEngine::InitInterfaces()
 {
     //CoreEngine
-    interfaces.AddInterface<CFileSystem>();
-    interfaces.AddInterface<CEngineTime>();
-    interfaces.AddInterface<CInputSystem>();
+    IFileSystem = interfaces.AddInterface<CFileSystem>();
+    IEngineTime = interfaces.AddInterface<CEngineTime>();
+    IInputSystem = interfaces.AddInterface<CInputSystem>();
 
     //Resource
-    interfaces.AddInterface<CResourceSystem>();
+    IResourceSystem = interfaces.AddInterface<CResourceSystem>();
     ITextureSystem = interfaces.AddInterface<CTextureSystem>();
 
     //GameSystems
-    interfaces.AddInterface<CAnimationSystem>();
-    interfaces.AddInterface<CEntitySystem>();
+    IAnimationSystem = interfaces.AddInterface<CAnimationSystem>();
+    IEntitySystem = interfaces.AddInterface<CEntitySystem>();
      
     //Users of GameSystems
-    interfaces.AddInterface<CLevelSystem>();
+    ILevelSystem = interfaces.AddInterface<CLevelSystem>();
 
     
-    interfaces.AddInterface<CLightingSystem>();
+    ILightingSystem = interfaces.AddInterface<CLightingSystem>();
 
    
 }

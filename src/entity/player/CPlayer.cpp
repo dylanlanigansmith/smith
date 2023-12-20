@@ -137,7 +137,7 @@ void CPlayer::CreateMove()
 {
   static bool noclip = false;
   static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
-  //  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
   static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
   // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
   static constexpr double tickTime = 1.000 / TICKS_PER_S ;

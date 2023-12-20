@@ -6,7 +6,7 @@
 #include <entity/CBaseEntity.hpp>
 #include <entity/player/CPlayer.hpp>
 
-
+#include <events/CEventManager.hpp>
 
 #include <util/hash_fnv1a.hpp>
 
@@ -81,10 +81,15 @@ public:
     {
         return _interface()->AddEntity<T>();
     }
-   
+    
+    auto Events(){
+        return &event_mgr;
+    }
 private:
     static CEntitySystem* _interface();
     virtual void CreateLocalPlayer();
+
+    CEventManager event_mgr;
 private:
     int m_iRenderableEntities;
     std::vector<CBaseEntity*> entity_list;

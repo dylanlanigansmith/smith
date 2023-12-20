@@ -4,6 +4,8 @@
 
 REGISTER_DEF_ENT(CEnemySoldier);
 
+constexpr auto enemy_spotplayer = CEventManager::EventID("enemy_spotplayer");
+
 void CEnemySoldier::OnUpdate()
 {
     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
@@ -23,7 +25,8 @@ void CEnemySoldier::OnUpdate()
             
         if(m_state == Dying && curTick >  m_nextBehaviourChange){
              m_state = Dead;
-             draw.params.vOffset *= 2.5;
+             draw.params.vOffset *= 2.5; //at 360p *= 2.5
+         
         }      
         m_anim.OnUpdate();
         return;
@@ -107,6 +110,7 @@ void CEnemySoldier::OnUpdate()
                 if(m_lastShout < curTick){
                     engine->SoundSystem()->PlayPositional ("soldier_hey", m_vecPosition);
                     m_lastShout = curTick + TICKS_PER_S * 4;
+                    IEntitySystem->Events()->FireEvent(enemy_spotplayer, EventArg( Vector2(player_pos) ));
                 }
                  
                 m_nextBehaviour = Behaviour_Reposition;
@@ -204,14 +208,14 @@ void CEnemySoldier::OnUpdate()
              m_nextBehaviourChange = curTick;
             m_behaviour = Behaviour_Aiming;
                     m_state = Aiming;   
-            m_anim.log("lucky");
+           
         }
         else{
             m_nextBehaviour = Behaviour_Reposition;
             m_nextBehaviourChange = curTick + 8;
             m_path.Reset();
             m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
-            m_anim.log("unlucky");
+            
         }
     }
        
@@ -241,6 +245,34 @@ void CEnemySoldier::OnCreate()
     m_isDying = false;
     m_anim.OnCreate();
     CreateRenderable();
+
+    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
+    auto events = IEntitySystem->Events();
+
+    events->AddEvent(enemy_spotplayer);
+
+
+    eventCallbackFn spotplayer = [this](uint32_t caller, event_args args){
+        //just to test 
+         try {
+            Vector2 pos = std::any_cast<Vector2>(*args);
+            this->log("%s saw the enemy at %f %f! %d",(caller == this->GetID()) ? "I" : "my buddy", pos.x, pos.y, this->GetID());
+            if(caller == GetID()) return;
+            m_path.Reset();
+            if(m_path.Search({m_vecPosition.x, m_vecPosition.y},  {pos.x, pos.y} )){
+               
+                this->log("heading for him! %d", this->GetID());
+            }
+
+            
+        } catch (const std::bad_any_cast& e) {
+            // Handle or log the exception
+            this->log("Error in event argument casting: %s expected %s", e.what(), (*args).type().name() );
+        }
+        
+    };
+    events->AddListener((CBaseEntity*)this, enemy_spotplayer, spotplayer);
 }
 void CEnemySoldier::WalkTowards(const Vector2& pos)
 {
@@ -697,7 +729,7 @@ void CEnemySoldier::CreateRenderable()
     m_Texture = new texture_t(seq_stand->GetTexture()->m_handle, m_anim.Drawable());
     draw.params.wScale = 1.15; 
     draw.params.vScale = 1.15;
-    draw.params.vOffset = 85;
+    draw.params.vOffset = SCREEN_HEIGHT * 0.2355; //@ 360p = 85  @ 540 = 127 
 
     m_anim.SetCallback(std::bind(&CEnemySoldier::DeduceSequenceForOrientation, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 

@@ -8,7 +8,7 @@
 #include <entity/player/CCamera.hpp>
 // #include <entity/player/CPlayer.hpp>
 #include "render_helpers.hpp"
-#define BLUR_SCALE 2
+#define BLUR_SCALE 4
 
 class CPlayer;
 
@@ -61,7 +61,7 @@ public:
     auto GetFullWidth() const { return windowSize.x; }
     auto GetFullHeight() const { return windowSize.y; }
     void SetNewFullsize(const IVector2& size); 
-    float Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //oh god delete this
+    float Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //this was supposed to be a hack but it worked .... todo cleanup
 private:
     bool CreateRendererLinuxGL();
     bool CreateRendererMacOS();

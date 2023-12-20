@@ -81,25 +81,25 @@ bool CPathFinder::Search(const IVector2 &start, const IVector2 &goal)
 
 std::vector<IVector2> CPathFinder::GetNeighbours(IVector2 pos)
 {
-    static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+    
     std::vector<IVector2 > ret;
-    if(auto t = m_levelSystem->GetTileAt(pos.x, pos.y ); t != nullptr){
+    if(auto t = ILevelSystem->GetTileAt(pos.x, pos.y ); t != nullptr){
         if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
-    if(auto t = m_levelSystem->GetTileAt(pos.x, pos.y + 1); t != nullptr){
+    if(auto t = ILevelSystem->GetTileAt(pos.x, pos.y + 1); t != nullptr){
         if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
-    if(auto t = m_levelSystem->GetTileAt(pos.x, pos.y - 1); t != nullptr){
+    if(auto t = ILevelSystem->GetTileAt(pos.x, pos.y - 1); t != nullptr){
         if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
-    if(auto t = m_levelSystem->GetTileAt(pos.x + 1, pos.y); t != nullptr){
+    if(auto t = ILevelSystem->GetTileAt(pos.x + 1, pos.y); t != nullptr){
         if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
-    if(auto t = m_levelSystem->GetTileAt(pos.x - 1, pos.y); t != nullptr){
+    if(auto t = ILevelSystem->GetTileAt(pos.x - 1, pos.y); t != nullptr){
         if(t->m_nType == Level::Tile_Empty || t->NoCollision())
             ret.push_back(t->m_vecPosition);
     }
@@ -108,8 +108,8 @@ std::vector<IVector2> CPathFinder::GetNeighbours(IVector2 pos)
 
 double CPathFinder::FindCost(const IVector2 &old_pos, const IVector2 &new_pos)
 {
-    static CLevelSystem* m_levelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    auto tile = m_levelSystem->GetTileAt(new_pos);
+    
+    auto tile = ILevelSystem->GetTileAt(new_pos);
     if(!tile)
         return 10.0;
 

@@ -1,6 +1,7 @@
 #include "IEntitySystem.hpp"
 #include <engine/engine.hpp>
 
+
 register_entity_t* CEntitySystem::ent_registry = nullptr;
 
 CEntitySystem::~CEntitySystem()
@@ -19,7 +20,7 @@ void CEntitySystem::OnShutdown()
 
 void CEntitySystem::OnLoopStart()
 {
-    
+    event_mgr.ProcessQueue();
 }
 
 void CEntitySystem::OnLoopEnd()

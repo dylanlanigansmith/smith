@@ -18,8 +18,8 @@
 //0 nearest pixel sampling 1 linear filter 2 anisotropic 
 #define TEXTURE_SCALE_QUALITY "2"
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 360
+#define SCREEN_WIDTH 960
+#define SCREEN_HEIGHT 540
 
 #ifdef __APPLE__
 
