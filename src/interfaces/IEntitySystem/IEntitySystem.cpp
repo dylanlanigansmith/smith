@@ -25,8 +25,8 @@ void CEntitySystem::OnLoopStart()
 
 void CEntitySystem::OnLoopEnd()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
     if(!ILevelSystem->IsLevelLoaded()) return;
 
     auto& update = IEngineTime->GetUpdateTimer();
@@ -75,7 +75,8 @@ void CEntitySystem::RemoveAllButPlayer()
         if(!ent) continue;
         if(!ent->IsLocalPlayer()){
             ent->OnDestroy();
-            
+            event_mgr.RemoveListener(ent->GetID()); //this works 12.20.23
+           
             delete ent;
             ent = nullptr;
             cleaned++;
@@ -95,7 +96,7 @@ void CEntitySystem::RemoveAllButPlayer()
 
 CEntitySystem* CEntitySystem::_interface()
 {
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
     return IEntitySystem;
 }
 

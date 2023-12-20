@@ -8,7 +8,7 @@ void CBaseDoorControl::OnUpdate()
             warn("door to control not thin wall or lacks state! did you call CBaseDoorControl::SetTarget() ?"); return;
         }
         
-        static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
         if(m_door.inTransition())
         {
             float change = ((m_door.m_state == m_door.DoorState_Opening) ? (1.f) : (-1.f));

@@ -7,8 +7,8 @@ CLevelSystem* CLightingSystem::LevelSystem = nullptr;
 light_reg_t *CLightingSystem::light_class = nullptr;
 CLightingSystem *CLightingSystem::_interface()
 {
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-    return ILightingSystem;
+    static auto LightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+    return LightingSystem;
 }
 
 void CLightingSystem::OnEngineInitFinish()
@@ -24,16 +24,16 @@ void CLightingSystem::SetupBlending()
 
 void CLightingSystem::RegenerateLightingForDynamicTile(tile_t *tile)
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
     static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForDynamicTile()"); //that just rolls off the tongue
     RegenProfiler->Start();
     if(!tile || !tile->HasState()) return;
     if(tile->m_pState->light_pts.empty()) return;
     auto& light_pts = tile->m_pState->light_pts;
-    LightData ld(this);
+
     for(const auto& update : light_pts){
         auto& pt = update.first;
-        ld.UpdateLightForPoint(pt.x, pt.y, pt.z, update.second);
+        LightData::UpdateLightForPoint(pt.x, pt.y, pt.z, update.second);
     }
     log("updated size %li", light_pts.size());
     RegenProfiler->EndAndLog();
@@ -41,7 +41,7 @@ void CLightingSystem::RegenerateLightingForDynamicTile(tile_t *tile)
 
 void CLightingSystem::RegenerateLighting()
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     auto &level = ILevelSystem->m_Level;
     auto &world = level->world;
     int lol = 0;
@@ -65,17 +65,16 @@ void CLightingSystem::RegenerateLighting()
 
 void CLightingSystem::CalculateLighting()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
     log("Building lighting info");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     LevelSystem = ILevelSystem;
     static auto LightGenProfiler = IEngineTime->AddProfiler("CLightingSystem::CalculateLighting()");
     LightGenProfiler->HideFromEditor();
     LightGenProfiler->Start();
     SetLogFileOnly(true);
-    LightData ld(this);
-   // ld.Calculate();
-    ld.Calculate2();
+
+    LightData::Calculate2();
     auto &level = ILevelSystem->m_Level;
     auto &world = level->world;
     for (auto &row : world)
@@ -96,7 +95,7 @@ n,e,s,w,u,d
 */
 Color CLightingSystem::getNeighborColor(tile_t *tile, const ivec3 &rel, int dir)
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     if (rel.x < 0 || rel.x >= 3 || rel.y < 0 || rel.y >= 3 || rel.z < 0 || rel.z >= 3)
     {
         // in another tile

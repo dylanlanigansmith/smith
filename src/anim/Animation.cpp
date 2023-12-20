@@ -53,8 +53,7 @@ std::string CAnimation::GetSequenceLocalName(const std::string &fullname)
 {
     return fullname.substr(fullname.find_first_of("_") + 1); //surely this wont be an issue
 }
-auto &CAnimation::IAnimationSystem()
-{  static auto animsys = engine->CreateInterface<CAnimationSystem>("IAnimationSystem"); return animsys; }
+
 
 
 CAnimData* CAnimation::AddDefaultSequenceByName(const std::string &seq_name, const IVector2& size_override)
@@ -62,11 +61,11 @@ CAnimData* CAnimation::AddDefaultSequenceByName(const std::string &seq_name, con
     if(m_defaultSequence != nullptr){
         Error("overwriting default sequence with %s", seq_name.c_str());
     }
-   m_defaultSequence = IAnimationSystem()->GetSequence(m_szName, seq_name);
+   m_defaultSequence = IAnimationSystem->GetSequence(m_szName, seq_name);
    if(m_defaultSequence == nullptr){
         Error("no def seq found for %s", seq_name.c_str()); return nullptr;
    }
-    m_surface = (size_override.x == -1 && size_override.y == -1) ? IAnimationSystem()->GetSurface(m_defaultSequence->GetSize()) : IAnimationSystem()->GetSurface(size_override) ;
+    m_surface = (size_override.x == -1 && size_override.y == -1) ? IAnimationSystem->GetSurface(m_defaultSequence->GetSize()) : IAnimationSystem->GetSurface(size_override) ;
     AddKnownSequence(m_defaultSequence);
     dbg("acquired surface %s [%d %d] and switched to default sequence [0]",(size_override.x == -1) ? "size" : "override", m_surface->w(), m_surface->h()); 
     m_curSequence = m_defaultSequence;
@@ -77,7 +76,7 @@ CAnimData* CAnimation::AddDefaultSequenceByName(const std::string &seq_name, con
 
 CAnimData* CAnimation::AddSequenceByName(const std::string &seq_name)
 {
-   auto to_add = IAnimationSystem()->GetSequence(m_szName, seq_name);
+   auto to_add = IAnimationSystem->GetSequence(m_szName, seq_name);
    if(m_defaultSequence == nullptr){
         Error("no seq found for %s", seq_name.c_str()); return nullptr;
    }

@@ -14,7 +14,7 @@ void CPlayer::OnUpdate()
 {
   m_inventory->OnUpdate();
   CreateMove();
-  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
   static auto lastHealthGain = IEngineTime->GetCurLoopTick();
   if(m_health < 75 && IEngineTime->GetCurLoopTick()  > (lastHealthGain + TICKS_PER_S * 2.5 ) ){
     m_health += Util::SemiRandRange(2, 8);
@@ -136,9 +136,9 @@ void CPlayer::OnSetPosition(const Vector2 &old_pos, const Vector2 &new_pos)
 void CPlayer::CreateMove()
 {
   static bool noclip = false;
-  static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
-  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-  static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
+
   // double frameTime = IEngineTime->GetLastFrameTime().sec() / 50.f; // ticks bro u need ticks
   static constexpr double tickTime = 1.000 / TICKS_PER_S ;
  

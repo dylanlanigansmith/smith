@@ -3,8 +3,8 @@
 #include <entity/player/CPlayer.hpp>
 void CAnimViewmodel::Draw(CRenderer *renderer, const IVector2 &screen_pos, uint8_t alpha)
 {
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
    
 
     if(m_curSequence == nullptr){

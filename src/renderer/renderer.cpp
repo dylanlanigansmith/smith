@@ -94,7 +94,7 @@ bool CRenderer::Create()
 
 void CRenderer::OnEngineInitFinish()
 {
-  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
   SetLightingRenderInfo();
   ILightingSystem->SetupBlending();
 
@@ -108,7 +108,7 @@ void CRenderer::OnEngineInitFinish()
 
 void CRenderer::SetLightingRenderInfo()
 {
-  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
 
   ILightingSystem->m_lightsurface = (m_bBlur) ? m_lightsurface : m_blur;
   // ILightingSystem->m_lighttexture = m_lightTexture;
@@ -116,7 +116,7 @@ void CRenderer::SetLightingRenderInfo()
 
 void CRenderer::UpdateLighting()
 {
-  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
 }
 void CRenderer::applyMovingAverage(int startX, int endX, int startY, int endY)
 {
@@ -562,11 +562,11 @@ bool CRenderer::CreateRendererMacOS()
 }
 void CRenderer::Loop()
 {
-  static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
  
-  static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
   
-  static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
 
    static auto WolfProfiler = IEngineTime->AddProfiler("Render::LoopWolf()");
   static auto BlurProfiler = IEngineTime->AddProfiler("Render::Blur()");

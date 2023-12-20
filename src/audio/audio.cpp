@@ -21,7 +21,7 @@ bool CSoundSystem::Init(int plat)
 
     m_bVerbose = true;
     dbg("starting..");
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
     m_szAudioResourcePath = IResourceSystem->GetResourceSubDir("audio");
     if(m_szAudioResourcePath.empty()){
         warn("No Resource Path!");
@@ -52,7 +52,7 @@ bool CSoundSystem::PlaySound(const std::string &name, float m_flVolume, float m_
 
 bool CSoundSystem::PlayPositional(const std::string &name, const Vector2 &source, float min_vol, float max_vol)
 {
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
     auto player = IEntitySystem->GetLocalPlayer();
     Vector2 delta =   source - player->GetPosition() ;
     delta = delta.Normalize();
@@ -216,7 +216,7 @@ void CSoundSystem::SetupAudioDevice()
 
 void CSoundSystem::LoadAudioFile(const std::string &name, uint8_t format)
 {
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
 
     auto ad_ptr = AudioImport::Load(name, &m_device.m_spec);
     if(ad_ptr == nullptr){

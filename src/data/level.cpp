@@ -13,7 +13,7 @@ json CLevel::ToJSON()
     j.emplace("metadata", meta);
 
     auto lights = json::object();
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
     auto lightdata = ILightingSystem->ToJSON();
     j.emplace("lighting", lightdata);
 
@@ -50,7 +50,7 @@ bool CLevel::FromJSON(const json &j) // entire file
         AddTile(tile);
         amt++;
     }
-     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
     auto light_data = j.at("lighting");
     ILightingSystem->FromJSON(light_data);
     return (amt > 0);

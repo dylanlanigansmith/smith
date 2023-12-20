@@ -37,8 +37,8 @@ void AudioImport::LoadOGG(const std::string &name, audiodata_t* ad)
 
 audiodata_t *AudioImport::Load(const std::string &name_ext, SDL_AudioSpec *spec)
 {
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    static auto IFileSystem = engine->CreateInterface<CFileSystem>("IFileSystem");
+
+
 
     std::string fullpath = GetPathToAudio(name_ext);
     if(fullpath.empty()){
@@ -104,8 +104,8 @@ audiodata_t *AudioImport::Load(const std::string &name_ext, SDL_AudioSpec *spec)
 
 std::string AudioImport::GetPathToAudio(const std::string &name)
 {
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    static auto IFileSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
+
 
     return IResourceSystem->FindResourceFromSubdir("audio", name);
     

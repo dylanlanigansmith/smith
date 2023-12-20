@@ -51,7 +51,7 @@ void CBaseEnemy::CreateRenderable()
 
 void CBaseEnemy::SetupTexture(const std::string &name)
 {
-    m_Texture = engine->TextureSystem()->FindOrCreatetexture(name);
+    m_Texture = ITextureSystem->FindOrCreatetexture(name);
     SDL_SetSurfaceColorKey(m_Texture->m_texture, SDL_TRUE, Color::Cyan());
     m_hTexture = m_Texture->m_handle;
     m_vecTextureSize = m_Texture->m_size;
@@ -131,8 +131,8 @@ void CBaseEnemy::OnHit(int damage, int position)
 
 void CBaseEnemy::OnUpdate()
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
+
 
     m_anim->OnUpdate();
     if(m_iHealth <= 0){
@@ -292,8 +292,8 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
     IVector2 drawStart,drawEnd, renderSize, screen;
     Vector2 transform;
     CalculateDrawInfo(&drawStart,&drawEnd, &renderSize, &screen, &transform, camera, wScale, vScale, vOffset);
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-     static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
+
     auto texture = m_Texture->m_texture;
     uint32_t *pixelsT = (uint32_t *)texture->pixels;
     for (int stripe = drawStart.x; stripe < drawEnd.x; stripe++)

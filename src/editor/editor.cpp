@@ -65,7 +65,7 @@ void CEditor::Init()
 
 void CEditor::InitTextureInfo()
 {
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
 
     if(!texture_info.empty()) // NO MORE GIANT MEMORY LEAK!!
     {
@@ -95,7 +95,7 @@ void CEditor::render(CRenderer *renderer)
 {
     smith_renderer = renderer;
     static bool changedLastFrame = false;
-    static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
+
     IInputSystem->m_devMenuOpen = m_bIsOpen;
     if (IInputSystem->IsKeyDown(SDL_SCANCODE_BACKSLASH))
     {
@@ -108,9 +108,9 @@ void CEditor::render(CRenderer *renderer)
     else
         changedLastFrame = false;
 
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
+
     auto player = IEntitySystem->GetLocalPlayer();
     if (auto draw = ImGui::GetBackgroundDrawList(); draw && ILevelSystem->IsLevelLoaded()) // just for scope really
     {
@@ -263,9 +263,9 @@ void CEditor::render(CRenderer *renderer)
 void CEditor::drawMapView()
 {
     // imgui demo 2366
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
+
+
 
     static tile_t *selectedTile = nullptr;
     auto &level = ILevelSystem->m_Level;
@@ -498,10 +498,10 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 {
     // Use object uid as identifier. Most commonly you could also use the object pointer as a base ID.
     ImGui::PushID(entity);
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
+
+
+
+
     // Text and Tree nodes are less high than framed widgets, using AlignTextToFramePadding() we add vertical spacing to make the tree lines equal high.
     ImGui::TableNextRow();
     ImGui::TableSetColumnIndex(0);
@@ -708,10 +708,10 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 void CEditor::drawEntityView()
 {
 
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
     // there is an example for this in the imguidemo
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
     static ImVec2 scrolling(0.0f, 0.0f);
     static bool opt_enable_grid = true;
     static bool opt_enable_context_menu = true;
@@ -959,8 +959,8 @@ void CEditor::drawResourceView()
 
 void CEditor::drawMaterialView()
 {
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
+
 
     static auto material_dir = IResourceSystem->GetDirectoryStructure("material");
 
@@ -1059,9 +1059,9 @@ void CEditor::drawMaterialView()
 
 void CEditor::drawMaterialEditor()
 {
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
+
     ImGui::SeparatorText("Material Editor");
 
     static ImGuiTextFilter filter;
@@ -1140,11 +1140,11 @@ void CEditor::drawMaterialEditor()
 
 void CEditor::drawLightView()
 {
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
     // there is an example for this in the imguidemo
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
+
 
     static ImVec2 scrolling(0.0f, 0.0f);
 
@@ -1486,7 +1486,7 @@ void CEditor::drawLightView()
 
 void CEditor::drawSystemView()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
     if(ImGui::CollapsingHeader("Performance"))
     {
         
@@ -1538,7 +1538,7 @@ void CEditor::drawSystemView()
 void CEditor::TexturePicker(const char *title, tile_t *selectedTile, texture_t *&selectedTexture,
                             SDL_Texture *&previewTexture, std::string &preview, ImGuiTextFilter *filter, uint8_t updatetype)
 {
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
 
     if (ImGui::BeginCombo(title, preview.c_str(), ImGuiComboFlags_HeightLarge))
     {
@@ -1568,10 +1568,10 @@ void CEditor::TexturePicker(const char *title, tile_t *selectedTile, texture_t *
 void CEditor::drawAnimView()
 {
 
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-     static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
-     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
+
+
+
     static SDL_Texture* anim_preview = NULL;
 
     static bool isPlaying = false;

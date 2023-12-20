@@ -35,5 +35,5 @@ protected:
     CAnimData* m_defaultSequence;
     std::unique_ptr<CAnimSurface> m_surface;
     texture_t * m_overrideTexture;
-    static auto& IAnimationSystem();
+  
 };

@@ -57,11 +57,11 @@ bool CPathVoxel::Search(const Vector2 &start, const Vector2 &goal)
     
   //  dbg("searching for path from {%.3f %.3f} to {%.3f %.3f}", start.x, start.y, goal.x, goal.y);
     Reset();
-    static CLevelSystem* IlevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    auto tile_goal = IlevelSystem->GetTileAt(goal);
+
+    auto tile_goal = ILevelSystem->GetTileAt(goal);
     auto rg =  tile_goal->getSectorCenterRelativeCoords( tile_goal->worldToSector(goal) );
     vecGoal = {rg.x + floor(goal.x), rg.y + floor(goal.y)};
-    auto tile_start = IlevelSystem->GetTileAt(start);
+    auto tile_start = ILevelSystem->GetTileAt(start);
     auto rs =  tile_start->getSectorCenterRelativeCoords( tile_start->worldToSector(start) );
     vecStart = {rs.x + floor(start.x), rs.y + floor(start.y)};
 

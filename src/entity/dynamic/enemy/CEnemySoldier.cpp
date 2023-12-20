@@ -8,9 +8,9 @@ constexpr auto enemy_spotplayer = CEventManager::EventID("enemy_spotplayer");
 
 void CEnemySoldier::OnUpdate()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
+
 
      auto curTick = IEngineTime->GetCurLoopTick();
     if(m_state == Dying || m_state == Dead)
@@ -246,7 +246,7 @@ void CEnemySoldier::OnCreate()
     m_anim.OnCreate();
     CreateRenderable();
 
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
 
     auto events = IEntitySystem->Events();
 
@@ -276,7 +276,7 @@ void CEnemySoldier::OnCreate()
 }
 void CEnemySoldier::WalkTowards(const Vector2& pos)
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     double moveSpeed = m_move.m_flForwardSpeed;
     if(!m_view.lookAt(m_vecPosition, pos, m_move.m_flYawSpeed))
         moveSpeed /= 2.0;
@@ -302,7 +302,7 @@ void CEnemySoldier::WalkTowards(const Vector2& pos)
 //just keep this function minimized okay? you can thank me later. god help you. 
 int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int *frame, std::string &seq_name) // returns orientation
 {
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
     auto player = IEntitySystem->GetLocalPlayer();
     //set defaults in case we fail along the way
     const std::string def_seq_name = "stand0";
@@ -585,7 +585,7 @@ int CEnemySoldier::DeduceSequenceForOrientation(int *flip, int *anim_state, int 
 
 bool CEnemySoldier::isPlayerVisible(CPlayer *player, double fov)
 {
-    static auto IInputSystem = engine->CreateInterface<CInputSystem>("IInputSystem");
+
     static bool ignore_player = PLATFORM.LaunchOptions().HasArg("peace");
     if(ignore_player || IInputSystem->isDevMenuOpen()) return false;
     #ifdef IGNORE_PLAYER
@@ -615,7 +615,7 @@ bool CEnemySoldier::isPlayerWithinFOV(const Vector2 &playerPosition, double FOVA
 
 bool CEnemySoldier::CastRayToPlayer(const Vector2 &playerPosition, float playerBounds)
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
      Ray_t ray = {
         .origin = Vector2(GetPosition()),
         .direction = (playerPosition - GetPosition()).Normalize() 
@@ -672,7 +672,7 @@ void CEnemySoldier::Shoot(CPlayer *player)
         .origin = Vector2(GetPosition()),
         .direction = m_view.m_dir.Normalize() //should already be
     };
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     if(Util::RayIntersectsCircle(ray, player_pos, player_bounds)) //this is literally CastRayToPlayer...
     {
         //engine->log("in circle");

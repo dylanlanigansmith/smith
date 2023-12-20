@@ -7,7 +7,7 @@
 int CImageLoader::Load(const std::string &img_path, SDL_Surface **surf)
 {
     Debug(false);
-    static auto IFileSystem = engine->CreateInterface<CFileSystem>("IFileSystem");
+
     if (!IFileSystem->FileExists(img_path))
     {
         Error("Image %s doesn't exist", img_path.c_str());

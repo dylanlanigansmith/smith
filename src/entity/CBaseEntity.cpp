@@ -3,7 +3,7 @@
 
 void CBaseEntity::SetPosition(double x, double y, double z)
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     IVector2 newmapPos = {int(x), int(y)};
 
     Vector2 old_pos = GetPosition();

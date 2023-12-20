@@ -8,7 +8,20 @@
 #include <audio/audio.hpp>
 #include <plat/platform.hpp>
 
-
+//these used to all be nicely encapsualted
+//and one would have to call engine->createinterface("xxxSystem") to get a ptr to them
+//but it feels silly at this point
+// i dont love globals but
+// sometimes it aint worth overthinking
+extern CTextureSystem* ITextureSystem;
+extern CEngineTime* IEngineTime;
+extern CInputSystem* IInputSystem;
+extern CResourceSystem* IResourceSystem;
+extern CFileSystem* IFileSystem;
+extern CLevelSystem* ILevelSystem;
+extern CEntitySystem* IEntitySystem;
+extern CLightingSystem* ILightingSystem;
+extern CAnimationSystem* IAnimationSystem;
 
 
 class CEngine : public CLogger
@@ -33,8 +46,7 @@ public:
         return (nullptr);
     }
 
-    auto TextureSystem() __attribute__((deprecated("fix me!!"))) { 
-      return ITextureSystem; }
+   
     auto SoundSystem() { return &m_SoundSystem; }
     auto& GetSysInfo() const { return PLATFORM.SysInfo(); }
 protected:
@@ -54,17 +66,3 @@ private:
 extern CEngine* engine;
 
 
-//these used to all be nicely encapsualted
-//and one would have to call engine->createinterface("xxxSystem") to get a ptr to them
-//but it feels silly at this point
-// i dont love globals but
-// sometimes it aint worth overthinking
-extern CTextureSystem* ITextureSystem;
-extern CEngineTime* IEngineTime;
-extern CInputSystem* IInputSystem;
-extern CResourceSystem* IResourceSystem;
-extern CFileSystem* IFileSystem;
-extern CLevelSystem* ILevelSystem;
-extern CEntitySystem* IEntitySystem;
-extern CLightingSystem* ILightingSystem;
-extern CAnimationSystem* IAnimationSystem;

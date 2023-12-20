@@ -3,14 +3,11 @@
 #include <interfaces/ILightingSystem/ILightingSystem.hpp>
 #include <types/Vector.hpp>
 
-class LightData
+class LightData //not a namespace bc it needs friend access for CLevel
 {
 public:
-    LightData(CLightingSystem *ILightingSystem) : ILightingSystem(ILightingSystem)
-    {
-        ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-    }
-    void DebugPerPixel()
+
+    static void DebugPerPixel()
     {
         auto &world = ILevelSystem->m_Level->world;
 
@@ -82,7 +79,7 @@ public:
             total_light.a(lightColor.a());
         return lightColor + total_light;
     }
-    void Calculate()
+    static void Calculate()
     {
         auto &world = ILevelSystem->m_Level->world;
 
@@ -196,7 +193,7 @@ public:
     12/18/23
 
     */
-    void UpdateLightForPoint(float x, float y, float z, CLight* override_light = nullptr)
+    static void UpdateLightForPoint(float x, float y, float z, CLight* override_light = nullptr)
     {
         int xIndex = std::clamp(static_cast<int>(std::round(x * 10.f)), 0, MAP_SIZE * 10);
         int yIndex = std::clamp(static_cast<int>(std::round(y * 10.f)), 0, MAP_SIZE * 10);
@@ -339,7 +336,7 @@ public:
         // ILightingSystem->log("END FOR [%.1f %.1f %.1f]", x,y,z);
     }
 
-    void Calculate2()
+    static void Calculate2()
     {
 
         for (auto &a0 : ILightingSystem->lightmap)
@@ -366,6 +363,5 @@ public:
     }
 
 private:
-    CLightingSystem *ILightingSystem;
-    CLevelSystem *ILevelSystem;
+    
 };

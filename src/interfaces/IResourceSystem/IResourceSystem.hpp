@@ -52,7 +52,7 @@ private:
     inline std::string MergePathAndFileName(const std::string& path, const std::string& name);
     virtual bool FileExists(const std::string& path);
     std::string inline AddExtension(const std::string& name, const std::string& ext = ".json"){return std::string(name).append(ext);    }
-    CFileSystem* IFileSystem;
+   
 
 private:
    

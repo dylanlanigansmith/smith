@@ -12,8 +12,8 @@ void CAnimController::DrawFrame(CRenderer *renderer, IVector2 offset, uint8_t al
 
     int start_x = SCREEN_WIDTH / 2 - frame_width / 2 + m_vecOffset.x;
     int start_y = SCREEN_HEIGHT - frame_height + m_vecOffset.y;
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-      static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
         auto worldPos = m_pParent->GetPosition();
        auto tile = ILevelSystem->GetTileAtFast(worldPos.x, worldPos.y);
     // greasy
@@ -140,7 +140,7 @@ bool CAnimController::SwitchFrames(CAnimSequence *seq)
 
 void CAnimController::SetupTexture(const std::string& m_szTextureName)
 {
-    m_draw.m_sourceTexture = engine->TextureSystem()->FindOrCreatetexture(m_szTextureName);
+    m_draw.m_sourceTexture = ITextureSystem->FindOrCreatetexture(m_szTextureName);
     dbg("texture found %s %i", m_szTextureName.c_str(), m_draw.m_sourceTexture->m_texture != nullptr);
 
     m_draw.m_surface = SDL_CreateSurface(m_params.m_surfaceSize.w(),m_params.m_surfaceSize.h(), SMITH_PIXELFMT);

@@ -18,9 +18,9 @@ void CWeaponSMG::Render(CRenderer *renderer)
 {
     static constexpr float flx = SCREEN_WIDTH / 17.0667f;
     static constexpr float fly = SCREEN_HEIGHT / -3.6f;
-    static constexpr float gx = SCREEN_WIDTH / 5.9534f;
-   
-    anim_smg.Draw(renderer, {90.f, 5.f});
+    static constexpr float gx = SCREEN_WIDTH * 0.140625f;
+    static constexpr float gy = SCREEN_HEIGHT * 0.0139f;
+    anim_smg.Draw(renderer, {gx, gy}); //640x360 = 90, 5 
 }
 
 void CWeaponSMG::OnUpdate()
@@ -54,7 +54,7 @@ void CWeaponSMG::OnCreate()
     this->m_data.nAmmoType = 1;
     this->m_reserveammo =  this->m_data.iMaxAmmo * 2;
 
-    anim_smg.AddDefaultSequenceByName("default0");
+    anim_smg.AddDefaultSequenceByName("default0", {SCREEN_WIDTH * 0.703125f, SCREEN_HEIGHT *  0.65f}); //640x360 = 450x234
     anim_smg.AddSequenceByName("shoot0");
     anim_smg.AddSequenceByName("equip0");
     anim_smg.AddSequenceByName("reload0");

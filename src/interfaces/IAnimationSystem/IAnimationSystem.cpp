@@ -40,7 +40,7 @@ nlohmann::json CAnimationSystem::ListToJson()
 
 void CAnimationSystem::ListFromJson(const nlohmann::json& js)
 {
-     static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
     for(auto& key : js.items()){
         auto add = new CAnimData();
         auto name = std::string(key.key()) ;
@@ -56,8 +56,8 @@ void CAnimationSystem::ListFromJson(const nlohmann::json& js)
 
 void CAnimationSystem::LoadSequences()
 {
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
+
 
     
 }
@@ -66,7 +66,7 @@ void CAnimationSystem::LoadSequences()
 void CAnimationSystem::OnCreate()
 {
     Debug(false);
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
     IResourceSystem->LoadAnimations();
 }
 

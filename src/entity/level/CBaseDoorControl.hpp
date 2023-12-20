@@ -67,7 +67,7 @@ struct door_data
     }
     void setup(CBaseDoorControl* m_parent, const IVector2& tile_pos)  {
 
-        static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
         assert(ILevelSystem->ValidTilePosition(tile_pos));
         m_tile = ILevelSystem->GetTileAtFast(tile_pos);
         if(m_tile == nullptr){

@@ -111,8 +111,8 @@ namespace R2
     static void render_frame(CRenderer* renderer)
     {
         static render_data rd;
-        static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-        static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
+
 
         static SDL_Texture* test = SDL_CreateTextureFromSurface(renderer->get(), ITextureSystem->FindOrCreatetexture("Bricks.png")->m_texture );
         auto player = IEntitySystem->GetLocalPlayer();

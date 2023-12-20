@@ -372,29 +372,29 @@ namespace Render
                 
                 for (int y = draw.drawStart; y < draw.drawEnd; y++)
                 {
-                Render::UpdateTextureCoords_ThinWall(draw);
+                    Render::UpdateTextureCoords_ThinWall(draw);
 
-                uint32_t *pixelsT = (uint32_t *)texture->pixels;
-                Color color = pixelsT[(texture->pitch / 4 * draw.texture_pos.y) + draw.texture_pos.x]; // ABGR
-                if(color.a() == 0u) continue;
-                if(color == 0u) continue;
-                if(material->m_clrKey && color == material->m_clrKey) continue;
-                //removed: bullet holes went here
+                    uint32_t *pixelsT = (uint32_t *)texture->pixels;
+                    Color color = pixelsT[(texture->pitch / 4 * draw.texture_pos.y) + draw.texture_pos.x]; // ABGR
+                    if(color.a() == 0u) continue;
+                    if(color == 0u) continue;
+                    if(material->m_clrKey && color == material->m_clrKey) continue;
+                    //removed: bullet holes went here
 
-                if (ray.side == 1) // make color darker for y-sides
-                    color /= 0.5f;
+                    if (ray.side == 1) // make color darker for y-sides
+                        color /= 0.5f;
+                    
+
+                        //log("{%i %i} { %.1f,  %.1f,  %.4f}, %i %i ", mapPos.x, mapPos.y,wp.x,wp.y,wp.z);
+                    
                 
-
-                    //log("{%i %i} { %.1f,  %.1f,  %.4f}, %i %i ", mapPos.x, mapPos.y,wp.x,wp.y,wp.z);
+                    Vector wp = Render::WorldPositionFromDrawInfo(ray, draw, y, STEPMAGICNUM);
+                    ILightingSystem->ApplyLightForTile(tile, (ray.rayDir.x > 0), (ray.rayDir.y > 0),wp, x, y);
+                    renderer->SetPixel(x,y, color);
+                    if(material->isTransparent())
+                        renderer->Z2D[x][y] = ray.perpDist;
                 
-            
-                Vector wp = Render::WorldPositionFromDrawInfo(ray, draw, y, STEPMAGICNUM);
-                ILightingSystem->ApplyLightForTile(tile, (ray.rayDir.x > 0), (ray.rayDir.y > 0),wp, x, y);
-                renderer->SetPixel(x,y, color);
-                if(material->isTransparent())
-                    renderer->Z2D[x][y] = ray.perpDist;
-              
-                didDraw = true;
+                    didDraw = true;
                 
                 
                 }

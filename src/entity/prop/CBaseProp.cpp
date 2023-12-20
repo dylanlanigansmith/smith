@@ -7,8 +7,8 @@ CBaseProp::CBaseProp(int m_iID) : CBaseRenderable(m_iID)
 
 void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int vOffset) 
 {
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
      auto tile = ILevelSystem->GetTileAtFast( m_vecPosition.x,  m_vecPosition.y);
      auto camera = renderer->GetActiveCamera();
     Vector2 relPos = {
@@ -93,7 +93,7 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
 
 void CBaseProp::SetupTexture(const std::string& name)
 {
-    auto ITextureSystem = engine->TextureSystem(); // inconsistent
+    
     this->m_hTexture = ITextureSystem->FindTexture(name);
     this->m_Texture = ITextureSystem->GetTextureData(m_hTexture);
     this->m_vecTextureSize = this->m_Texture->m_size;

@@ -12,10 +12,13 @@ CResourceSystem::~CResourceSystem()
 
 void CResourceSystem::OnCreate()
 {
-    IFileSystem = engine->CreateInterface<CFileSystem>("IFileSystem");
+   
+
     if(!IFileSystem) {
         Error("Failed acquire IFileSystem: got 0x%lx", (uintptr_t)IFileSystem); 
+        return;
     }
+ 
     const std::string res_path = IFileSystem->GetResourcePath();
     log("using %s as resource folder", res_path.c_str());
 
@@ -136,7 +139,7 @@ bool CResourceSystem::LoadTextureDefinition()
     int amt = 0;
     json tex_def = ReadJSONFromFile(path);
 
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
     for (const auto &key : tex_def)
     {
         CTexture toLoad;
@@ -152,7 +155,7 @@ bool CResourceSystem::LoadTextureDefinition()
 
 bool CResourceSystem::SaveTextureDefinition()
 {
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
     json tex_def = json::object();
     int amt = 0;
     for (const auto &entry : ITextureSystem->texture_db)
@@ -216,7 +219,7 @@ json CResourceSystem::ReadJSONFromFile(const std::string &path)
 
 bool CResourceSystem::LoadLevel(const std::string &name)
 {
-     static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     auto dir = GetResourceSubDir(LEVEL_SUBDIR);
     auto path = IFileSystem->MergePathAndFileName(dir, AddExtension(name)); //findresource
 
@@ -238,7 +241,7 @@ bool CResourceSystem::LoadLevel(const std::string &name)
 
 bool CResourceSystem::SaveLevel()
 {
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
     if(ILevelSystem->m_Level ==  nullptr) return false;
   
     auto& level = ILevelSystem->m_Level;
@@ -256,7 +259,7 @@ bool CResourceSystem::SaveLevel()
 
 bool CResourceSystem::SaveAnimations()
 {
-    static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
+
     auto dir = GetResourceSubDir("definition");
     auto path = IFileSystem->MergePathAndFileName(dir, IFileSystem->AddExtension("animation"));
 
@@ -272,7 +275,7 @@ bool CResourceSystem::SaveAnimations()
 
 bool CResourceSystem::LoadAnimations()
 {
-     static auto IAnimationSystem = engine->CreateInterface<CAnimationSystem>("IAnimationSystem");
+
     auto dir = GetResourceSubDir("definition");
     auto path = IFileSystem->MergePathAndFileName(dir, IFileSystem->AddExtension("animation"));
 

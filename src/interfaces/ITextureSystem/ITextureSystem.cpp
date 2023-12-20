@@ -12,7 +12,7 @@ void CTextureSystem::OnCreate()
 {
     Debug(false);
     m_hTextureError = HTEXTURE_INVALID;
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
     m_szTextureResourcePath = IResourceSystem->GetResourceSubDir("material");
 
     IResourceSystem->LoadTextureDefinition();
@@ -46,7 +46,7 @@ void CTextureSystem::OnShutdown()
 
 void CTextureSystem::OnLoopStart()
 {
-  // static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
    // IResourceSystem->SaveTextureDefinition();
 }
 
@@ -263,7 +263,7 @@ const std::string CTextureSystem::FilenameFromHandle(hTexture handle)
 std::string CTextureSystem::TextureNameToFile(const std::string &name)
 {
 
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
+
     
     std::string full_path = IResourceSystem->FindResource(m_szTextureResourcePath, name);
     return full_path;

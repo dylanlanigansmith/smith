@@ -15,8 +15,8 @@ class CInterfaceList
 {
 public:
     template <typename T>
-    T* AddInterface(){
-        T* interface = new T();
+    T* AddInterface(T*& interface){
+        interface = new T();
         auto base = static_cast<CBaseInterface*>(interface);
         
 
@@ -48,7 +48,7 @@ public:
     template <typename T>
     T* CreateInterface(const std::string& name){
         //this should not be used without checking it exists so lets just not
-
+        
         return static_cast<T*>(interface_list.at(name));
             
     }

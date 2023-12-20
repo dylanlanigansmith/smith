@@ -13,9 +13,9 @@ inline bool HitDetectPixelPerfect(CPlayer *player, CEnemySoldier *ent, IVector2 
 
 bool CBaseWeapon::Shoot()
 {
-     static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem"); // real collisions just use 2d top down sdl rect
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
+
+
     static auto owner = static_cast<CPlayer *>(m_pOwner);
     auto curTick = IEngineTime->GetCurLoopTick();
 
@@ -219,7 +219,7 @@ bool CBaseWeapon::Shoot()
 
 void CBaseWeapon::Reload()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
 
     auto curTick = IEngineTime->GetCurLoopTick();
     if(m_reserveammo == 0 ) return;
@@ -241,7 +241,7 @@ void CBaseWeapon::Reload()
 
 void CBaseWeapon::OnSetOwnerEntity()
 {
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
     m_pOwner = IEntitySystem->GetEntity<CBaseRenderable>(m_iOwnerID);
 } // todo:s
 

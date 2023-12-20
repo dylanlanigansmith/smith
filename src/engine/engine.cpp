@@ -190,23 +190,24 @@ int CEngine::Shutdown()
 void CEngine::InitInterfaces()
 {
     //CoreEngine
-    IFileSystem = interfaces.AddInterface<CFileSystem>();
-    IEngineTime = interfaces.AddInterface<CEngineTime>();
-    IInputSystem = interfaces.AddInterface<CInputSystem>();
-
-    //Resource
-    IResourceSystem = interfaces.AddInterface<CResourceSystem>();
-    ITextureSystem = interfaces.AddInterface<CTextureSystem>();
-
-    //GameSystems
-    IAnimationSystem = interfaces.AddInterface<CAnimationSystem>();
-    IEntitySystem = interfaces.AddInterface<CEntitySystem>();
-     
-    //Users of GameSystems
-    ILevelSystem = interfaces.AddInterface<CLevelSystem>();
+    IFileSystem = interfaces.AddInterface<CFileSystem>(IFileSystem);
+    IEngineTime = interfaces.AddInterface<CEngineTime>(IEngineTime);
+    IInputSystem = interfaces.AddInterface<CInputSystem>(IInputSystem);
 
     
-    ILightingSystem = interfaces.AddInterface<CLightingSystem>();
+    //Resource 
+    IResourceSystem = interfaces.AddInterface<CResourceSystem>(IResourceSystem);
+    ITextureSystem = interfaces.AddInterface<CTextureSystem>(ITextureSystem);
+
+    //GameSystems
+    IAnimationSystem = interfaces.AddInterface<CAnimationSystem>(IAnimationSystem);
+    IEntitySystem = interfaces.AddInterface<CEntitySystem>(IEntitySystem);
+     
+    //Users of GameSystems
+    ILevelSystem = interfaces.AddInterface<CLevelSystem>(ILevelSystem);
+
+    
+    ILightingSystem = interfaces.AddInterface<CLightingSystem>(ILightingSystem);
 
    
 }

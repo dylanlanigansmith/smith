@@ -43,11 +43,11 @@ in general events and callbacks are gonna be needed soon
 
 void CRenderer::LoopWolf(int minX, int maxX, bool sprites)
 {
-  static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-  static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
-  static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
+
   
-  static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
   // level system should handle these
 
   static int textH = 0, textW = 0;
@@ -86,8 +86,8 @@ void CRenderer::LoopWolf(int minX, int maxX, bool sprites)
 
 void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int textH, const int w, const int h,int minX, int maxX)
 {
-  static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
-   static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
+
   const double vertPos = 0.5; //
   const auto playerPos = player->GetPosition();
   for (int y = 0; y < SCREEN_HEIGHT; ++y)
@@ -204,7 +204,7 @@ void CRenderer::DrawFloorCeiling(CPlayer *player, const int textW, const int tex
 
 void CRenderer::RenderSprites(CPlayer* player)
 {
-   static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
  
    // draw renderable entities
  // int numSprites = IEntitySystem->NumRenderables();

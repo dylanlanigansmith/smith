@@ -73,9 +73,9 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     m_levelState = LevelSystem_Init;
 
     
-    static auto IResourceSystem = engine->CreateInterface<CResourceSystem>("IResourceSystem");
-     static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
-      static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
+
+
+
     if(changing)
     {
         delete m_Level; m_Level = nullptr;
@@ -152,7 +152,7 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
 
 void CLevelSystem::OnEngineInitFinish()
 {
-    m_TextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
 
     LoadLevel("lvldev");
 }
@@ -200,7 +200,7 @@ IVector2 CLevelSystem::FindEmptySpace() // Random
 bool CLevelSystem::IsCollision(CBaseEntity* caller, const Vector& origin, const Vector& goal)
 {
     //to raycast everything we would have to either dda or deduce direction and get face coords, or check all 4 lol
-    static auto IEntitySystem = engine->CreateInterface<CEntitySystem>("IEntitySystem");
+
   //  return IsWallCollision(origin, goal);
     if(IsWallCollision(origin, goal)) return true;
     Vector delta = goal - origin;
@@ -280,9 +280,9 @@ void CLevelSystem::LoadAndFindTexturesForMap()
     for(auto& row : world)
     {
         for(auto& tile : row){
-           tile.m_pTexture = m_TextureSystem->GetTextureData(tile.m_hTexture);
-           tile.m_pTextureCeiling = m_TextureSystem->GetTextureData(tile.m_hTextureCeiling);
-           tile.m_pTextureFloor = m_TextureSystem->GetTextureData(tile.m_hTextureFloor);
+           tile.m_pTexture = ITextureSystem->GetTextureData(tile.m_hTexture);
+           tile.m_pTextureCeiling = ITextureSystem->GetTextureData(tile.m_hTextureCeiling);
+           tile.m_pTextureFloor = ITextureSystem->GetTextureData(tile.m_hTextureFloor);
         }
     }
 
@@ -303,8 +303,8 @@ void CLevelSystem::LoadAndFindTexturesForMap()
 
 void CLevelSystem::AddMapTexture(int id, const std::string& name)
 {
-    auto hTex = m_TextureSystem->FindTexture(name);
-    if(!m_TextureSystem->IsHandleValid(hTex)){
+    auto hTex = ITextureSystem->FindTexture(name);
+    if(!ITextureSystem->IsHandleValid(hTex)){
         log("failed to add map texture for mapid %i", id); return;
     }
     auto succ = level_textures.emplace(id, hTex);
@@ -422,7 +422,7 @@ hTexture CLevelSystem::FindTextureForMapObject(int obj)
     catch (const std::out_of_range& oor) {
         Error("unset texture for map obj %i", obj);
         
-        ret = m_TextureSystem->ErrorTextureHandle();
+        ret = ITextureSystem->ErrorTextureHandle();
     }
    
    return ret;

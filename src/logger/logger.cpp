@@ -201,7 +201,7 @@ void CLogger::error(const char* file, int line, const char* fmt, ...)
 
 bool CLogger::StartLogFileForInstance(const std::string &path,  bool unique )
 {
-    static auto IFileSystem = engine->CreateInterface<CFileSystem>("IFileSystem");
+
 
     m_szFilePath = IFileSystem->GetLogPath() + path;
     if(unique)

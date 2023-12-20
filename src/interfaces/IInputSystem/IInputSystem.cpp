@@ -94,7 +94,7 @@ bool CInputSystem::IsMouseButtonDown(uint8_t button)
 
 Vector2 CInputSystem::GetLastMouseMove()
 {
-    static auto IEngineTime = engine->CreateInterface<CEngineTime>("IEngineTime");
+
 
     static auto lastTick = IEngineTime->GetCurRenderTick();
     auto curTick =  IEngineTime->GetCurRenderTick();

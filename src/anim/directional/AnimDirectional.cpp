@@ -4,8 +4,8 @@
 
 void CAnimDirectional::Draw(CRenderer *renderer, const sprite_draw_data &data)
 {
-    static auto ILightingSystem = engine->CreateInterface<CLightingSystem>("ILightingSystem");
-    static auto ILevelSystem = engine->CreateInterface<CLevelSystem>("ILevelSystem");
+
+
 
     IVector2 offset = {0, 0};
 
@@ -127,7 +127,7 @@ void CAnimDirectional::OnSequenceEnd(const std::string &seq_name)
 void CAnimDirectional::ChangeBaseTexture(const std::string &texture_name)
 {
     
-    static auto ITextureSystem = engine->CreateInterface<CTextureSystem>("ITextureSystem");
+
     auto newTexture = ITextureSystem->FindOrCreatetexture(texture_name);
     m_overrideTexture = newTexture;
     log("overrode texture to %s", texture_name.c_str());

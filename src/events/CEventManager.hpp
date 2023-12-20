@@ -40,12 +40,16 @@ public:
     }
 
 
-    bool AddEvent(const eventID_t& eventID){
+    bool AddEvent(const eventID_t& eventID, bool existing_ok = true){ //if we expect this event to maybe have been around
         
         auto ret = event_actions.emplace(eventID.second, std::vector<event_listener>());
 
         if(!ret.second){
             if(ret.first != nullptr){
+                if(existing_ok){
+                    dbg("event %s exists already wiuth %li listeners", eventID.first, ret.first->second.size());
+                    return true;
+                }
                 Error("failed to add event '%s': event exists already with %li listeners", eventID.first, ret.first->second.size());
             }
             else{

@@ -75,7 +75,6 @@ private:
     hTexture FindTextureForMapObject(int obj);
 private:
     CLevel* m_Level;
-    CTextureSystem* m_TextureSystem;
     std::unordered_map<int, hTexture> level_textures; //for geometry UNUSED
     
     int m_levelState;
