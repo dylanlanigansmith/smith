@@ -23,44 +23,7 @@
 
 #include <entity/prop/generic/CLevelProp.hpp>
 
-/*
-For Editor:
 
-Level Stuff:
-We need to serialize the level class
-Need to switch functions to new format
-
-**Texture stuff:
-**need to create texture database json thing [DONE]
-**functions for finding textures [DONE]
-final thing is clean up implementation once level stuff done
-
-Tile stuff:
-tiles should have decal support -> dont worry about it
-lighting
--> make lightmap in editor
-
-ImGui stuff:
-cool way to render each tile (imgui selectable?)
-ensure we can load textures for imgui as well
-new system for it
-
-Engine stuff:
-Global states 
-ie. in editor, 
-add a menu 
-
-
-Add editor, then add more entities
-then add AI
-then add a gun 
-
-then network it
-then add sound
-then it is done
-
-
-*/
 
 
 void CLevelSystem::OnCreate()

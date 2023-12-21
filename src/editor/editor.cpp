@@ -760,7 +760,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
                      static auto flag_names = magic_enum::enum_entries<CLevelPropFlags>();
 
                      static int selected_flag = 0;
-                     if (ImGui::BeginListBox("PropFlags", ImVec2(UI_W / 7, UI_H / 6)))
+                     if (ImGui::BeginListBox("PropFlags", ImVec2(UI_W / 7, UI_H / 6))) //why do these not work!?
                      {
                          for (int i = 0; i < (int)flag_names.size(); ++i)
                          {
