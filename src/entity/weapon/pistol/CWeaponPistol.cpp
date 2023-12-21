@@ -19,8 +19,11 @@ void CWeaponPistol::Render(CRenderer *renderer)
     static constexpr float flx = SCREEN_WIDTH / 17.0667f;
     static constexpr float fly = SCREEN_HEIGHT / -3.6f;
     static constexpr float gx = SCREEN_WIDTH / 5.9534f;
+
+     auto player = (CPlayer*)(m_pOwner);
+
     anim_flash.Draw(renderer, {flx, fly}, 190);
-    anim_pistol.Draw(renderer, {gx, 0.f});
+    anim_pistol.Draw(renderer, {gx + player->GetViewModel().GetBobX(), 12.f + player->GetViewModel().GetBobY() }); //10 + IEntitySystem->GetLocalPlayer()->GetPosition().z / 2 + IEntitySystem->GetLocalPlayer()->GetPosition().z / 3
 }
 
 void CWeaponPistol::OnUpdate()

@@ -15,7 +15,7 @@ struct raycast_data_t
     const Vector playerPos;
    
     const Vector2 rayDir;
-     const int playerPitch;
+     const float playerPitch;
     IVector2 step; // what direction to step in x or y-direction (either +1 or -1)
     IVector2 mapPos;
     Vector2 sideDist; // length of ray from current position to next x or y-side
@@ -29,7 +29,7 @@ struct raycast_data_t
     raycast_data_t& operator=(raycast_data_t const&) = delete;
 
 
-    inline raycast_data_t(const Vector& playerPos,  const Vector2& rayDir, int playerPitch = 0) : 
+    inline raycast_data_t(const Vector& playerPos,  const Vector2& rayDir, float playerPitch = 0) : 
        playerPos(playerPos), rayDir(rayDir),  playerPitch(playerPitch),  hitTile(nullptr), side(-1){
 
         deltaDist = {
@@ -125,7 +125,7 @@ namespace Render
         draw.texture_pos.x = int(draw.wallX * double(draw.texture_size.x));
      
         draw.textureStep = 1.0 * draw.texture_size.y / draw.lineHeight;
-        draw.textureY = (draw.drawStart - ray.playerPitch - (SCREEN_HEIGHT / 2) + (draw.lineHeight / 2) ) * draw.textureStep;
+        draw.textureY = (draw.drawStart - ray.playerPitch - (SCREEN_HEIGHT / 2) + (draw.lineHeight / 2)   - (ray.playerPos.z / ray.perpDist)) * draw.textureStep;
     }
     inline void GetTexturePosition_Wall(raycast_data_t& ray, raycast_draw_t& draw)
     {
@@ -142,7 +142,7 @@ namespace Render
             draw.texture_pos.x = draw.texture_size.x - draw.texture_pos.x - 1;
         
         draw.textureStep = 1.0 * draw.texture_size.y / draw.lineHeight;
-        draw.textureY = (draw.drawStart - ray.playerPitch - SCREEN_HEIGHT / 2 + draw.lineHeight / 2) * draw.textureStep ;
+        draw.textureY = (draw.drawStart - ray.playerPitch - SCREEN_HEIGHT / 2 + draw.lineHeight / 2 - (ray.playerPos.z / ray.perpDist)) * draw.textureStep ;
     }
 
 
@@ -249,7 +249,7 @@ namespace Render
             m_Camera->m_vecDir.x + m_Camera->m_vecPlane.x * camera.x,
             m_Camera->m_vecDir.y + m_Camera->m_vecPlane.y * camera.x};
     
-        raycast_data_t ray(playerPos, rayDir);
+        raycast_data_t ray(playerPos, rayDir, m_Camera->m_flPitch);
     
         Render::SetupRaycastWall(ray);
  
@@ -289,30 +289,37 @@ namespace Render
                     .direction = rayDir.Normalize(),
 
                 };
-                Vector2 intersect;
-                const double wall_thick = 0.9;
+                Vector2 intersect, bintersect;
+                const double thick = 0.1;
+                const double wall_thick = 2 * thick;
                 BBoxAABB thickness = {
                 .min = wall.p0,
                 .max = wall.p1
                 };
 
-                if(ray.side == 0)
+                if(ray.side == 1)
                 thickness.max = { wall.p1.x + wall_thick, wall.p1.y };
                 else 
                 thickness.max = { wall.p1.x , wall.p1.y + wall_thick };
                  checking = false;
                  checkedOurTile = true;
+                 
+               
                 if (!Util::RayIntersectsLineSegment(ray1, wall, intersect))
                 {
-                  
+                   
                     hit = 0; 
                     continue;
-                }
+                } 
               
-                if(!Util::RayIntersectsBox(ray1, thickness)) //does this actually do anything
+                /*
+                if(!Util::RayIntersectsBox(ray1, thickness, &bintersect)) //does this actually do anything
                 {   
                     hit = 0; continue;
-                }
+                }*/
+                        
+                
+                
                 bool hasState = tile->HasState();
                 bool isDoor = (hasState) ? (tile->m_pState && tile->m_pState->m_isDoor) : false;
                 auto material = ILevelSystem->GetTextureAt(ray.mapPos.x, ray.mapPos.y); //just use tile 
@@ -336,7 +343,8 @@ namespace Render
                 
                 Render::perpDist_ThinWall(ray, intersect);
                 auto draw = raycast_draw_t({textW, textH});
-                
+                if(IInputSystem->IsMouseButtonDown(1))
+                    engine->log("x %d perpDist %f {%f %f}", x, ray.perpDist, intersect.x, intersect.y);
                 Render::CalcDrawHeightBounds(ray, draw);
                 Render::GetTexturePosition_ThinWall(ray, draw, intersect);
                 bool dirtyY= false;

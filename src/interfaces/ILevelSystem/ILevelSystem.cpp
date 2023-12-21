@@ -64,6 +64,21 @@ void CLevelSystem::OnCreate()
   // m_Level->MakeEmptyLevel(-1);
     m_levelState = LevelSystem_Init;
     m_Level == nullptr;
+
+    static constexpr auto event_change = CEventManager::EventID("change_level");
+    IEntitySystem->Events()->AddEvent(event_change);
+    eventCallbackFn change_fn = [this](uint32_t caller, event_args args){
+        try {
+            std::string name = std::any_cast<std::string>(*args);  
+            this->log("recieved event 'change_level' %s", name.c_str());
+            LoadLevel(name);
+            return;
+        } catch (const std::bad_any_cast& e) {
+            // Handle or log the exception
+            this->log("Error in event argument casting: %s expected %s", e.what(), (*args).type().name() );
+        }
+    };
+    IEntitySystem->Events()->AddListener(-1, event_change, change_fn);
 }
 bool CLevelSystem::LoadLevel(const std::string &map_name)
 {
@@ -95,39 +110,46 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     auto pstart = GetPlayerStart();
     
     
-    IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, 0);
+    IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, IEntitySystem->GetLocalPlayer()->GetPosition().z);
 
     
     auto barrel = IEntitySystem->AddEntity<CBarrel>();
     barrel->SetPosition(15.7, 9.5);
-   // auto light = IEntitySystem->AddEntity<CGreenLight>();
-   // light->SetPosition(19.5, 18.5);
-     auto pillar = IEntitySystem->AddEntity<CPillar>();
-    pillar->SetPosition(2, 12);
+   
 
     //19 16
-    auto doorctl = IEntitySystem->AddEntity<CBaseDoorControl>();
-    doorctl->SetTarget({19,16});
+    if(m_Level->getName().compare("lvldeath") != 0)
+    {
+        // auto light = IEntitySystem->AddEntity<CGreenLight>();
+    // light->SetPosition(19.5, 18.5);
+        auto pillar = IEntitySystem->AddEntity<CPillar>();
+        pillar->SetPosition(2, 12);
+        auto doorctl = IEntitySystem->AddEntity<CBaseDoorControl>();
+        doorctl->SetTarget({19,16});
 
-      auto doorctl2 = IEntitySystem->AddEntity<CBaseDoorControl>();
-    doorctl2->SetTarget({16,3});
-    doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
+        auto doorctl2 = IEntitySystem->AddEntity<CBaseDoorControl>();
+        doorctl2->SetTarget({16,3});
+        doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
+
+        for(int i = 0; i < 35; ++i)
+        {
+            auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
+            auto empty = FindEmptySpace();
+            while ((pstart - Vector2(empty.x, empty.y)).Length() < 12 ){
+                empty = FindEmptySpace();
+            }
+            sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
+            sold->GetPathFinder()->Debug(false);
+            if(i % 3 == 0)
+                sold->SetType(CEnemySoldier::Soldier_Grunt);
+            if(i % 5 == 0)
+                sold->SetType(CEnemySoldier::Soldier_Med);
+        }
+    }   
+    
     
 
-    for(int i = 0; i < 12; ++i)
-    {
-        auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
-        auto empty = FindEmptySpace();
-        while ((pstart - Vector2(empty.x, empty.y)).Length() < 12 ){
-            empty = FindEmptySpace();
-        }
-        sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
-        sold->GetPathFinder()->Debug(false);
-        if(i % 3 == 0)
-            sold->SetType(CEnemySoldier::Soldier_Grunt);
-        if(i % 5 == 0)
-            sold->SetType(CEnemySoldier::Soldier_Med);
-    }
+    
 
 
     if(changing)
@@ -283,6 +305,11 @@ void CLevelSystem::LoadAndFindTexturesForMap()
            tile.m_pTexture = ITextureSystem->GetTextureData(tile.m_hTexture);
            tile.m_pTextureCeiling = ITextureSystem->GetTextureData(tile.m_hTextureCeiling);
            tile.m_pTextureFloor = ITextureSystem->GetTextureData(tile.m_hTextureFloor);
+
+           if(tile.m_nType == Level::Tile_Wall){
+            tile.m_pTextureCeiling = tile.m_pTextureFloor = tile.m_pTexture;
+            
+           }
         }
     }
 

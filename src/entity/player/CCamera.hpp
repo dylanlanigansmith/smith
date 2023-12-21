@@ -8,6 +8,7 @@ public:
     Vector2 m_vecDir;
     Vector2 m_vecPlane;
     double m_flPitch;
+    double m_bobAmt;
     void Rotate(double rotSpeed) //positive CCW/L negative CW/R
     {
       // both camera direction and camera plane must be rotated

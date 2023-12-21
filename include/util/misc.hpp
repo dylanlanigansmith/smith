@@ -22,7 +22,7 @@ namespace Util
         return min + ( std::rand() % ( max - min + 1 ) );
     }
 
-    static bool RayIntersectsBox(const Ray_t& ray, const BBoxAABB& box) {
+    static bool RayIntersectsBox(const Ray_t& ray, const BBoxAABB& box, Vector2* intersect = nullptr) {
         float tMin = 0.0f; // start of the ray
         float tMax = FLT_MAX; // end of the ray
 
@@ -42,6 +42,12 @@ namespace Util
             if (tMin > tMax) {
                 return false;
             }
+        }
+        if(intersect != nullptr)
+        {
+            float tIntersection = (tMin >= 0.0f) ? tMin : tMax;
+            *intersect = ray.origin + ray.direction * tIntersection ;
+            
         }
         return true;
     }

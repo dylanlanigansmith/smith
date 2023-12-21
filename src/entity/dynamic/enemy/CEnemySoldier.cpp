@@ -154,13 +154,13 @@ void CEnemySoldier::OnUpdate()
                  m_view.lookAt(m_vecPosition, player_pos);
                  m_path.Search({m_vecPosition.x, m_vecPosition.y}, {player_pos.x, player_pos.y});
             }
-            if( (player_pos - m_vecPosition).Length2D() < 8){ //arbitrary
+            if( (player_pos - m_vecPosition).Length2D() < 10){ //arbitrary
                      m_view.lookAt(m_vecPosition, player_pos, m_move.m_flYawSpeed);
                     m_behaviour = Behaviour_Default;
                     m_nextBehaviour = Behaviour_Aiming;
                     m_state = Aiming;
                     m_nextBehaviourChange = curTick + 1;
-                   //   m_anim.log("we gonna aim");
+                      m_anim.log("we gonna aim");
             }
     }
     
@@ -257,12 +257,12 @@ void CEnemySoldier::OnCreate()
         //just to test 
          try {
             Vector2 pos = std::any_cast<Vector2>(*args);
-            this->log("%s saw the enemy at %f %f! %d",(caller == this->GetID()) ? "I" : "my buddy", pos.x, pos.y, this->GetID());
+            //this->log("%s saw the enemy at %f %f! %d",(caller == this->GetID()) ? "I" : "my buddy", pos.x, pos.y, this->GetID());
             if(caller == GetID()) return;
             m_path.Reset();
             if(m_path.Search({m_vecPosition.x, m_vecPosition.y},  {pos.x, pos.y} )){
                
-                this->log("heading for him! %d", this->GetID());
+               // this->log("heading for him! %d", this->GetID());
             }
 
             

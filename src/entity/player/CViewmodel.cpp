@@ -1,5 +1,8 @@
 #include "CViewmodel.hpp"
 #include "CPlayer.hpp"
+
+#include <engine/engine.hpp>
+
 void CViewmodel::Render(CRenderer *renderer)
 {
     ActiveWeapon()->Render(renderer);
@@ -9,6 +12,24 @@ void CViewmodel::Render(CRenderer *renderer)
 CPlayer *CViewmodel::Owner()
 {
     return (CPlayer*)m_pParent;
+}
+
+const double bobScale = 18.0;
+const double bobAmpl = 10.0;
+
+float CViewmodel::GetBobY()
+{
+    double ampl = (Owner()->m_isMoving) ? bobAmpl : bobAmpl/4;
+    double scale = (Owner()->m_isMoving) ? bobScale - 7 : bobScale;
+    return ampl * sin( (double)(IEngineTime->GetCurLoopTick() + 0x1337) / scale); //offset from viewbob?
+   
+}
+
+float CViewmodel::GetBobX()
+{
+        double ampl = (Owner()->m_isMoving) ? (bobAmpl/2) : (bobAmpl/6);
+         double scale = (Owner()->m_isMoving) ? bobScale - 5 : bobScale;
+     return ampl * sin( (double)(IEngineTime->GetCurLoopTick() + 80085) / scale); //offset from viewbob?
 }
 
 void CViewmodel::DrawCrosshair(CRenderer *renderer)

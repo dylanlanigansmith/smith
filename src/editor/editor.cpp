@@ -165,7 +165,7 @@ void CEditor::render(CRenderer *renderer)
                 draw->AddText(tp - ent_ts, text_color, ent_info.c_str());
             }
         }
-            std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_max_health, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());
+            std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_maxhealth, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());
             auto camtextSize = ImGui::CalcTextSize(str_hp.c_str());
             const ImVec2 camposition(camtextSize.x + 35, smith_renderer->GetFullHeight() - 25);
             draw->AddText(20.f, camposition , text_color, str_hp.c_str());
@@ -203,6 +203,10 @@ void CEditor::render(CRenderer *renderer)
             }
             if(ImGui::Button("load lvldev_light")){
                 ILevelSystem->LoadLevel("lvldev_light");
+                map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->CurrentLevelName()   );
+            }
+            if(ImGui::Button("load lvldeath")){
+                ILevelSystem->LoadLevel("lvldeath");
                 map_name = std::string("SmithEditor v0 | ").append(  ILevelSystem->CurrentLevelName()   );
             }
             drawSystemView();
@@ -619,29 +623,27 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             else if (entity->IsLocalPlayer())
             {
                 auto player = (CPlayer *)entity;
-                float f = player->m_move.m_flForwardSpeed;
-                ImGui::SliderFloat("ForwardSpeed", &f, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
-                player->m_move.m_flForwardSpeed = f;
+          
+                ImGui::SliderDouble("ForwardSpeed", &player->m_move.m_flForwardSpeed, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+             
 
-                float s = player->m_move.m_flStrafeSpeed;
-                ImGui::SliderFloat("StrafeSpeed", &s, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
-                player->m_move.m_flStrafeSpeed = s;
+               
+                ImGui::SliderDouble("StrafeSpeed", &player->m_move.m_flStrafeSpeed, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+      
 
-                float m = player->m_move.m_flSpeedModifier;
-                ImGui::SliderFloat("SpeedModifier", &m, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
-                player->m_move.m_flSpeedModifier = m;
+             
+                ImGui::SliderDouble("SpeedModifier", &player->m_move.m_flSpeedModifier, 0.0f, 5.f, "%.3f", ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+            
+                ImGui::SliderDouble("bob amt", &player->m_camera.m_bobAmt, 0.0, 100.0);
 
                 ImGui::Text("inputsystem");
-                float accel = IInputSystem->m_flMouseAccel;
-                ImGui::SliderFloat("Accel", &accel, 0.0f, 15.f, "%.6f", ImGuiSliderFlags_Logarithmic);
-                IInputSystem->m_flMouseAccel = accel;
-                float scale = IInputSystem->m_flMouseScale;
-                ImGui::SliderFloat("Mouse Scale", &scale, 0.0f, 0.5f, "%.6f", ImGuiSliderFlags_Logarithmic);
-                IInputSystem->m_flMouseScale = scale;
+                ImGui::SliderDouble("Accel", &IInputSystem->m_flMouseAccel, 0.0f, 15.f, "%.6f", ImGuiSliderFlags_Logarithmic);
+                ImGui::SliderDouble("Mouse Scale", &IInputSystem->m_flMouseScale, 0.0f, 0.5f, "%.6f", ImGuiSliderFlags_Logarithmic);
+                ImGui::SliderDouble("Mouse Sens X", &IInputSystem->m_flSensitivity, 0.0f, 10.f, "%.6f", ImGuiSliderFlags_Logarithmic);
+                ImGui::SliderDouble("Mouse Sens Y", &IInputSystem->m_ySensitivity, 0.0f, 10.f, "%.6f", ImGuiSliderFlags_Logarithmic);
 
-                float sens = IInputSystem->m_flSensitivity;
-                ImGui::SliderFloat("Mouse Sens", &sens, 0.0f, 10.f, "%.6f", ImGuiSliderFlags_Logarithmic);
-                IInputSystem->m_flSensitivity = sens;
+                
+
                 if (ImGui::Button("Set spawn to cur pos"))
                 {
                     ILevelSystem->m_Level->m_vecPlayerStart = Vector2(player->GetPosition());

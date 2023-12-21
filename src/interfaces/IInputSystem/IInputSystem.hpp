@@ -37,6 +37,7 @@ private:
     bool m_bGrabCursor;
     Vector2 m_vecMouseMove;
     double m_flSensitivity;
+    double m_ySensitivity;
     double m_flMouseScale;
     double m_flMouseAccel;
     bool m_bMouseLook;

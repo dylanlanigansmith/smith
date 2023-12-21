@@ -27,13 +27,13 @@ void CPlayer::OnCreate()
   SET_ENT_NAME();
   SET_ENT_TYPE();
   
-  m_health = m_max_health = 100;
+  m_health = m_maxhealth = 100;
 
   m_vecPosition = {19,20,0};//Vector(22, 12, 0);
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
-
+  m_camera.m_bobAmt = 6.0;
   m_move.m_flForwardSpeed = 0.130;
   m_move.m_flStrafeSpeed = 0.1;
   m_move.m_flSpeedModifier = 1.38;
@@ -77,7 +77,7 @@ void CPlayer::OnRenderStart()
 
 void CPlayer::OnRenderEnd()
 {
-
+  
 }
 
 void CPlayer::Render(CRenderer *renderer)
@@ -101,12 +101,15 @@ void CPlayer::OnHit(int damage, int position )
     //m_move.m_flStrafeSpeed = 0.0;
     engine->info("player died!");
     int er = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "You died.", "you lost the game like a little bitch", engine->window()); //No message system available -1
-    m_health = m_max_health;
-    engine->info("giving health back ");
-    er = SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "this is a dev preview so..", "you can try again", engine->window()); 
     if(er != 0){
       engine->warn("message boxes fucked %s", SDL_GetError());
     }
+
+    m_health = m_maxhealth;
+
+    
+    IEntitySystem->Events()->FireEvent(this, CEventManager::EventID("change_level"), EventArg(std::string("lvldeath")), Event::OnlyProcess);
+    
   }
     
 }
@@ -145,35 +148,11 @@ void CPlayer::CreateMove()
   double rotSpeed = m_move.m_flYawSpeed;   // the constant value is in radians/ tick
   double pitchSpeed = m_move.m_flYawSpeed; //pitch not used currently
 
-  static bool viewPunch = false;
-  static int bob = 0;
-  const int maxbob = 11;
-  static bool up = true;
-  static bool shutOffNextZero = false;
-  if(viewPunch && false)
-  {
-      
-    if(bob >= maxbob){
-      up = false;
-      shutOffNextZero = true;
-    } 
-    if(bob <= -maxbob ){
-      up = true;
-      
-    } 
-    if(shutOffNextZero && bob >= 0){
-      viewPunch = false;
-      shutOffNextZero = false;
-      up = true;
-      bob = 0;
-    }
-    if(up) bob += 4;
-    else bob -= 4;
-  }
-  m_camera.m_flPitch = bob;
+ 
 
   double speedMod = (noclip ) ? 1.5 : 1.0;
   WASD_t in_move = IInputSystem->GetInput();
+  m_isMoving = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
   {
     // sprint
@@ -224,11 +203,20 @@ void CPlayer::CreateMove()
     velocity = velocity.Normalize() *  m_move.m_flForwardSpeed;
 
   }
- // if(velocity.x != 0)
-  //  engine->log("%f ", velocity.Length2D());
-  
-  m_vecPosition.x += velocity.x;
+   m_vecPosition.x += velocity.x;
    m_vecPosition.y += velocity.y;
+
+
+  static double bob = 0;
+  //https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/p_user.c#L74-L141
+  if(velocity.LengthSqr() > 0.0005 ){
+    m_isMoving = true;
+    bob = m_camera.m_bobAmt * sin( (double)IEngineTime->GetCurLoopTick() / 1.8f);
+    
+  }
+  m_vecPosition.z = bob;
+
+ 
   if (!IInputSystem->UseMouseMovement())
   {
     bool canPitch = IInputSystem->AllowPitch();
@@ -260,12 +248,14 @@ void CPlayer::CreateMove()
     m_camera.Rotate(mouseMove.x );
 
     if (IInputSystem->AllowPitch())
-      m_camera.m_flPitch += mouseMove.y * pitchSpeed * 500;
+      m_camera.m_flPitch += mouseMove.y * 360.f;
 
-    if (m_camera.m_flPitch > 200)
-      m_camera.m_flPitch = 200;
-    if (m_camera.m_flPitch < -200)
-      m_camera.m_flPitch = -200;
+
+    const double maxPitch = 225;
+    if (m_camera.m_flPitch > maxPitch)
+      m_camera.m_flPitch = maxPitch;
+    if (m_camera.m_flPitch < -maxPitch)
+      m_camera.m_flPitch = -maxPitch;
   }
 
   bool isCrouching = false;
@@ -289,12 +279,12 @@ void CPlayer::CreateMove()
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_SPACE))
   {
     // jump
-    // m_vecPosition.z = 200;
+    // m_vecPosition.z -= 200;
     
   }
   if(IInputSystem->IsMouseButtonDown(0) ) //REALLY NEED A MENU OPEN FUNCTION LIKE WTF
   {
-      if(GetActiveWeapon()->Shoot()) viewPunch = true; 
+      GetActiveWeapon()->Shoot();
   }
   if(IInputSystem->IsKeyDown(SDL_SCANCODE_R)){
     GetActiveWeapon()->Reload();
@@ -309,16 +299,18 @@ void CPlayer::CreateMove()
       Inventory()->Switch(1);
     }
   }
-  if (m_camera.m_flPitch > 0)
-      m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
-  if (m_camera.m_flPitch < 0)
-      m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * pitchSpeed);
+
+  /*
+//  if (m_camera.m_flPitch > 0)
+  //    m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
+ // if (m_camera.m_flPitch < 0)
+  //    m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * pitchSpeed);
   if (m_vecPosition.z > 0)
       m_vecPosition.z = std::max<double>(0, m_vecPosition.z - 100 * moveSpeed);
   if (m_vecPosition.z < 0 && !isCrouching)
       m_vecPosition.z = std::min<double>(0, m_vecPosition.z + 100 * moveSpeed);
-
+*/
 
     if(noclip)
-      m_health = m_max_health;
+      m_health = m_maxhealth;
 }

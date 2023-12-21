@@ -9,11 +9,12 @@ void CInputSystem::OnCreate()
     m_devMenuOpen = false;
     keyboardState = SDL_GetKeyboardState(&keyboardSize);
     m_flSensitivity = 3.2; // 2.24;
+    m_ySensitivity = m_flSensitivity + 1.2;
     m_flMouseScale = 0.005;
     m_flMouseAccel = 5.6;
     m_bMouseLook = true;
     m_bGrabCursor = true;
-    m_bPitch = false;
+    m_bPitch = true;
     if (m_bMouseLook && m_bGrabCursor)
         SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -138,7 +139,7 @@ void CInputSystem::OnMouseMotion(SDL_Event *event)
     }
     m_vecMouseMove = {
         event->motion.xrel * SensitivityCurve2(event->motion.xrel, m_flSensitivity * 10, m_flMouseAccel, m_flMouseScale) * -1.0,
-        event->motion.yrel * SensitivityCurve2(event->motion.yrel, m_flSensitivity * 10, m_flMouseAccel, m_flMouseScale)};
+        event->motion.yrel * SensitivityCurve2(event->motion.yrel, m_ySensitivity * 10, m_flMouseAccel, m_flMouseScale) * -1.0};
     /*
     //accel
      m_vecMouseMove = {

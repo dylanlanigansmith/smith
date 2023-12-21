@@ -28,10 +28,15 @@ public:
                 event_queue.pop(); continue;
             }
             for(const auto& listener : actions){
-                listener.call(event.args);
+                listener.call(std::move(event.args));
                 listeners_called++;
             }
-
+            if(event.m_priority == Event::OnlyProcess){
+                //if you call event_queue.pop() sharedptr segfaults
+                //custom eventarg object with new/delete and anycast exception handling? 
+                //shared ptr bad and so am i
+                 return events_processed++;
+            }
             event_queue.pop();
             events_processed++;
         } 
@@ -73,19 +78,19 @@ public:
 
     template <typename T>
     inline void FireEvent(T* ent, const eventID_t& eventID, event_args args = event_args(), int priority = Event::Default){
-        FireEvent(((CBaseEntity*)ent)->GetID(), eventID, args, priority);
+        FireEvent(((CBaseEntity*)ent)->GetID(), eventID, std::move(args), priority);
         
     }
     inline void FireEvent(CBaseEntity* ent, const eventID_t& eventID, event_args args = event_args(), int priority = Event::Default){
-        FireEvent(ent->GetID(), eventID, args, priority);
+        FireEvent(ent->GetID(), eventID, std::move(args), priority);
         
     }
     inline void FireEvent(const eventID_t& eventID, event_args args = event_args(), int priority = Event::Default){
-        FireEvent(ENT_INVALID, eventID, args, priority);
+        FireEvent(ENT_INVALID, eventID, std::move(args), priority);
         
     }
     inline void FireEvent(hEntity m_id, const eventID_t& eventID, event_args args = event_args(), int priority = Event::Default){
-        event_queue.emplace(event_t(m_id, eventID, args, priority));
+        event_queue.emplace(event_t(m_id, eventID, std::move(args), priority));
         dbg("event '%s' fired! priority: %s", eventID.first, Event::PriorityToStr((priority)).data());
     }
 
@@ -113,12 +118,18 @@ public:
 
                 numRemoved += (before - listeners.size());
             }
+
+            listener_registry.erase(search);
         }
         dbg("removed %li event listeners for entity %d", numRemoved, id);
         return numRemoved;
     }
 
-    
+    void OnChangeLevel(){
+        while(!event_queue.empty())
+            event_queue.pop();
+        dbg("cleared queue");
+    }
 
     static constexpr inline eventID_t EventID(const char* name){
 

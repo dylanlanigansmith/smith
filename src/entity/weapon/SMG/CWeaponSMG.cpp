@@ -20,7 +20,9 @@ void CWeaponSMG::Render(CRenderer *renderer)
     static constexpr float fly = SCREEN_HEIGHT / -3.6f;
     static constexpr float gx = SCREEN_WIDTH * 0.140625f;
     static constexpr float gy = SCREEN_HEIGHT * 0.0139f;
-    anim_smg.Draw(renderer, {gx, gy}); //640x360 = 90, 5 
+
+    auto player = (CPlayer*)(m_pOwner);
+    anim_smg.Draw(renderer, {gx + player->GetViewModel().GetBobX(), gy + 10.f + player->GetViewModel().GetBobY()}); //640x360 = 90, 5   - IEntitySystem->GetLocalPlayer()->GetPosition().z
 }
 
 void CWeaponSMG::OnUpdate()

@@ -82,7 +82,7 @@ void CEntitySystem::RemoveAllButPlayer()
             cleaned++;
         }
     }
-
+    event_mgr.OnChangeLevel();
     entity_list.erase(std::remove_if(entity_list.begin(), entity_list.end(), [](CBaseEntity* ent){ return ent == nullptr; } ), entity_list.end());
 
     warn("removed %li entities", b4 - entity_list.size() );
@@ -92,6 +92,7 @@ void CEntitySystem::RemoveAllButPlayer()
     if(entity_list.size() != 1){
         Error("failed to remove all entities but localplayer. initial size %li, freed count %li new size %li", b4, cleaned, entity_list.size());
     }
+
 }
 
 CEntitySystem* CEntitySystem::_interface()

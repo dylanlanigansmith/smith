@@ -24,7 +24,7 @@ struct viewmodel_params
 
 class CViewmodel
 {
-    public:
+public:
     CViewmodel(CPlayer* m_pParent) : m_pParent(m_pParent){
 
     }
@@ -32,11 +32,14 @@ class CViewmodel
     virtual void Render(CRenderer* renderer);
 
     auto& Settings() { return params; }
-    private:
+    float GetBobY();
+    float GetBobX();
+private:
     void DrawCrosshair(CRenderer *renderer);
     CPlayer* Owner();
     inline CBaseWeapon* ActiveWeapon() { return m_inventory->Active(); }
 
+    
      viewmodel_params params;
     uint8_t m_activeWeaponIndex;
     

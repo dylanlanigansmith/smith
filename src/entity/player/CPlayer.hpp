@@ -40,15 +40,17 @@ public:
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos) override;
 
     virtual bool IsShootable() const { return true; }
+
+    auto& GetViewModel() { return m_viewmodel; }
 private:
-    int m_health;
-    int m_max_health;
     virtual void CreateMove();
     CMove m_move;
     CBaseWeapon* GetActiveWeapon() { return m_inventory->Active(); }
     auto& Inventory() { return m_inventory; }
     CViewmodel m_viewmodel;
     inventory_t* m_inventory;
+
+    bool m_isMoving;
 private:
     uint8_t m_nActiveWeapon = 0;
     CCamera m_camera;
