@@ -240,6 +240,7 @@ void CEnemySoldier::OnCreate()
     m_bounds = 0.35;
     m_hasDroppedLoot = false;
     m_blocking = true;
+    m_health = m_maxhealth = 50;
     m_stats.m_main_damage = 8; 
     m_stats.m_alt_damage = 4;
     m_isDying = false;
@@ -258,7 +259,7 @@ void CEnemySoldier::OnCreate()
          try {
             Vector2 pos = std::any_cast<Vector2>(*args);
             //this->log("%s saw the enemy at %f %f! %d",(caller == this->GetID()) ? "I" : "my buddy", pos.x, pos.y, this->GetID());
-            if(caller == GetID()) return;
+            if(caller == GetID() || m_behaviour != Behaviour_Patrol) return;
             m_path.Reset();
             if(m_path.Search({m_vecPosition.x, m_vecPosition.y},  {pos.x, pos.y} )){
                

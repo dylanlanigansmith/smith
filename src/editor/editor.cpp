@@ -156,13 +156,19 @@ void CEditor::render(CRenderer *renderer)
             {
                 if (ent->IsLocalPlayer())
                     continue;
-
-                auto screen = cam->WorldToScreen(ent->GetPosition());
+                static const auto enemyt = CEntitySystem::CreateType("CEnemySoldier");
+                if(ent->GetType() != enemyt) continue;
+                auto enemy = (CEnemySoldier*)ent;
+               
+                auto screen = cam->WorldToScreen(ent->GetPosition(), CCamera::W2S::Middle);
+                if(screen.x == -1 || screen.y == -1)
+                    continue;
+                auto beh = magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour);
                 ImVec2 tp = {screen.x, screen.y};
-                std::string ent_info = Util::stringf("%s / %i", ent->GetName().c_str(), ent->GetID());
+                std::string ent_info = Util::stringf("%i / %s", ent->GetID(), beh.data());
                 auto ent_ts = ImGui::CalcTextSize(ent_info.c_str());
-
-                draw->AddText(tp - ent_ts, text_color, ent_info.c_str());
+               
+                draw->AddText(tp, text_color, ent_info.c_str());
             }
         }
             std::string str_hp = Util::stringf("%d / %d | %d[%d]", player->GetHealth(), player->m_maxhealth, player->GetActiveWeapon()->GetCurrentAmmo(), player->GetActiveWeapon()->GetReserveAmmo());

@@ -4,7 +4,7 @@
 #include <entity/CMove.hpp>
 #include <entity/components/pathfinder/CPathFinder.hpp>
 #include <entity/components/pathfinder/precise/CPathVoxel.hpp>
-#define IGNORE_PLAYER
+//#define IGNORE_PLAYER
 #include <logger/logger.hpp>
 
 #include ENTREG_INC
@@ -40,15 +40,13 @@ struct EntView
 };
 
 
-struct foe_info
+struct foe_info //get rid of this its stupid
 {
-    int m_health;
-    int m_maxhealth;
     int m_main_damage;
     int m_alt_damage;
 
-    foe_info(int m_maxhealth) : 
-        m_health(m_maxhealth), m_maxhealth(m_maxhealth), m_main_damage(10), m_alt_damage(5){}
+    foe_info() : 
+        m_main_damage(10), m_alt_damage(5){}
 };
 
 enum RelDir : int
@@ -64,7 +62,7 @@ class CEnemySoldier : public CBaseRenderable, private CLogger
 {
     friend class CEditor;
 public:
-    CEnemySoldier(int m_iID) : CBaseRenderable(m_iID), CLogger(this, std::to_string(m_iID)), m_stats(50),  m_anim(this, "soldier"), m_state(SoldierState::Default), m_path(this) {}
+    CEnemySoldier(int m_iID) : CBaseRenderable(m_iID), CLogger(this, std::to_string(m_iID)),  m_anim(this, "soldier"), m_state(SoldierState::Default), m_path(this) {}
     ~CEnemySoldier() { delete m_Texture; }
     virtual void OnUpdate();
     virtual void OnCreate();
@@ -77,8 +75,8 @@ public:
     
     virtual void OnHit(int damage, int position) {
        
-        m_stats.m_health -= damage;
-        if(m_stats.m_health <= 0){
+        m_health -= damage;
+        if(m_health <= 0){
            
             m_state = Dying;
             m_nextBehaviourChange = 0;
@@ -114,11 +112,11 @@ public:
             case Soldier_Med:
                
                 m_stats.m_main_damage -= 3; m_stats.m_alt_damage += 2;
-                 m_stats.m_health = m_stats.m_maxhealth = 70;
+                 m_health = m_maxhealth = 70;
                 m_anim.ChangeBaseTexture("soldier2.png"); break;
             case Soldier_Grunt:   
             default:
-                m_stats.m_health = m_stats.m_maxhealth = 30;
+                m_health = m_maxhealth = 30;
                  m_move.m_flForwardSpeed *= 2.f;
                 m_stats.m_main_damage += 4; m_stats.m_alt_damage += 4;
                 m_anim.ChangeBaseTexture("soldier.png"); break;
