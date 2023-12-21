@@ -18,6 +18,11 @@
 #include <entity/prop/objects/CGreenLight.hpp>
 #include <entity/prop/objects/CPillar.hpp>
 #include <entity/level/CBaseDoorControl.hpp>
+
+#include <entity/particle/CParticleEmitter.hpp>
+
+#include <entity/prop/generic/CLevelProp.hpp>
+
 /*
 For Editor:
 
@@ -112,11 +117,6 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     
     IEntitySystem->GetLocalPlayer()->SetPosition(pstart.x, pstart.y, IEntitySystem->GetLocalPlayer()->GetPosition().z);
 
-    
-    auto barrel = IEntitySystem->AddEntity<CBarrel>();
-    barrel->SetPosition(15.7, 9.5);
-   
-
     //19 16
     if(m_Level->getName().compare("lvldeath") != 0)
     {
@@ -131,7 +131,8 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
         doorctl2->SetTarget({16,3});
         doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
 
-        for(int i = 0; i < 35; ++i)
+
+        for(int i = 0; i < 8; ++i)
         {
             auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
             auto empty = FindEmptySpace();
@@ -145,6 +146,9 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
             if(i % 5 == 0)
                 sold->SetType(CEnemySoldier::Soldier_Med);
         }
+
+       // auto parts = IEntitySystem->AddEntity<CParticleEmitter>();
+        //parts->SetPosition(GetPlayerStart() + Vector2(1,2));
     }   
     
     

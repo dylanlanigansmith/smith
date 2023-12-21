@@ -12,6 +12,7 @@ struct sprite_draw_params{
     int vOffset;
 
     sprite_draw_params() : wScale(1.0), vScale(1.0), vOffset(0) {}
+
 };
 
 struct sprite_draw_data
@@ -41,8 +42,9 @@ public:
     virtual void OnRenderEnd() = 0;
     virtual void Render(CRenderer* renderer) = 0;
     virtual hTexture GetTextureHandle() { return m_hTexture; }
-
-
+    auto GetTexture() { return m_Texture; }
+    virtual bool HasTexture() { return true; }
+    
     virtual void CalculateDrawInfo(sprite_draw_data& data)
     {
         Vector2 relPos = {
@@ -102,5 +104,5 @@ public:
 protected:
     hTexture m_hTexture;
     texture_t* m_Texture;
-    IVector2 m_vecTextureSize;
+    
 };

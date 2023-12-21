@@ -54,8 +54,7 @@ void CBaseEnemy::SetupTexture(const std::string &name)
     m_Texture = ITextureSystem->FindOrCreatetexture(name);
     SDL_SetSurfaceColorKey(m_Texture->m_texture, SDL_TRUE, Color::Cyan());
     m_hTexture = m_Texture->m_handle;
-    m_vecTextureSize = m_Texture->m_size;
-    log("%i %i", m_vecTextureSize.w(), m_vecTextureSize.h());
+  
 }
 void CBaseEnemy::SetUpAnimation()
 {
@@ -299,7 +298,7 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
     for (int stripe = drawStart.x; stripe < drawEnd.x; stripe++)
     {
         IVector2 tex;
-        tex.x = int(256 * (stripe - ( (-renderSize.w() / 2) + screen.x)) * m_vecTextureSize.x / renderSize.w() ) / 256;
+        tex.x = int(256 * (stripe - ( (-renderSize.w() / 2) + screen.x)) * texture->w / renderSize.w() ) / 256;
         // the conditions in the if are:
         // 1) it's in front of camera plane so you don't see things behind you
         // 2) it's on the screen (left)
@@ -310,7 +309,7 @@ void CBaseEnemy::DrawEnemy(CRenderer *renderer, double wScale, double vScale, in
             for (int y = drawStart.y; y < drawEnd.y; y++) // for every pixel of the current stripe
             {
                 int d = (y - screen.y) * 256 - SCREEN_HEIGHT * 128 + renderSize.h() * 128; // 256 and 128 factors to avoid floats
-                tex.y = ((d * m_vecTextureSize.y) / renderSize.h()) / 256;
+                tex.y = ((d * texture->h) / renderSize.h()) / 256;
 
                 Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
 
@@ -349,7 +348,7 @@ uint32_t CBaseEnemy::GetPixelAtPoint( CCamera* camera, const IVector2 &point, IV
     int stripe = point.x;
   
     IVector2 tex;
-    tex.x = int(256 * (stripe - ( (-renderSize.w() / 2) + screen.x)) * m_vecTextureSize.x / renderSize.w() ) / 256; //256 to avoid floats
+    tex.x = int(256 * (stripe - ( (-renderSize.w() / 2) + screen.x)) * texture->w / renderSize.w() ) / 256; //256 to avoid floats
 
     //***likely dont need any of the checks below***
     // conditions in the if are:
@@ -358,7 +357,7 @@ uint32_t CBaseEnemy::GetPixelAtPoint( CCamera* camera, const IVector2 &point, IV
     {
         int y = point.y;
         int d = (y - screen.y) * 256 - SCREEN_HEIGHT * 128 + renderSize.h() * 128; // 256 and 128 factors to avoid floats
-        tex.y = ((d * m_vecTextureSize.y) / renderSize.h()) / 256;
+        tex.y = ((d * texture->h) / renderSize.h()) / 256;
 
         uint32_t uColor = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
         if(!uColor) return 0;

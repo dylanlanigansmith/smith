@@ -4,7 +4,7 @@
 #include <entity/CMove.hpp>
 #include <entity/components/pathfinder/CPathFinder.hpp>
 #include <entity/components/pathfinder/precise/CPathVoxel.hpp>
-//#define IGNORE_PLAYER
+#define IGNORE_PLAYER
 #include <logger/logger.hpp>
 
 #include ENTREG_INC

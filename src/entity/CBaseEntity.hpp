@@ -20,6 +20,7 @@
 
 class CBaseEntity
 {
+    friend class CEditor; //aw geez
 public:
     CBaseEntity() {}
     CBaseEntity(int m_iID) : m_iID(m_iID) { m_szName="CBaseEntity"; m_szSubclass=""; }
@@ -39,7 +40,7 @@ public:
     virtual void OnCreate() = 0;
     virtual void OnDestroy() = 0;
     virtual void OnHit(int damage, int position = 0) {}
-    virtual void OnDeath() {}
+    //Universal Bullet Hit Reg Goes Here!
 
     virtual float GetBounds() const { return 0.34f; }
     virtual void OnCollisionWith(CBaseEntity* hit) {}
@@ -62,9 +63,11 @@ public:
     
     
     
-
+    virtual bool IsSerializable() const { return false; }
 protected:
     virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos) {}
+    virtual void OnDeath() {}
+
 protected:
     uint64_t m_nType; //fnv64 of name
     std::string m_szName;

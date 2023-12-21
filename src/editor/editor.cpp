@@ -10,7 +10,7 @@
 
 #include <entity/dynamic/enemy/CEnemySoldier.hpp>
 #include <entity/level/CBaseDoorControl.hpp>
-
+#include <entity/prop/generic/CLevelProp.hpp>
 #include <data/CAnimData.hpp>
 #define MENULOG(fmt, ...) engine->log(fmt, __VA_ARGS__)
 
@@ -519,17 +519,24 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
     static const auto csoldier= CEntitySystem::CreateType("CEnemySoldier");
     static const auto cdoorctl = CEntitySystem::CreateType("CBaseDoorControl");
+    static const auto clvlprop = CEntitySystem::CreateType("CLevelProp");
     if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && entity->GetID() > 0 && (entity->GetType() != csoldier))
     {
         auto rdr = (CBaseRenderable *)entity;
-        auto name = ITextureSystem->FilenameFromHandle(rdr->GetTextureHandle());
-        auto editor_text = texture_info.at(name);
-        ImGui::Text("mat: %s", name.c_str());
-
         float offset_x = GRID_STEP * (float)pos.x + offset.x;
         float offset_y = GRID_STEP * (float)pos.y + offset.y;
-
-        draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
+        if(rdr->HasTexture() && rdr->GetTexture() != nullptr){
+            auto name = ITextureSystem->FilenameFromHandle(rdr->GetTextureHandle());
+            auto editor_text = texture_info.at(name);
+            draw_list->AddImage(editor_text.texture_preview, ImVec2(pos.x + offset_x, pos.y + offset_y), ImVec2(pos.x + offset_x + GRID_STEP, pos.y + offset_y + GRID_STEP));
+        }
+        else{
+            ImGui::Text("no texture!");
+            draw_list->AddCircleFilled(ImVec2(pos.x + offset_x, pos.y + offset_y), 10.f, IM_COL32(20,100,255,100) , 7);
+            
+        }
+        draw_list->AddText(ImVec2(pos.x + offset_x, pos.y + offset_y), IM_COL32_WHITE, ((std::string)entity->GetID()).c_str()) ;
+        
     }
     else if((entity->GetType() == csoldier)){
         float offset_x = GRID_STEP * (float)pos.x + offset.x;
@@ -537,6 +544,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
         ImU32 col = ( ((CEnemySoldier*)(entity))->GetHealth() > 0) ?  IM_COL32(255,0,0,200) : IM_COL32(0,255,0,120);        
         draw_list->AddCircleFilled(ImVec2(pos.x + offset_x, pos.y + offset_y), 10.f, col , 12);
+         draw_list->AddText(ImVec2(pos.x + offset_x, pos.y + offset_y), IM_COL32_WHITE, ((std::string)entity->GetID()).c_str()) ;
     }
     if (node_open)
     {
@@ -564,6 +572,16 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             ImGui::SetNextItemWidth(-FLT_MIN);
 
             ImGui::Text("Position {%.2f, %.2f, %.1f}", pos.x, pos.y, pos.z);
+         
+            if(ImGui::CollapsingHeader("edit pos")){
+                ImGui::InputDouble("x##vecxx", &entity->m_vecPosition.x, 0.1, 0.5); 
+                ImGui::InputDouble("y##vecyy", &entity->m_vecPosition.y, 0.1, 0.5); 
+                ImGui::InputDouble("z##veczzz", &entity->m_vecPosition.z, 0.1, 0.5);
+                if(ImGui::SmallButton("update")) entity->SetPosition(entity->GetPosition());
+            }
+            
+
+
             if(lastTile){
                 ImGui::Text("last selected tile {%d %d}", lastTile->m_vecPosition.x, lastTile->m_vecPosition.y);
                 ImGui::SameLine();
@@ -584,9 +602,12 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && (entity->GetType() != csoldier))
             {
                 auto rdr = (CBaseRenderable *)entity;
-                auto name = ITextureSystem->FilenameFromHandle(rdr->GetTextureHandle());
-                auto editor_text = texture_info.at(name);
-                ImGui::Text("mat: %s", name.c_str());
+                if(rdr->HasTexture() && rdr->GetTexture() != nullptr){
+                    auto name = ITextureSystem->FilenameFromHandle(rdr->GetTextureHandle());
+                    auto editor_text = texture_info.at(name);
+                    ImGui::Text("texture: %s", name.c_str());
+                }
+                
             }
             if (entity->GetType() == csoldier)
             {
@@ -680,6 +701,83 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
 
                 } else ImGui::Text("Not Setup!!! ");
                
+            }
+            else if(entity->GetType() == clvlprop)
+            {
+                auto prop = (CLevelProp*)entity;
+                static ImGuiTextFilter propFilter("");
+                static texture_t* selectedTexture= NULL;
+                static SDL_Texture* previewTexture = NULL;
+                static std::string texture_name = "none";
+                static hEntity lastID = -1;
+                
+                static std::string sub_name = "Generic";
+                ImGui::SeparatorText("Edit CLevelProp");
+                if(entity->GetID() != lastID){
+                    lastID = entity->GetID();
+                    selectedTexture = NULL;
+                    previewTexture = NULL;
+                    texture_name = "none";
+                    sub_name = prop->m_szSubclass;
+                }
+                if(prop->IsLoaded()){
+                    if(selectedTexture != prop->m_Texture){
+                        selectedTexture = prop->m_Texture;
+                        previewTexture = texture_info.at(prop->m_textureName).texture_preview;
+                        texture_name = prop->m_textureName;
+                        sub_name = prop->m_szSubclass;
+                    } 
+                } 
+                ImGui::InputText("Subclass Name: ", &sub_name);
+                ImGui::SameLine();
+                if(ImGui::SmallButton("apply###propapply")) {
+                    prop->UpdateData();
+                    prop->m_szSubclass = sub_name;
+                }
+                ImGui::Text("%s :: %s ", prop->m_szName.c_str(), prop->m_szSubclass.c_str());
+                    
+                ImGui::Text("texture: %s alt: %s", prop->m_textureName.c_str(),prop->m_altTextureName.c_str() );
+                propFilter.Draw();
+                TexturePicker("settex", selectedTexture, previewTexture, texture_name, &propFilter);
+                if(selectedTexture != NULL && previewTexture != NULL)
+                {
+
+                    ImGui::Image(previewTexture, ImVec2(selectedTexture->m_texture->w * 2, selectedTexture->m_texture->h * 2));
+                    prop->m_Texture = selectedTexture;
+                    prop->m_hTexture = selectedTexture->m_handle;
+                    prop->m_textureName = prop->m_altTextureName = texture_name;
+                    ImGui::Text("{%d x %d} | mask color: %s", selectedTexture->m_texture->w, selectedTexture->m_texture->h, Color(prop->m_Texture->m_clrKey).s().c_str());
+                    //do a preview for mask color
+                    ImGui::InputDouble("wScale", &prop->draw_params.wScale, 0.1, 0.5); 
+                    ImGui::InputDouble("vScale", &prop->draw_params.vScale, 0.1, 0.5); 
+                    ImGui::InputInt("vOffset", &prop->draw_params.vOffset, 1, 10); 
+
+                }
+
+                if(ImGui::CollapsingHeader("more options..."))
+                {
+                     ImGui::InputFloat("bounds", &prop->m_bounds, 0.05, 0.1); 
+                     static auto flag_names = magic_enum::enum_entries<CLevelPropFlags>();
+
+                     static int selected_flag = 0;
+                     if (ImGui::BeginListBox("PropFlags", ImVec2(UI_W / 7, UI_H / 6)))
+                     {
+                         for (int i = 0; i < (int)flag_names.size(); ++i)
+                         {
+                             if (flag_names[i].first == CLevelPropFlags_SIZE)
+                                 continue;
+                             ImGui::PushID(&flag_names[i]);
+
+                             if (ImGui::Selectable(flag_names[i].second.data(), (prop->m_flags & flag_names[i].first)))
+                             {
+                                 prop->m_flags = (prop->m_flags & flag_names[i].first) ? (prop->m_flags & ~flag_names[i].first) : (prop->m_flags | flag_names[i].first);
+                             }
+                             ImGui::PopID();
+                         }
+                         ImGui::EndListBox();
+                     }
+                }
+                
             }
 
             ImGui::NextColumn();
@@ -821,7 +919,7 @@ void CEditor::drawEntityView()
     static bool pOpen = false;
 
     ImGui::EndChild();
-    ImGui::SetNextWindowSize(ImVec2(UI_W / 3.5, UI_H - 150), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(UI_W / 3, UI_H - 150), ImGuiCond_FirstUseEver);
     static bool once = false;
     if (!once)
     {
@@ -1558,6 +1656,33 @@ void CEditor::TexturePicker(const char *title, tile_t *selectedTile, texture_t *
                 if (updatetype != (uint8_t)-1)
                     selectedTile->UpdateTexture(selectedTexture, (Tile_Texture)updatetype);
                 // m_texLastSelected = selectedTexture;
+            }
+            ImGui::SameLine();
+            ImGui::Image(entry.second.texture_preview, ImVec2(32, 32));
+            ImGui::PopID();
+        }
+        ImGui::EndCombo();
+    }
+}
+
+void CEditor::TexturePicker(const char *title, texture_t *&selectedTexture,
+                            SDL_Texture *&previewTexture, std::string &preview, ImGuiTextFilter *filter)
+{
+
+
+    if (ImGui::BeginCombo(title, preview.c_str(), ImGuiComboFlags_HeightLarge))
+    {
+        for (const auto &entry : texture_info)
+        {
+            if (!filter->PassFilter(entry.first.c_str()))
+                continue;
+            ImGui::PushID(&entry);
+            std::string name = entry.first;
+            if (ImGui::Selectable(name.c_str(), selectedTexture == entry.second.texture))
+            {
+                selectedTexture = entry.second.texture;
+                preview = ITextureSystem->FilenameFromHandle(selectedTexture->m_handle);
+                previewTexture = entry.second.texture_preview;
             }
             ImGui::SameLine();
             ImGui::Image(entry.second.texture_preview, ImVec2(32, 32));

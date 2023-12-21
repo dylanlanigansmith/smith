@@ -60,11 +60,14 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
 
   
     auto texture = m_Texture->m_texture;
+
+    Color mask = (m_Texture->m_clrKey != 0) ? Color(m_Texture->m_clrKey) : Color::Black();
     uint32_t *pixelsT = (uint32_t *)texture->pixels;
+    int pitch = texture->pitch / 4;
     for (int stripe = drawStartX; stripe < drawEndX; stripe++)
     {
         IVector2 tex;
-        tex.x = int(256 * (stripe - ( (-renderWidth / 2) + screen.x)) * m_vecTextureSize.x / renderWidth) / 256;
+        tex.x = int(256 * (stripe - ( (-renderWidth / 2) + screen.x)) * texture->w / renderWidth) / 256;
         // the conditions in the if are:
         // 1) it's in front of camera plane so you don't see things behind you
         // 2) it's on the screen (left)
@@ -76,11 +79,12 @@ void CBaseProp::DrawProp(CRenderer* renderer, double wScale, double vScale, int 
             {
                  if(renderer->Z2D[stripe][y] > 0.f &&  transform.y > renderer->Z2D[stripe][y]   ) continue;
                 int d = (y - vMoveScreen) * 256 - SCREEN_HEIGHT * 128 + renderHeight * 128; // 256 and 128 factors to avoid floats
-                tex.y = ((d * m_vecTextureSize.y) / renderHeight) / 256;
+                tex.y = ((d * texture->h) / renderHeight) / 256;
 
-                Color color = pixelsT[(texture->pitch / 4 * tex.y) + tex.x]; // get current color from the texture
-              
-                if ( (color.r() != 0) && (color.g() != 0) && (color.b() != 0) )
+                Color color = pixelsT[(pitch * tex.y) + tex.x]; // get current color from the texture
+                if(!color) continue;
+
+                if ( color != mask )
                 {
                     renderer->SetPixel(stripe, y, color);
                     ILightingSystem->ApplyLightForTile(tile, true, true, m_vecPosition, stripe, y);
@@ -96,5 +100,5 @@ void CBaseProp::SetupTexture(const std::string& name)
     
     this->m_hTexture = ITextureSystem->FindTexture(name);
     this->m_Texture = ITextureSystem->GetTextureData(m_hTexture);
-    this->m_vecTextureSize = this->m_Texture->m_size;
+   
 }

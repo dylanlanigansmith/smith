@@ -2,7 +2,7 @@
 #include <engine/engine.hpp>
 #include <light/CLight.hpp>
 #include <entity/level/CBaseDoorControl.hpp>
-
+#include <entity/prop/generic/CLevelProp.hpp>
 
 json CLevel::ToJSON()
 {
@@ -27,6 +27,21 @@ json CLevel::ToJSON()
         }
     }
     j.emplace("tile", tile_data);
+
+
+    auto prop_data = json::object();
+    for(const auto &ent : IEntitySystem->iterableList()){
+        if(!ent) continue;
+        if(!ent->IsSerializable()) continue;
+        auto prop = (CLevelProp*)ent;
+        if(!prop->IsLoaded()){
+            engine->warn("CLevel::ToJson() -> unloaded CLevelProp!"); continue;
+        }
+        auto pj = prop->ToJSON();
+        prop_data.emplace(pj["UID"].get<std::string>(), pj);
+    }
+    engine->dbg("prop data size %li", prop_data.size());
+    j.emplace("prop", prop_data);
     return j;
 }
 
@@ -53,5 +68,15 @@ bool CLevel::FromJSON(const json &j) // entire file
 
     auto light_data = j.at("lighting");
     ILightingSystem->FromJSON(light_data);
+
+
+    auto prop_data = j.at("prop");
+    for(const auto &key : prop_data)
+    {
+        auto prop = IEntitySystem->AddEntity<CLevelProp>();
+        prop->FromJSON(key);
+        engine->dbg("added prop %s", prop->GetName().c_str());
+    }
+
     return (amt > 0);
 }
