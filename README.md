@@ -30,6 +30,29 @@
 ![Picture of the first time it built on macOS](https://raw.githubusercontent.com/dylanlanigansmith/smith/main/docs/macos.png "The first time it ran on macOS")
 ![Bad Example of the lighting](https://raw.githubusercontent.com/dylanlanigansmith/smith/main/docs/newnewlighting.png "A boring example of the lighting, which will likely look completely different in a week")
 
+### Goals
+- Multi-Platform support [X]
+- Fully Editable, no hardcoding 
+    - I don't know if I will get to the scripting language part
+        - for now goal is: defining some entity behaviour lambdas is the only coding needed to make a game 
+    - Lighting, Map, Entities are all currently editable in the GUI
+- Even better lighting
+    - enough to make up for the 1993 renderer
+    - easy to implement once I find a lighting model that can be adapted for this atypical renderer
+- Fast [x]
+    - I had an issue with the frame rate going over 1000fps and exceeding my mouse polling rate
+    - continuing to design around multi-threading will be cruical as the engine gains complexity
+- Smart AI with editable behaviour 
+    - so much fun to do, so hard to do without getting messy!
+- To actually make a game with it! 
+    - ignore the occasional urge to rewrite this beast with polygons and more "1997" style
+    - make a short story driven FPS 
+    - find an art style I can manage to pull off
+- After all these: 
+    - simple P2P network shooter game
+        - then I can finally start Smith2 with polygons lol.
+
+
 ### Dependencies
 - Meson Buildsystem
     - the only C++ buildsystem that never gets in my way, and grows with a project easily 
@@ -43,9 +66,40 @@
 - magic_enum  - where has this been all my life holy! it is actually magic for writing editor and UI code
    
 
-### Install
+### Install/Building
 - Random Notes:
     - On Arch for some SDL stuff: sudo pacman -Sy xorg xorg-fonts  & a restart of X11 
+
+```
+git clone <url>
+cd smith
+
+git submodule init
+git submodule update
+
+meson setup builddir
+ninja -C builddir
+
+/* Running Manually for Development */
+ln -S resource builddir/src/resource  //or configure dev resource path in global header
+cd builddir/src
+./smith {example launch options: -w1920 -h1080 -full }
+
+/*VSCODE*/
+- install Meson extension, C++ tools,
+- vscode workspace in project is configured for Linux
+- Ctrl+Shift+B, build all, Ctrl+F5 to launch with gdb
+```
+
+##### Standard Controls
+- WASD + Mouse as you'd expect
+- Number keys and R for weapon switch/reload
+- F10 quit, F11 fullscreen
+- Backslash for Dev. UI and Editor
+- Esc unlocks/locks mouse
+- Ctrl for noclip/godmode
+
+
 
 
 ### License/Usage
