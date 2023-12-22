@@ -3,7 +3,7 @@
 #include <common.hpp>
 
 #include <entity/CBaseRenderable.hpp>
-#include <entity/components/animation/CAnimationController.hpp>
+
 #include <entity/components/CBaseEntityComponent.hpp>
 #include <logger/logger.hpp>
 

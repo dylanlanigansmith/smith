@@ -13,7 +13,7 @@
 #include <light/lights.hpp>
 
 #include <entity/dynamic/CBaseEnemy.hpp>
-#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+
 #include <entity/prop/objects/CBarrel.hpp>
 #include <entity/prop/objects/CGreenLight.hpp>
 #include <entity/prop/objects/CPillar.hpp>
@@ -23,7 +23,7 @@
 
 #include <entity/prop/generic/CLevelProp.hpp>
 
-
+#include <entity/dynamic/enemy/soldier/CSoldier.hpp>
 
 
 void CLevelSystem::OnCreate()
@@ -95,19 +95,20 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
         doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
 
 
-        for(int i = 0; i < 8; ++i)
+        for(int i = 0; i < 15; ++i)
         {
-            auto sold = IEntitySystem->AddEntity<CEnemySoldier>();
+            auto sold = IEntitySystem->AddEntity<CSoldier>();
             auto empty = FindEmptySpace();
             while ((pstart - Vector2(empty.x, empty.y)).Length() < 12 ){
                 empty = FindEmptySpace();
             }
             sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
+            
             sold->GetPathFinder()->Debug(false);
-            if(i % 3 == 0)
-                sold->SetType(CEnemySoldier::Soldier_Grunt);
+            if(i % 2 == 0)
+                sold->SetSubType(Soldier_Grunt);
             if(i % 5 == 0)
-                sold->SetType(CEnemySoldier::Soldier_Med);
+                sold->SetSubType(Soldier_Med);
         }
 
        // auto parts = IEntitySystem->AddEntity<CParticleEmitter>();
@@ -430,6 +431,28 @@ void CLevelSystem::OnShutdown()
 
 void CLevelSystem::OnLoopStart()
 {
+    static auto lastAddition = IEngineTime->GetCurLoopTick();
+    static int i = 15;
+
+    /*
+    if(IEngineTime->GetCurLoopTick() > lastAddition + 20 * TICKS_PER_S){
+         auto sold = IEntitySystem->AddEntity<CSoldier>();
+            auto empty = FindEmptySpace();
+            while (( Vector2(IEntitySystem->GetLocalPlayer()->GetPosition()) - Vector2(empty.x, empty.y)).Length() < 5 ){
+                empty = FindEmptySpace();
+            }
+            sold->SetPosition(empty.x + 0.2, empty.y + 0.3);
+            
+            sold->GetPathFinder()->Debug(false);
+            if(i % 2 == 0)
+                sold->SetSubType(Soldier_Grunt);
+            if(i % 5 == 0)
+                sold->SetSubType(Soldier_Med);
+            i++;
+            warn("added enemy!");
+
+            lastAddition= IEngineTime->GetCurLoopTick();
+    }*/
 }
 
 void CLevelSystem::OnLoopEnd()

@@ -2,7 +2,7 @@
 
 #include <engine/engine.hpp>
 
-CPathVoxel::CPathVoxel(CBaseEntity* m_pParent) : CBaseEntityComponent(m_pParent), CLogger(this, m_pParent->GetName() + (std::string)m_iParentID)
+CPathVoxel::CPathVoxel(CBaseEntity* m_pParent) : CBaseEntityComponent(m_pParent, this, (std::string)m_pParent->GetID())
 {
     Reset();
     Debug(true);
@@ -173,7 +173,7 @@ std::vector<Vector2> CPathVoxel::GetNeighbours(const Vector2& pos)
             bool bad = false;
             for(auto& occupant : tile->m_occupants)
             {
-                if(occupant == m_pParent->GetID()) continue;
+                if(occupant == m_parent->GetID()) continue;
 
                 auto ent = IEntitySystem->GetEntity(occupant);
                 if(!ent) continue;

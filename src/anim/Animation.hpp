@@ -3,11 +3,11 @@
 #include <data/CAnimData.hpp>
 #include <entity/CBaseRenderable.hpp>
 
-class CAnimation : public CBaseComponent
+class CAnimation : public CBaseEntityComponent
 {
 public:
   //  CAnimation( const std::string& m_szName) : CBaseComponent( this, m_szName), m_defaultSequence(nullptr) {}
-    CAnimation(CBaseRenderable* m_parent, const std::string& m_szName) : CBaseComponent(m_parent, this, m_szName), m_nextUpdate(0), m_curUpdate(0), m_defaultSequence(nullptr), m_overrideTexture(nullptr) {}
+    CAnimation(CBaseRenderable* m_parent, const std::string& m_szName) : CBaseEntityComponent(m_parent, this, m_szName), m_nextUpdate(0), m_curUpdate(0), m_defaultSequence(nullptr), m_overrideTexture(nullptr) {}
     virtual ~CAnimation() {}
     virtual void OnCreate();
     virtual void OnUpdate();

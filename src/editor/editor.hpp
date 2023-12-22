@@ -21,7 +21,7 @@ struct editor_texture_t
 
 struct dev_tools
 {
-    bool ent_info = false;
+    bool ent_info = true;
     bool fps = true;
     bool show_cam = true;
     bool show_pos = true;

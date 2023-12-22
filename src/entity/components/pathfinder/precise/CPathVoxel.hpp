@@ -12,8 +12,10 @@
 //one of the best programming articles I have ever found
 
 
-class CPathVoxel : public CBaseEntityComponent,  public CLogger
+class CPathVoxel : public CBaseEntityComponent
 {
+
+
   friend class CEditor;
 public:
     CPathVoxel(CBaseEntity* m_pParent);

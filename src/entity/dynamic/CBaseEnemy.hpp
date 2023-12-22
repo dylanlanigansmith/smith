@@ -1,66 +1,65 @@
 #pragma once
 #include <logger/logger.hpp>
+#include <util/misc.hpp>
 #include <entity/CBaseRenderable.hpp>
-#include <entity/components/animation/CAnimationController.hpp>
 
+#include <entity/dynamic/enemy_shared.hpp>
 #include <entity/components/pathfinder/CPathFinder.hpp>
+#include <entity/CMove.hpp>
+#include "EntView.hpp"
+#include "enemy_shared.hpp"
 
-
-
-class CBaseEnemy : public CBaseRenderable, public CLogger
+#include "CDynamicEntity.hpp"
+class CBaseEnemy : virtual public CDynamicEntity
 {
 public:
-    CBaseEnemy(int m_iID) : CBaseRenderable(m_iID), CLogger(this, std::to_string(m_iID)), path(CPathFinder(this)) {  }
+    CBaseEnemy(int m_iID) : CDynamicEntity(m_iID), m_path(this) { m_team = Team_Enemy; }
     virtual ~CBaseEnemy() {}
-    virtual void CreateRenderable();
-    virtual void OnRenderStart();
-    virtual void OnRenderEnd();
-    virtual void Render(CRenderer* renderer);
-    virtual void OnUpdate();
-    virtual void OnCreate();
-    virtual void OnDestroy();
-    virtual void OnHit(int damage, int position);
+    virtual void CreateRenderable() = 0;
+    virtual void OnRenderStart() {}
+    virtual void OnRenderEnd() {}
+    virtual void Render(CRenderer* renderer) = 0;
+    virtual void OnUpdate() = 0;
+    virtual void OnCreate() = 0;
+    virtual void OnDestroy() = 0;
+    virtual void OnHit(int damage, const IVector2& position) = 0;
 
-    auto& GetHealth() const { return m_iHealth;}
-    auto& GetMaxHealth() const { return m_iMaxHealth;}
-    auto& GetMoveSpeed() const { return m_flMoveSpeed;}
-    auto& GetBBox()  { UpdateBBox(); return m_bbox; } //probably dont need to update
-    virtual Vector2 GetBounds() { return m_vecBounds; } //x = width, y = radius
-    virtual void Freeze(bool set) { m_bFrozen = set; }
+    virtual bool HitDetect(CCamera* camera, const IVector2 &point, IVector2 *textpos = nullptr) = 0;
 
-    virtual uint32_t GetPixelAtPoint( CCamera* camera, const IVector2 &point, IVector2* textpos);
-    virtual bool IsShootable() const { return true; }
-    auto GetPathFinder() { return &path; }
-    virtual void CalculateDrawInfo(IVector2* drawStart,IVector2* drawEnd, IVector2* renderSize, IVector2* screen, Vector2* tform ,
-                                     CCamera* camera, double wScale, double vScale, int vOffset);
-protected:
-    virtual void SetupTexture(const std::string& name);
-    virtual void DrawEnemy(CRenderer* renderer, double wScale = 1.0, double vScale = 1.0, int vOffset = 0.0);
-    virtual void SetUpAnimation();
-    virtual void CreateMove(IVector2 dir);
-    virtual void OnSetPosition(const Vector2& old_pos, const Vector2& new_pos);
+    virtual bool HasLoot() const = 0;
+    virtual int Loot() {if(!IsAlive()){ m_loot.LootTaken(); m_bounds = 0.0;
+                    return Util::SemiRandRange(m_loot.m_amount.first, m_loot.m_amount.second);  } return -1;  }
     
-   
+    virtual void SetSubType(int type = 0) = 0;
+    
+    virtual bool Attack(CBaseEntity* target) = 0;
 
-    virtual void UpdateBBox();
+    auto GetPathFinder() { return &m_path; }
+    auto GetDestination() const { return m_headingTo; }
+    auto& CombatStats() const { return m_combat; }
+
+
+    static void SetIgnorePlayer(bool s) { m_ignoringPlayer = s; }
+    static bool IsIgnoringPlayer() { return m_ignoringPlayer; }
+    static void ToggleIgnorePlayer() { m_ignoringPlayer = !m_ignoringPlayer; } 
+
 protected:
-    sprite_draw_params draw_params;
-    IVector2 m_lastRenderPos;
-    IVector2 m_lastAnimOffset;
-    BBoxAABB m_lastRenderBounds;
-    bool m_bFrozen = false;
-    IVector2 m_vecNextPoint;
-    int m_iLastRenderHeight;
-    CAnimController* m_anim;
-    Vector2 m_vecBounds;
-    BBoxAABB m_bbox;
-    int m_iHealth;
-    int m_iMaxHealth;
-    double m_flMoveSpeed;
-    CPathFinder path;
-private:
-    uint8_t m_state;
+    virtual void OnDeath() = 0;
+    virtual Color GetPixelAtPoint(CCamera* camera, const IVector2 &point, IVector2 *textpos = nullptr) = 0;
+
+    bool isEntityVisible(CBaseEntity* ent, double fov);
+    bool isPointInFOV(const Vector2 &pos, double FOVAngleDegrees);
+    bool CastRayToPoint(const Vector2& pos, float bounds);
+protected:
+    loot_t m_loot;
+    combat_stats m_combat;
+    CPathFinder m_path;
 
 
+    
+
+    Vector2 m_headingTo;
+
+    static bool m_ignoringPlayer;
 };
 

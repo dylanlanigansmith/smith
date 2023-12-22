@@ -2,7 +2,7 @@
 
 #include <engine/engine.hpp>
 
-CPathFinder::CPathFinder(CBaseEntity* m_pParent) : CBaseEntityComponent(m_pParent), CLogger(this, m_pParent->GetName() + (std::string)m_iParentID)
+CPathFinder::CPathFinder(CBaseEntity* m_pParent) : CBaseEntityComponent(m_pParent, this, (std::string)m_pParent->GetID())
 {
     Reset();
     Debug(false);

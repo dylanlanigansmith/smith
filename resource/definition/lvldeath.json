@@ -16,6 +16,106 @@
             1.0
         ]
     },
+    "prop": {
+        "Barrel_193958574544": {
+            "UID": "Barrel_193958574544",
+            "draw_params": [
+                1.0,
+                1.0,
+                0
+            ],
+            "inheritance": [
+                false,
+                "CLevelProp"
+            ],
+            "m_altTextureName": "barrel.png",
+            "m_bbox": [
+                [
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0
+                ]
+            ],
+            "m_bounds": 0.3499999940395355,
+            "m_color": 4294967295,
+            "m_custom": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "m_flags": 11,
+            "m_maxhealth": 10,
+            "m_name": "CLevelProp",
+            "m_subclass": "Barrel",
+            "m_textureName": "barrel.png",
+            "m_triggers": [
+                "m_specialname",
+                "m_triggername",
+                "m_callbackname",
+                "m_actionname",
+                "m_slavename"
+            ],
+            "m_vecPosition": [
+                15.7,
+                9.5,
+                0.0
+            ]
+        },
+        "HealthPack_193958591431": {
+            "UID": "HealthPack_193958591431",
+            "draw_params": [
+                2.5000000000000013,
+                2.5000000000000013,
+                215
+            ],
+            "inheritance": [
+                false,
+                "CLevelProp"
+            ],
+            "m_altTextureName": "healthkit.png",
+            "m_bbox": [
+                [
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0
+                ]
+            ],
+            "m_bounds": 0.3499999940395355,
+            "m_color": 4294967295,
+            "m_custom": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "m_flags": 10,
+            "m_maxhealth": 10,
+            "m_name": "CLevelProp",
+            "m_subclass": "HealthPack",
+            "m_textureName": "healthkit.png",
+            "m_triggers": [
+                "m_specialname",
+                "m_triggername",
+                "m_callbackname",
+                "m_actionname",
+                "m_slavename"
+            ],
+            "m_vecPosition": [
+                17.3,
+                19.4,
+                0.0
+            ]
+        }
+    },
     "metadata": [
         "lvldeath",
         24,

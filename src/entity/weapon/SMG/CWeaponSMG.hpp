@@ -19,7 +19,7 @@ public:
 protected:
 
 private:
-   CAnimController* m_flash;
+  
 
    CAnimViewmodel anim_smg;
   

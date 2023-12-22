@@ -1,20 +1,14 @@
 #include "CBaseWeapon.hpp"
 #include <engine/engine.hpp>
 #include <entity/dynamic/CBaseEnemy.hpp>
-#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+
 #include <entity/level/CBaseDoorControl.hpp>
-inline bool HitDetectPixelPerfect(CPlayer *player, CEnemySoldier *ent, IVector2 *textpos)
-{
-    auto crosshair_color = ent->GetPixelAtPoint(player->m_pCamera(), {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2}, textpos);
-    //log("%x", crosshair_color);
-    return (crosshair_color != 0u);
-}
 
 
 bool CBaseWeapon::Shoot()
 {
 
-
+    Debug(false);
 
     static auto owner = static_cast<CPlayer *>(m_pOwner);
     auto curTick = IEngineTime->GetCurLoopTick();
@@ -35,17 +29,16 @@ bool CBaseWeapon::Shoot()
     this->OnShoot();
     
 
-    auto cam = owner->Camera();
+    auto cam = owner->m_pCamera();
     auto pos = owner->GetPosition();
+    static const IVector2 xhair = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
 
-    const std::string enemyname = "CEnemySoldier";
-    //collision detection
+    //collision detection REWRITE THIS! holy fuck
     
     auto tile = ILevelSystem->GetTileAt(IVector2::Rounded(pos.x, pos.y)); //this should be a function
-    CEnemySoldier *hit_ent = nullptr;
+    CBaseEnemy *hit_ent = nullptr;
     if (!tile->m_occupants.empty()) //player doesnt get tiled
     {
-        static constexpr auto enemy_type = Util::fnv1a::Hash64("CEnemySoldier");
         for (auto &id : tile->m_occupants)
         {
             auto ent = IEntitySystem->GetEntity(id);
@@ -53,29 +46,27 @@ bool CBaseWeapon::Shoot()
                 continue;
             if (ent->IsLocalPlayer())
                 continue;
-            if (ent->GetType() == enemy_type)
+            if ( ent->IsEnemy())
             {
-                hit_ent = (CEnemySoldier *)ent;
+                hit_ent = dynamic_cast<CBaseEnemy *>(ent);
                 IVector2 textpos;
-                if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
+                if( hit_ent->HitDetect(cam, xhair, &textpos)){ //should return position
                     dbg("hit");
                     int pos = Util::SemiRandRange(0, 8) * -1;
-                    hit_ent->OnHit(GetDamage(), pos); //damage isnt real!!!
+                    hit_ent->OnHit(GetDamage(), {pos, pos}); //damage isnt real!!!
 
                     return true;
                 }
             }
-           // else if(ent->IsShootable()){
-           //     ent->OnHit(GetDamage());
-           // }
+
         }
     }
     int screenx = (SCREEN_WIDTH / 2);
     double camOffset = 2.0 * screenx / (double)SCREEN_WIDTH - 1.0;
     // dda dda dda
     Vector2 rayDir = {
-        cam.m_vecDir.x + cam.m_vecPlane.x * camOffset,
-        cam.m_vecDir.y + cam.m_vecPlane.y * camOffset};
+        cam->m_vecDir.x + cam->m_vecPlane.x * camOffset,
+        cam->m_vecDir.y + cam->m_vecPlane.y * camOffset};
 
     // which box of the map we're in
     IVector2 mapPos(pos.x, pos.y);
@@ -138,10 +129,9 @@ bool CBaseWeapon::Shoot()
 
         */
         auto tile = ILevelSystem->GetTileAt(mapPos);
-        CEnemySoldier *hit_ent = nullptr;
-        if (!tile->m_occupants.empty())
+        CBaseEnemy *hit_ent = nullptr;
+        if (!tile->m_occupants.empty()) //player doesnt get tiled
         {
-            static constexpr auto enemy_type = Util::fnv1a::Hash64("CEnemySoldier");
             for (auto &id : tile->m_occupants)
             {
                 auto ent = IEntitySystem->GetEntity(id);
@@ -149,18 +139,19 @@ bool CBaseWeapon::Shoot()
                     continue;
                 if (ent->IsLocalPlayer())
                     continue;
-                if (ent->GetType() == enemy_type)
+                if ( ent->IsEnemy())
                 {
-                    hit_ent = (CEnemySoldier *)ent;
-                   IVector2 textpos;
-                    if( HitDetectPixelPerfect(owner, hit_ent, &textpos)){ //should return position
-                       
+                    hit_ent = dynamic_cast<CBaseEnemy *>(ent);
+                    IVector2 textpos;
+                    if( hit_ent->HitDetect(cam, xhair, &textpos)){ //should return position
+                        dbg("hit");
                         int pos = Util::SemiRandRange(0, 8) * -1;
-                        hit_ent->OnHit(GetDamage(), pos); //soooo the animation should play on the texture not rendered on top.. new CTextureAnimationController time
+                        hit_ent->OnHit(GetDamage(), {pos, pos}); //damage isnt real!!!
 
                         return true;
                     }
                 }
+
             }
         }
         if(tile->IsThinWall() && tile->HasState()){

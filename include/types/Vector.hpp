@@ -377,4 +377,7 @@ public:
   {
     return {x, y};
   }
+  operator IVector2() const { //because anstracting this away surely wont cause any stupid bugs >:(
+    return IVector2(x,y);
+  }
 };

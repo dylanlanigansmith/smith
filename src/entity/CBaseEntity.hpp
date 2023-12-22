@@ -14,7 +14,12 @@
 #define ENT_SETUP() SET_ENT_NAME(); SET_ENT_TYPE(); 
 
 
-
+enum EntityTeams : uint8_t
+{
+    Team_None = 0,
+    Team_Ally,
+    Team_Enemy
+};
 
 
 
@@ -23,7 +28,7 @@ class CBaseEntity
     friend class CEditor; //aw geez
 public:
     CBaseEntity() {}
-    CBaseEntity(int m_iID) : m_iID(m_iID) { m_szName="CBaseEntity"; m_szSubclass=""; }
+    CBaseEntity(int m_iID) : m_iID(m_iID), m_team(Team_None) { m_szName="CBaseEntity"; m_szSubclass=""; }
     virtual ~CBaseEntity(){}
     const auto GetID() { return m_iID; }
     const auto GetPosition() { return m_vecPosition; }
@@ -53,15 +58,16 @@ public:
 
     auto GetHealth() const { return m_health; }
     auto GetMaxHealth() const { return m_maxhealth; }
+    auto IsAlive() const { return (m_health > 0); }
     virtual void SetHealth(int newhealth) { m_health = newhealth; }
     virtual bool TakesDamage() const { return false; }
     virtual void TakeDamage(int damage) { m_health -= damage; if(m_health <= 0) OnDeath(); }
     
 
-    virtual bool IsEnemy() const { return false; }
-    virtual bool IsAlly() const { return false; }
-    
-    
+    auto IsEnemy() const { return m_team == Team_Enemy; }
+    auto IsAlly() const { return m_team == Team_Ally; }
+    auto HasTeam() const { return m_team != Team_None; }
+    auto  GetTeam() const { return m_team; }
     
     virtual bool IsSerializable() const { return false; }
 protected:
@@ -77,5 +83,6 @@ protected:
 
     int m_health;
     int m_maxhealth;
+    uint8_t m_team;
 };
 

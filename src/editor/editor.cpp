@@ -7,8 +7,8 @@
 #include "editor_helpers.hpp"
 #include <renderer/render_helpers.hpp>
 #include <util/misc.hpp>
-
-#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+#include <entity/dynamic/CBaseEnemy.hpp>
+#include <entity/dynamic/enemy/soldier/CSoldier.hpp>
 #include <entity/level/CBaseDoorControl.hpp>
 #include <entity/prop/generic/CLevelProp.hpp>
 #include <data/CAnimData.hpp>
@@ -156,16 +156,17 @@ void CEditor::render(CRenderer *renderer)
             {
                 if (ent->IsLocalPlayer())
                     continue;
-                static const auto enemyt = CEntitySystem::CreateType("CEnemySoldier");
+                if(!ent->IsAlive()) continue;
+                static const auto enemyt = CEntitySystem::CreateType("CSoldier");
                 if(ent->GetType() != enemyt) continue;
-                auto enemy = (CEnemySoldier*)ent;
+                auto enemy = dynamic_cast<CSoldier*>(ent);
                
                 auto screen = cam->WorldToScreen(ent->GetPosition(), CCamera::W2S::Middle);
                 if(screen.x == -1 || screen.y == -1)
                     continue;
-                auto beh = magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour);
+                
                 ImVec2 tp = {screen.x, screen.y};
-                std::string ent_info = Util::stringf("%i / %s", ent->GetID(), beh.data());
+                std::string ent_info = Util::stringf("[%i/%i] %s \n %s", ent->GetHealth(),ent->GetMaxHealth(), enemy->m_behave.GetCurrentBehaviour().c_str(), enemy->m_anim.GetCurrentSeqName().c_str());
                 auto ent_ts = ImGui::CalcTextSize(ent_info.c_str());
                
                 draw->AddText(tp, text_color, ent_info.c_str());
@@ -263,6 +264,11 @@ void CEditor::render(CRenderer *renderer)
         if (ImGui::BeginTabItem("options"))
         {
             ImGui::SliderFloat("UI Alpha", &nextAlpha, 0.0f, 1.0f);
+            ImGui::Checkbox("Ent. Debug", &settings.ent_info);
+            ImGui::Checkbox("Show Cam Info", &settings.show_cam);
+            ImGui::Checkbox("Show Pos", &settings.show_pos);
+            ImGui::Checkbox("Show FPS", &settings.fps);
+            ImGui::Checkbox("Enemies Ignore", &CBaseEnemy::m_ignoringPlayer);
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -523,7 +529,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
     auto pos = entity->GetPosition();
     const float GRID_STEP = 32.f;
 
-    static const auto csoldier= CEntitySystem::CreateType("CEnemySoldier");
+    static const auto csoldier= CEntitySystem::CreateType("CSoldier");
     static const auto cdoorctl = CEntitySystem::CreateType("CBaseDoorControl");
     static const auto clvlprop = CEntitySystem::CreateType("CLevelProp");
     if (entity->IsRenderable() && !(entity->IsLocalPlayer()) && entity->GetID() > 0 && (entity->GetType() != csoldier))
@@ -548,7 +554,7 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
         float offset_x = GRID_STEP * (float)pos.x + offset.x;
         float offset_y = GRID_STEP * (float)pos.y + offset.y;
 
-        ImU32 col = ( ((CEnemySoldier*)(entity))->GetHealth() > 0) ?  IM_COL32(255,0,0,200) : IM_COL32(0,255,0,120);        
+        ImU32 col = ( entity->GetHealth() > 0) ?  IM_COL32(255,0,0,200) : IM_COL32(0,255,0,120);        
         draw_list->AddCircleFilled(ImVec2(pos.x + offset_x, pos.y + offset_y), 10.f, col , 12);
          draw_list->AddText(ImVec2(pos.x + offset_x, pos.y + offset_y), IM_COL32_WHITE, ((std::string)entity->GetID()).c_str()) ;
     }
@@ -617,10 +623,10 @@ void CEditor::ShowEntityObject(CBaseEntity *entity, ImVec2 offset, ImDrawList *d
             }
             if (entity->GetType() == csoldier)
             {
-                auto enemy = (CEnemySoldier *)entity;
+                auto enemy = dynamic_cast<CSoldier*>(entity); 
                 ImGui::Text("Health {%i / %i}", enemy->GetHealth(), enemy->GetMaxHealth());
 
-                ImGui::Text("behaviour %s", magic_enum::enum_name((CEnemySoldier::SoldierBehaviour)enemy->m_behaviour).data());
+                ImGui::Text("behaviour %s", enemy->m_behave.GetCurrentBehaviour().c_str());
                 auto path = enemy->GetPathFinder();
                 
                 if (path->HasPath())

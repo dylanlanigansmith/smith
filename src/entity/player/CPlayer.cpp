@@ -1,7 +1,7 @@
 #include "CPlayer.hpp"
 #include <engine/engine.hpp>
 #include <interfaces/IInputSystem/IInputSystem.hpp>
-#include <entity/dynamic/enemy/CEnemySoldier.hpp>
+#include <entity/dynamic/enemy/soldier/CSoldier.hpp>
 CPlayer::CPlayer(int m_iID) : CBaseRenderable(m_iID), m_viewmodel(this)
 {
 }
@@ -17,7 +17,7 @@ void CPlayer::OnUpdate()
 
   static auto lastHealthGain = IEngineTime->GetCurLoopTick();
   if(m_health < 75 && IEngineTime->GetCurLoopTick()  > (lastHealthGain + TICKS_PER_S * 2.5 ) ){
-    m_health += Util::SemiRandRange(2, 8);
+    m_health += Util::SemiRandRange(2, 6);
     lastHealthGain = IEngineTime->GetCurLoopTick();
   }
 }
@@ -116,17 +116,16 @@ void CPlayer::OnHit(int damage, int position )
 
 void CPlayer::OnCollisionWith(CBaseEntity *hit)
 {
-  constexpr static auto enemytype = CEntitySystem::CreateType("CEnemySoldier");
-  if(hit->GetType() != enemytype) return;
+  constexpr static auto enemytype = CEntitySystem::CreateType("CSoldier");
+  if(hit->IsAlive() || !hit->IsEnemy()) return;
+ 
 
-  auto enemy = (CEnemySoldier*)hit;
-
-  if(enemy->GetHealth() > 0) return;
-
+  auto enemy = dynamic_cast<CBaseEnemy*>(hit);
   if(!enemy->HasLoot()) return;
 
   int ammo = enemy->Loot();
   Inventory()->AddAmmo(ammo);
+  engine->log("looted %d", ammo);
   //GetActiveWeapon()->GainAmmo(ammo);
 
 }

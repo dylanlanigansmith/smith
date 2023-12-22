@@ -11,7 +11,7 @@
 //one of the best programming articles I have ever found
 
 
-class CPathFinder : public CBaseEntityComponent,  public CLogger
+class CPathFinder : public CBaseEntityComponent
 {
   friend class CEditor;
 public:
@@ -34,6 +34,11 @@ public:
         cost_so_far.clear();
         path.clear();
     }
+
+    auto& GetGoal() const { return vecGoal; }
+    auto& GetStart() const { return vecStart; }
+
+    auto HalfwayToGoal() const { return m_iPathIndex >= (m_iPathSize / 2); }
 protected:
     std::vector<IVector2> ReconstructPath();
     std::vector<IVector2> GetNeighbours(IVector2 pt);
