@@ -47,7 +47,7 @@ public:
             case Soldier_Grunt:   
             default:
                 m_health = m_maxhealth = 30;
-                 m_move.m_flForwardSpeed *= 2.f;
+                 m_move.m_flForwardSpeed *= 1.7f;
                 m_combat.m_damage_primary  += 4; m_combat.m_damage_variable  += 4;
                 m_anim.ChangeBaseTexture("soldier.png"); break;
               

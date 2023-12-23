@@ -161,7 +161,7 @@ void CEditor::render(CRenderer *renderer)
                 if(ent->GetType() != enemyt) continue;
                 auto enemy = dynamic_cast<CSoldier*>(ent);
                
-                auto screen = cam->WorldToScreen(ent->GetPosition(), CCamera::W2S::Middle);
+                auto screen = cam->WorldToScreen(renderer->windowSize,  ent->GetPosition(), CCamera::W2S::Middle);
                 if(screen.x == -1 || screen.y == -1)
                     continue;
                 

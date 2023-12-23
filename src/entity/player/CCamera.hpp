@@ -25,7 +25,7 @@ public:
     Middle,
     Bottom
   };
-  IVector2 WorldToScreen(Vector2 world, W2S pos = W2S::Top , int vOffset = 0, double vScale = 1.0, double wScale = 1.0)
+  IVector2 WorldToScreen(const IVector2& bounds, Vector2 world, W2S pos = W2S::Top , int vOffset = 0, double vScale = 1.0, double wScale = 1.0)
   {
     Vector2 relPos = {
         world.x - m_vecPosition.x,
@@ -86,11 +86,11 @@ public:
         dy = drawStartY;
 
     };   
-    screen.x = (dx ) * (SCREEN_WIDTH_FULL / SCREEN_WIDTH);
-    screen.y = (dy) * (SCREEN_HEIGHT_FULL / SCREEN_HEIGHT);
-    if(screen.x > SCREEN_WIDTH_FULL || screen.x <= 0)
+    screen.x = (dx ) * (bounds.x / SCREEN_WIDTH);
+    screen.y = (dy) * (bounds.y / SCREEN_HEIGHT);
+    if(screen.x > bounds.x || screen.x <= 0)
       screen.x = -1;
-    if(screen.y > SCREEN_HEIGHT_FULL || screen.y <= 0)
+    if(screen.y > bounds.y || screen.y <= 0)
       screen.y = -1;
     return screen;
   }

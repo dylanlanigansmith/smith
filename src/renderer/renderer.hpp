@@ -60,6 +60,7 @@ public:
 
     auto GetFullWidth() const { return windowSize.x; }
     auto GetFullHeight() const { return windowSize.y; }
+    auto GetWindowSize() const { return windowSize; }
     void SetNewFullsize(const IVector2& size); 
     float Z2D[SCREEN_WIDTH][SCREEN_HEIGHT] = {0}; //this was supposed to be a hack but it worked .... todo cleanup
 private:

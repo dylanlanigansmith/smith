@@ -287,7 +287,7 @@ void CSoldier::OnHit(int damage, const IVector2 &position)
     else{
          m_path.Reset();
         if(m_health > (m_maxhealth / 5))
-            m_behave.ChangeBehaviour("reposition");
+            m_behave.ChangeBehaviour("retreat");
         else
             m_behave.ChangeBehaviour("aiming");
     }
