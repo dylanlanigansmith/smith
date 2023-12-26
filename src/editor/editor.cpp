@@ -1429,10 +1429,11 @@ void CEditor::drawLightView()
         draw_list->AddCircle(ui_pos, light->GetRange() * GRID_STEP, Editor::ColorToIU32(light->GetColor(), true), 32, 0.5f);
     }
     static bool drawPoints = false;
-    if (drawPoints)
+    if (drawPoints && selectedLight)
     {
-        for (auto &pt : ILightingSystem->tested_points)
+        for (auto &pt : selectedLight->GetInfluence()) //ILightingSystem->tested_points
         {
+            if(pt.z > 0.1) continue;
             auto pos = pt;
             float offset_x = GRID_STEP * (float)pos.x + canvas_p0.x;
             float offset_y = GRID_STEP * (float)pos.y + canvas_p0.y;
@@ -1518,12 +1519,47 @@ void CEditor::drawLightView()
         }
         if (ImGui::BeginTabItem("Lights"))
         {
+            static std::string_view add_preview = "";
+            static std::pair<const std::string, CLight *(*)()> *selectedLightType = nullptr;
+             if(ImGui::BeginCombo("###lightaddcombo", add_preview.data())){
+            for(auto& registry : *ILightingSystem->GetRegister())
+            {
+                ImGui::PushID(registry.first.c_str());
+                if(ImGui::Selectable(registry.first.c_str(), selectedLightType == &registry)){
+                    selectedLightType = &registry;
+
+                }
+                ImGui::PopID();
+            }
+            if(selectedLightType != nullptr){
+                add_preview = selectedLightType->first;
+            } else{
+                add_preview = "--";
+            }
+            ImGui::EndCombo();
+        }
             if (ImGui::Button("Add Light"))
             {
-                auto light = ILightingSystem->AddLightByClassname("CLightOverhead");
-                light->SetPosition({13.f, 13.f, 2.f});
-                light->SetColor(Color::FluorescentLight());
-                light->SetRange(3.f);
+                CLight* light = nullptr;
+                if(selectedLightType == nullptr){
+                     light = ILightingSystem->AddLightByClassname("CLightOverhead");
+                     if(light) 
+                        engine->warn("Editor: no light type selected using fallback %s", light->GetName().c_str());
+                }
+                else{
+                    light = selectedLightType->second();
+                }
+
+                
+                if(light){
+                    light->SetPosition({13.f, 13.f, 2.f});
+                    light->SetColor(Color::FluorescentLight());
+                    light->SetRange(3.f);
+                    selectedLight = light;
+                    engine->note("added light %s! ", light->GetName().c_str());
+                }
+                else gError("Editor: Adding light %s failed", add_preview.data());
+                
             }
             ImGui::SameLine();
             if (ImGui::Button("clr"))
@@ -1544,6 +1580,8 @@ void CEditor::drawLightView()
                 }
                 if (selectedLight != nullptr && light == selectedLight)
                 {
+
+                    ImGui::Text("Influence: [%li]", light->InfluenceSize()); ImGui::SameLine(); ImGui::Checkbox("draw####influed", &drawPoints);
                     ImGui::SliderFloat("Brightness", &light->m_flBrightness, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
                     ImGui::SliderFloat("Intensity", &light->m_flIntensity, 0.0f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
                     ImGui::SliderFloat("Range", &light->m_flRange, 0.0f, 50.0f, "%.4f");

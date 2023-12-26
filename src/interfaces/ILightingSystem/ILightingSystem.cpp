@@ -25,7 +25,7 @@ void CLightingSystem::SetupBlending()
 void CLightingSystem::RegenerateLightingForDynamicTile(tile_t *tile)
 {
 
-    static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForDynamicTile()"); //that just rolls off the tongue
+    static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForDynamicTile()"); 
     RegenProfiler->Start();
     if(!tile || !tile->HasState()) return;
     if(tile->m_pState->light_pts.empty()) return;
@@ -33,10 +33,52 @@ void CLightingSystem::RegenerateLightingForDynamicTile(tile_t *tile)
 
     for(const auto& update : light_pts){
         auto& pt = update.first;
-        LightData::UpdateLightForPoint(pt.x, pt.y, pt.z, update.second);
+        LightData::UpdateLightForPoint(pt.x, pt.y, pt.z, update.second); //this should fix static map too idk
     }
     log("updated size %li", light_pts.size());
     RegenProfiler->EndAndLog();
+}
+void CLightingSystem::RegenerateLightingForDynamicLight(CLight* light)
+{
+
+    static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForDynamicLight()"); 
+    RegenProfiler->Start();
+    if(!light) return;
+    if(!light->InfluenceSize()) return;
+   
+
+    for(const auto& pt : light->GetInfluence()){
+        LightData::UpdateLightForPoint(pt.x, pt.y, pt.z, light);
+         auto idx = LightData::WorldToMapIndex(pt);
+        staticmap[idx.x][idx.y][idx.z] = lightmap[idx.x][idx.y][idx.z];
+    }
+   // RegenProfiler->EndAndLog();
+     RegenProfiler->End();
+   
+}
+
+void CLightingSystem::RegenerateLightingForTempLight(CLight* light, bool restore)
+{
+
+    static auto RegenProfiler = IEngineTime->AddProfiler("CLightingSystem::RegenerateLightingForTempLight()"); 
+    RegenProfiler->Start();
+    if(!light) return;
+    if(!light->InfluenceSize()) return;
+   
+
+    for(const auto& pt : light->GetInfluence()){
+        if(restore)
+        {
+            //LightData::UpdateLightForPoint(pt.x, pt.y, pt.z);
+
+            auto idx = LightData::WorldToMapIndex(pt);
+            lightmap[idx.x][idx.y][idx.z] = staticmap[idx.x][idx.y][idx.z];
+        }
+        else
+            LightData::UpdateLightForPoint(pt.x, pt.y, pt.z, light);
+    }
+    RegenProfiler->End();
+   // RegenProfiler->EndAndLog();
 }
 
 void CLightingSystem::RegenerateLighting()
@@ -61,6 +103,7 @@ void CLightingSystem::RegenerateLighting()
     }
     log("cleared color info for %i faces", lol);
     CalculateLighting();
+
 }
 
 void CLightingSystem::CalculateLighting()
@@ -85,8 +128,11 @@ void CLightingSystem::CalculateLighting()
         }
     }
     SetLogFileOnly(false);
-    LightGenProfiler->EndAndLog();
+    
+    staticmap = lightmap;
+    //std::copy(&lightmap[0][0][0], &lightmap[0][0][0] + MAP_SIZE * 10 * MAP_SIZE * 10 * 10, &staticmap[0][0][0]);
 
+    LightGenProfiler->EndAndLog();
     return;
 }
 
@@ -132,7 +178,9 @@ nlohmann::json CLightingSystem::ToJSON()
 
     for (auto &entry : light_list)
     {
+
         auto light = entry.second;
+        if(light->IsTemporary()) continue;
         auto pos = light->GetPosition();
         auto light_json = json::array({light->GetName(), (uint32_t)light->GetColor(), light->GetBrightness(), light->GetIntensity(), light->GetRange(), json::array({pos.x, pos.y, pos.z}), (uint64_t)0u, 1.f, 1.f});
         lights.emplace(entry.first, light_json);

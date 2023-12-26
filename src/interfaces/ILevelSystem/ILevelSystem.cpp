@@ -95,7 +95,7 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
         doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
 
 
-        for(int i = 0; i < 15; ++i)
+        for(int i = 0; i < 3; ++i)
         {
             auto sold = IEntitySystem->AddEntity<CSoldier>();
             auto empty = FindEmptySpace();

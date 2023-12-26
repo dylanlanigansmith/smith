@@ -30,6 +30,8 @@ float CViewmodel::GetBobX()
         double ampl = (Owner()->m_isMoving) ? (bobAmpl/2) : (bobAmpl/6);
          double scale = (Owner()->m_isMoving) ? bobScale - 5 : bobScale;
      return ampl * sin( (double)(IEngineTime->GetCurLoopTick() + 80085) / scale); //offset from viewbob?
+
+     //sin(t) - sin(t/2) - sin(t/4) - sin(t/8)
 }
 
 void CViewmodel::DrawCrosshair(CRenderer *renderer)

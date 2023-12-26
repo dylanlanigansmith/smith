@@ -5,7 +5,7 @@ bool CBaseEnemy::m_ignoringPlayer = false;
 
 bool CBaseEnemy::isEntityVisible(CBaseEntity *ent, double fov)
 {
-    if(ent->IsLocalPlayer() && m_ignoringPlayer) return false;
+    if(ent->IsLocalPlayer() && (m_ignoringPlayer || IInputSystem->isDevMenuOpen())) return false;
     if(isPointInFOV(ent->GetPosition(), fov))
         if(CastRayToPoint(ent->GetPosition(), ent->GetBounds()))
             return true;

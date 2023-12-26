@@ -25,6 +25,13 @@ public:
     Middle,
     Bottom
   };
+  Vector2 CalcDirVector(int x = SCREEN_WIDTH / 2){ //not right name
+    const double c = 2 * x / (double)SCREEN_WIDTH - 1.0;
+   return {
+            m_vecDir.x + m_vecPlane.x * c,
+            m_vecDir.y + m_vecPlane.y * c};
+  }
+
   IVector2 WorldToScreen(const IVector2& bounds, Vector2 world, W2S pos = W2S::Top , int vOffset = 0, double vScale = 1.0, double wScale = 1.0)
   {
     Vector2 relPos = {

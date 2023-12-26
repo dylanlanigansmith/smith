@@ -25,8 +25,8 @@ public:
     CLightingSystem() : CBaseInterface("ILightingSystem") {}
     ~CLightingSystem() override {}
     virtual void OnCreate() override {
-        if(GetRegister()){
-            status("light classes");
+        if(GetRegister() && Debug() && false){ //editor shows now
+            status("list of light classes:");
             for(auto it = GetRegister()->begin(); it != GetRegister()->end(); ++it){
                 log(it->first);
             }
@@ -35,12 +35,20 @@ public:
     virtual void OnShutdown() override { EndLogFileForInstance(); }
     virtual void OnLoopStart() override {}
     virtual void OnLoopEnd() override {}
-    virtual void OnRenderStart() override {}
+    virtual void OnRenderStart() override {
+        for(auto& entry : light_list){
+            if(!entry.second->IsStatic()){
+                entry.second->OnUpdate();
+            }
+        }
+    }
     virtual void OnRenderEnd() override {}
     virtual void OnEngineInitFinish() override;
 
     virtual void SetupBlending();
-    void RegenerateLightingForDynamicTile(tile_t* tile);
+    void RegenerateLightingForDynamicTile(tile_t* tile); //rolls off the tongue doesnt it
+    void RegenerateLightingForDynamicLight(CLight* tile);
+    void RegenerateLightingForTempLight(CLight* tile, bool restore = false);
     virtual void RegenerateLighting();
     virtual void CalculateLighting();
     virtual nlohmann::json ToJSON();
@@ -230,6 +238,7 @@ private:
     std::unordered_map<std::string, CLight *> light_list;
 
     std::array<std::array<std::array<Color, 1 * 10>, MAP_SIZE * 10>, MAP_SIZE * 10> lightmap;
+     std::array<std::array<std::array<Color, 1 * 10>, MAP_SIZE * 10>, MAP_SIZE * 10> staticmap;
     static light_reg_t* light_class;
 };
 

@@ -1,15 +1,22 @@
 # TODO
 
 
+
 - enemy so messed up
     - AI is broken
     - base class needed
     - goal: can put 100 on a map and let them fight for an hour
 
+-lighting model needs revamp!!!
+    - finish dynamic lights 
+        - more styles!
+    - ambient light (maxdark)
 
 - save entities with level def
 
 - generic prop and prop editor 
+    - move prop defs to unique file and not per level!!!
+        -> this does leave us with having to merge / split local attributes (ex. trigger door at 13,16)
     - make it easy to add event triggers
     - ex:
         - ammo box

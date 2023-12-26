@@ -1,6 +1,21 @@
 {
     "lighting": {
-        "CLightOverhead0": [
+        "CLightDynamic0": [
+            "CLightDynamic",
+            3706720692,
+            1.0,
+            1.0,
+            2.3243000507354736,
+            [
+                2.3581,
+                6.4189,
+                2.0
+            ],
+            0,
+            1.0,
+            1.0
+        ],
+        "CLightOverhead1": [
             "CLightOverhead",
             4287834548,
             0.5,
@@ -15,22 +30,22 @@
             1.0,
             1.0
         ],
-        "CLightOverhead1": [
+        "CLightOverhead10": [
             "CLightOverhead",
-            4281734335,
-            0.007300000172108412,
-            0.07329999655485153,
-            4.054100036621094,
+            3439329204,
+            1.0,
+            0.011300000362098217,
+            2.0269999504089355,
             [
-                2.8715999126434326,
-                18.82159996032715,
-                1.899999976158142
+                10.304100036621094,
+                22.46619987487793,
+                2.0
             ],
             0,
             1.0,
             1.0
         ],
-        "CLightOverhead10": [
+        "CLightOverhead11": [
             "CLightOverhead",
             167621812,
             0.6078000068664551,
@@ -45,7 +60,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead11": [
+        "CLightOverhead12": [
             "CLightOverhead",
             4086115572,
             1.0,
@@ -60,7 +75,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead12": [
+        "CLightOverhead13": [
             "CLightOverhead",
             3439329204,
             1.0,
@@ -75,7 +90,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead13": [
+        "CLightOverhead14": [
             "CLightOverhead",
             4294429876,
             1.0,
@@ -90,7 +105,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead14": [
+        "CLightOverhead15": [
             "CLightOverhead",
             3439329204,
             0.9693999886512756,
@@ -105,7 +120,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead15": [
+        "CLightOverhead16": [
             "CLightOverhead",
             4211053748,
             0.8560000061988831,
@@ -120,7 +135,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead16": [
+        "CLightOverhead17": [
             "CLightOverhead",
             4260331700,
             1.0,
@@ -135,7 +150,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead17": [
+        "CLightOverhead18": [
             "CLightOverhead",
             4294429876,
             1.0,
@@ -152,6 +167,21 @@
         ],
         "CLightOverhead2": [
             "CLightOverhead",
+            4281734335,
+            0.007300000172108412,
+            0.07329999655485153,
+            4.054100036621094,
+            [
+                2.8715999126434326,
+                18.82159996032715,
+                1.899999976158142
+            ],
+            0,
+            1.0,
+            1.0
+        ],
+        "CLightOverhead3": [
+            "CLightOverhead",
             2264894168,
             0.41839998960494995,
             0.38109999895095825,
@@ -165,7 +195,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead3": [
+        "CLightOverhead4": [
             "CLightOverhead",
             1005369524,
             0.7325999736785889,
@@ -180,7 +210,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead4": [
+        "CLightOverhead5": [
             "CLightOverhead",
             3757410740,
             1.0,
@@ -195,7 +225,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead5": [
+        "CLightOverhead6": [
             "CLightOverhead",
             3958513332,
             1.0,
@@ -210,7 +240,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead6": [
+        "CLightOverhead7": [
             "CLightOverhead",
             3976200152,
             1.0,
@@ -225,7 +255,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead7": [
+        "CLightOverhead8": [
             "CLightOverhead",
             3974374324,
             1.0,
@@ -240,7 +270,7 @@
             1.0,
             1.0
         ],
-        "CLightOverhead8": [
+        "CLightOverhead9": [
             "CLightOverhead",
             3439329204,
             1.0,
@@ -249,21 +279,6 @@
             [
                 8.445899963378906,
                 16.21619987487793,
-                2.0
-            ],
-            0,
-            1.0,
-            1.0
-        ],
-        "CLightOverhead9": [
-            "CLightOverhead",
-            3439329204,
-            1.0,
-            0.011300000362098217,
-            2.0269999504089355,
-            [
-                10.304100036621094,
-                22.46619987487793,
                 2.0
             ],
             0,
@@ -282,8 +297,8 @@
         4919
     ],
     "prop": {
-        "Barrel_193958574544": {
-            "UID": "Barrel_193958574544",
+        "Barrel_55039021401": {
+            "UID": "Barrel_55039021401",
             "draw_params": [
                 1.0,
                 1.0,
@@ -331,8 +346,8 @@
                 0.0
             ]
         },
-        "HealthPack_193958591431": {
-            "UID": "HealthPack_193958591431",
+        "HealthPack_55039034423": {
+            "UID": "HealthPack_55039034423",
             "draw_params": [
                 2.5000000000000013,
                 2.5000000000000013,
@@ -1003,7 +1018,7 @@
             1,
             6,
             1315001158,
-            3924045107,
+            3002474432,
             2876285025,
             1.0,
             0,
@@ -4699,7 +4714,7 @@
             2,
             6,
             1315001158,
-            3924045107,
+            2816834614,
             2876285025,
             1.0,
             0,

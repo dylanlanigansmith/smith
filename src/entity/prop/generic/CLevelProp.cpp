@@ -78,7 +78,7 @@ bool CLevelProp::FromJSON(const json &j)
 
     m_textureName = j["m_textureName"];
     m_altTextureName = j["m_altTextureName"];
-    m_color = j["m_color"].get<uint32_t>();
+    m_color = Color(j["m_color"].get<uint32_t>());
    
     draw_params.wScale = j["draw_params"].at(0).get<double>();
     draw_params.vScale = j["draw_params"].at(1).get<double>();

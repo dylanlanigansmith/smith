@@ -3,10 +3,12 @@
 #include <interfaces/ILightingSystem/ILightingSystem.hpp>
 #include <types/Vector.hpp>
 
+//https://www.google.com/search?q=cosine+term+lighting&oq=cosine+term+lighting&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRigAdIBCDIzNDVqMGo3qAIAsAIA&sourceid=chrome&ie=UTF-8
+
 class LightData //not a namespace bc it needs friend access for CLevel
 {
 public:
-
+    //these 3 are old
     static void DebugPerPixel()
     {
         auto &world = ILevelSystem->m_Level->world;
@@ -192,8 +194,17 @@ public:
     I plead
     12/18/23
 
+    12/26/23 - patched fix for dynamic changes
+
     */
-    static void UpdateLightForPoint(float x, float y, float z, CLight* override_light = nullptr)
+    static inline ivec3 WorldToMapIndex(const Vector& pos){
+        return {
+            std::clamp(static_cast<int>(std::round(pos.x * 10.f)), 0, MAP_SIZE * 10),
+            std::clamp(static_cast<int>(std::round(pos.y * 10.f)), 0, MAP_SIZE * 10),
+            std::clamp(static_cast<int>(std::round(pos.z * 10.f)), 0, 1 * 10)
+        };
+    }
+    static inline void UpdateLightForPoint(double x, double y, double z, CLight* override_light = nullptr)
     {
         int xIndex = std::clamp(static_cast<int>(std::round(x * 10.f)), 0, MAP_SIZE * 10);
         int yIndex = std::clamp(static_cast<int>(std::round(y * 10.f)), 0, MAP_SIZE * 10);
@@ -219,6 +230,7 @@ public:
             {
 
                 auto light = entry.second;
+                //if(light->IsTemporary()) continue;
                 auto p = light->GetPosition();
 
                 if ((pos - light->GetPosition()).Length2D() <= light->GetRange()) // length 2d vs 3d makes a huge difference
@@ -292,8 +304,8 @@ public:
                     walls++;
                     if (ray_tile->m_vecPosition != tile->m_vecPosition || walls > 2)
                     {
-                        
-                            //light->rays.push_back({rayPos, pos, false});
+                        if(override_light == nullptr)
+                            light->rays.push_back({rayPos, pos, false});
                            
 
                         break;
@@ -306,9 +318,13 @@ public:
                     {
                       
                         total_color = light->CalculateInfluence(pos, total_color, params, ILightingSystem->MaxDark());
-                       
-                       
-                         //light->rays.push_back({rayPos, pos, true});
+                        if(override_light == nullptr && !light->IsTemporary()){ //aka we are doing initial generation
+                            light->AddInfluence(pos);
+                            light->rays.push_back({rayPos, pos, true});
+                        }
+                                
+                        
+                        
                           
 
                         break;
@@ -319,8 +335,10 @@ public:
                 {
 
                     total_color = light->CalculateInfluence(pos, total_color, params, ILightingSystem->MaxDark());
-                    
-                       /// light->rays.push_back({rayPos, pos, true});
+                     if(override_light == nullptr && !light->IsTemporary()){
+                        light->AddInfluence(pos);
+                        light->rays.push_back({rayPos, pos, true});
+                       }
                       
                     break;
                 }
@@ -351,6 +369,7 @@ public:
         {
             if (!entry.second->rays.empty())
                 entry.second->rays.clear();
+            entry.second->Reset();
         }
 
         for (double x = 0.f; x < MAP_SIZE; x += 0.1f)

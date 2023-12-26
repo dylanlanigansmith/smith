@@ -9,21 +9,10 @@ public:
     virtual ~CLightOverhead() {}
     virtual Color CalculateInfluence(const Vector& point, Color& color_in, const light_params& params, const Color& MaxDark)
     {
-        double distance = ( point - GetPosition() ).Length3D();
-        float attenuation = 1.0f / (1.0f + params.a * distance + params.b * distance * distance);
-        attenuation = (1.f - std::clamp(attenuation, params.minIntensity, 1.0f)) * params.rolloff;
-
-        Color lightColor = GetColor();
-        float brightness =  (1.f - GetIntensity()) * attenuation;
-        float alphaFactor = ( brightness) * params.intensityModifier;
-        lightColor.a(static_cast<uint8_t>(MaxDark.a() * alphaFactor));
-
-        if(color_in.a() == MaxDark.a())
-            color_in.a(lightColor.a());
-        Color ret = lightColor + color_in;
-      
-
-        return ret;
+        return CLight::CalculateInfluenceBase(this, point, color_in, params, MaxDark);
+    }
+     virtual bool IsStatic() const {
+        return true;
     }
 private:
     REGISTER_DEC_LIGHT(CLightOverhead);

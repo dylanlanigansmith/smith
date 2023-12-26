@@ -291,6 +291,7 @@ public:
   }
 
   inline double Length2D() const noexcept { return std::sqrt(x * x + y * y); }
+  inline double Length2DSqr() const noexcept { return (x * x + y * y); }
   inline double Length3D() const noexcept { return std::sqrt(x * x + y * y + z * z); }
   inline double LengthSqr() const noexcept { return x * x + y * y + z * z; }
   inline void Min(const Vector &rhs)
@@ -379,5 +380,18 @@ public:
   }
   operator IVector2() const { //because anstracting this away surely wont cause any stupid bugs >:(
     return IVector2(x,y);
+  }
+};
+
+template <>
+struct std::hash<Vector>
+{
+  std::size_t operator()(const Vector &k) const noexcept
+  {
+    using std::hash;
+    using std::size_t;
+    using std::string;
+
+    return hash<double>()(k.x) ^ (hash<double>()(k.y) << 1) ^ (hash<double>()(k.z) << 2); // ^ (hash<double>()(k.x + k.y + k.z) << 4); 
   }
 };

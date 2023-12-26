@@ -6,13 +6,6 @@
 #include <types/Color.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <logger/logger.hpp>
-enum class LightTypes : uint32_t //this is a bit of a hack buttt
-{
-    CLight = 0,
-    CLightOverhead,
-    CLightSun,
-    LightTypesSize,
-};
 
 struct light_influence
 {
@@ -41,20 +34,12 @@ class CLight
 {
 friend class CLightingSystem; friend class CEditor;
 public:
-    CLight() :  m_flIntensity(1.0f), m_flRange(1.0f), m_flBrightness(1.0f), m_iType(LightTypes::CLight), m_szName("CLight") {}
+    CLight() :  m_flIntensity(1.0f), m_flRange(1.0f), m_flBrightness(1.0f), m_szName("CLight") {}
     template <typename T> 
     CLight(T* ptr ) : CLight() {
         m_szName = Util::getClassName<T>(ptr);
 
-        auto find_type = magic_enum::enum_cast<LightTypes>(m_szName);
-        if(find_type.has_value()){
-            m_iType = find_type.value();
-           // gLog("found %u from %s", m_iType, m_szName.c_str());
-        }
-        else{
-           gError("Could not deduce lighttype %s", m_szName.c_str());
-            m_iType = LightTypes::CLight;
-        }
+     
          
     }
     virtual ~CLight(){}
@@ -81,13 +66,12 @@ public:
     virtual void SetBrightness(float brightness) { m_flBrightness = brightness; }
     virtual float GetBrightness() const { return m_flBrightness; }
 
-    virtual void SetType(LightTypes type) { m_iType = type; }
-    virtual LightTypes GetType() const { return m_iType; }
+ 
 
     virtual std::string GetName() const { return m_szName; }
 
 
-    static Color CalculateInfluenceBase(CLight* light, const Vector& point, Color& color_in, const light_params& params, const Color& MaxDark)
+    static inline Color CalculateInfluenceBase(CLight* light, const Vector& point, Color& color_in, const light_params& params, const Color& MaxDark)
     {
         double distance = ( point - light->GetPosition() ).Length3D();
         float attenuation = 1.0f / (1.0f + params.a * distance + params.b * distance * distance);
@@ -102,13 +86,32 @@ public:
             color_in.a(lightColor.a());
         return lightColor + color_in;
     }
-private:
+
+    virtual void OnUpdate() {}
+
+    virtual bool IsStatic() const = 0;
+
+
+    inline void AddInfluence(const Vector& pt){
+        m_influence.insert(pt);
+    }
+
+    auto& GetInfluence() { return m_influence; }
+    virtual void Reset() { m_influence.clear(); }
+    auto InfluenceSize() { return m_influence.size(); }
+
+    virtual bool IsTemporary() const { return false; }
+protected:
     Color m_color;
     float m_flIntensity;
     float m_flRange;
     float m_flBrightness;
-
+    std::unordered_set<Vector> m_influence;
+  //  std::vector<std::vector<std::vector<Color> > > m_original;
     Vector m_vecPosition;
-    LightTypes m_iType;
+
+
     std::string m_szName;
+
+
 };

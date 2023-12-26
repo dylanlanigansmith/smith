@@ -2,6 +2,8 @@
 #include <engine/engine.hpp>
 #include <interfaces/IInputSystem/IInputSystem.hpp>
 #include <entity/dynamic/enemy/soldier/CSoldier.hpp>
+#include <light/CLightWeapon.hpp>
+
 CPlayer::CPlayer(int m_iID) : CBaseRenderable(m_iID), m_viewmodel(this)
 {
 }
@@ -281,9 +283,30 @@ void CPlayer::CreateMove()
     // m_vecPosition.z -= 200;
     
   }
+
+  static CLightWeapon* flash = nullptr; 
+  
+  if(flash == nullptr)
+  {
+    flash = ILightingSystem->AddLight<CLightWeapon>();
+    flash->SetIntensity(0.8);
+    flash->SetColor(Color(185, 147, 41, 190));
+    flash->SetRange(0.75);
+  }
+  if(velocity.LengthSqr() > 0.0001 ){
+    // use cam dir to put this slightly in front of player 
+    auto viewdir = m_camera.m_vecDir.Normalize() * 0.7;
+    flash->SetPosition({m_vecPosition.x + viewdir.x, m_vecPosition.y + viewdir.y, 0.5f});
+  }
+    
+    
+
+
+
   if(IInputSystem->IsMouseButtonDown(0) ) //REALLY NEED A MENU OPEN FUNCTION LIKE WTF
   {
-      GetActiveWeapon()->Shoot();
+      if(GetActiveWeapon()->Shoot())
+        flash->Flash(4);
   }
   if(IInputSystem->IsKeyDown(SDL_SCANCODE_R)){
     GetActiveWeapon()->Reload();

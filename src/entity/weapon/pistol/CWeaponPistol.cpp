@@ -16,14 +16,14 @@ also do something fun because enemies are frustrating
 
 void CWeaponPistol::Render(CRenderer *renderer)
 {
-    static constexpr float flx = SCREEN_WIDTH / 17.0667f;
-    static constexpr float fly = SCREEN_HEIGHT / -3.6f;
+    static constexpr float flx = SCREEN_WIDTH / 11.5f;
+    static constexpr float fly = SCREEN_HEIGHT / -4.6f; //360 p -3.6
     static constexpr float gx = SCREEN_WIDTH / 5.9534f;
 
      auto player = (CPlayer*)(m_pOwner);
-
-    anim_flash.Draw(renderer, {flx, fly}, 190);
-    anim_pistol.Draw(renderer, {gx + player->GetViewModel().GetBobX(), 12.f + player->GetViewModel().GetBobY() }); //10 + IEntitySystem->GetLocalPlayer()->GetPosition().z / 2 + IEntitySystem->GetLocalPlayer()->GetPosition().z / 3
+    float bobY =  12.f + player->GetViewModel().GetBobY();
+    anim_flash.Draw(renderer, {flx, fly + bobY}, 205);
+    anim_pistol.Draw(renderer, {gx + player->GetViewModel().GetBobX(), bobY }); //10 + IEntitySystem->GetLocalPlayer()->GetPosition().z / 2 + IEntitySystem->GetLocalPlayer()->GetPosition().z / 3
 }
 
 void CWeaponPistol::OnUpdate()
