@@ -31,7 +31,7 @@ public:
     virtual bool HasLoot() const { return !m_loot.m_used; }
 
     virtual bool HitDetect(CCamera* camera, const IVector2 &point, IVector2 *textpos = nullptr); 
-
+    virtual float GetDamageModForHit(const IVector2& pt);
     virtual void SetSubType(int type = 0){
         switch(type)
         {
@@ -63,12 +63,15 @@ protected:
     virtual Color GetPixelAtPoint(CCamera* camera, const IVector2 &point, IVector2 *textpos = nullptr); 
 
     virtual void CreateBehaviours();
-     virtual void OnWalkToward(const Vector2& pos) { m_action = Walking; }
+     virtual void OnWalkToward(const Vector2& pos);
      virtual void OnLikelyStuck(); 
 protected:
     CBehaviourControl m_behave;
 
     double m_repositionrange;
+
+    uint64_t m_lastVocal;
+    uint64_t m_lastFootstep;
 private:
     REGISTER_DEC_ENT(CSoldier);
 };

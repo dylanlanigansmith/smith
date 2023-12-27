@@ -135,6 +135,7 @@ void CAnimDirectional::ChangeBaseTexture(const std::string &texture_name)
 
 uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *textpos , const sprite_draw_data& data)
 {
+    *textpos = {-1,-1};
     dbg("hit check pt[%d %d] ds[%d %d]  de[%d %d] ", point.x, point.y, data.drawStart.x, data.drawStart.y, data.drawEnd.x, data.drawEnd.y);
     if (!(data.drawStart.x <= point.x && point.x <= data.drawEnd.x ) )
         return 0u;
@@ -159,7 +160,7 @@ uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *text
         tex.y = ((d * m_surface->h()) / data.renderSize.y) / 256;
         
         Color color = m_surface->getColorAtPoint(tex.x, tex.y); // get current color from the texture
-
+        
         if (!color)
             return 0u;
         if (color == m_curSequence->GetMaskColor())
@@ -169,6 +170,7 @@ uint32_t CAnimDirectional::GetPixelAtPoint(const IVector2 &point, IVector2 *text
         if (m_curSequence->GetTexture()->m_clrKey && color == m_curSequence->GetTexture()->m_clrKey)
              return 0u;
         dbg("HIT");
+        *textpos =  tex;
         return color;
 
        

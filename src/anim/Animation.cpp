@@ -6,6 +6,11 @@ void CAnimation::OnCreate()
 {
 
 }
+IVector2 CAnimation::GetCurrentTextureDimensions()
+{
+    auto& r =  m_curSequence->GetFrames()[m_curFrame].m_rect;
+    return IVector2(r.w, r.h);
+}
 void CAnimation::OnSequenceStart(const std::string &seq_name)
 {
 

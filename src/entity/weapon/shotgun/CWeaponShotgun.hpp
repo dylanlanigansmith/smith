@@ -8,11 +8,11 @@
 
 class CPlayer;
 
-class CWeaponSMG : public CBaseWeapon
+class CWeaponShotgun : public CBaseWeapon
 {
 public:
-    CWeaponSMG(CBaseRenderable* m_pOwner) : CBaseWeapon(m_pOwner, Util::getClassName(this)), anim_smg(m_pOwner, "smg"){}
-    virtual ~CWeaponSMG(){}
+    CWeaponShotgun(CBaseRenderable* m_pOwner) : CBaseWeapon(m_pOwner, Util::getClassName(this)), anim_shotgun(m_pOwner, "shotgun"){}
+    virtual ~CWeaponShotgun(){}
     virtual void OnCreate();
     virtual void Render(CRenderer* renderer);
     virtual void OnUpdate();
@@ -20,11 +20,13 @@ public:
     virtual void OnReload();
 
     virtual void ApplyRecoil();
+
+    virtual float GetDamage(CBaseEntity* ent = nullptr) const override;
 protected:
 
 private:
   
 
-   CAnimViewmodel anim_smg;
+   CAnimViewmodel anim_shotgun;
   
 };

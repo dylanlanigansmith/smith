@@ -33,6 +33,7 @@ public:
     virtual void SetSubType(int type = 0) = 0;
     
     virtual bool Attack(CBaseEntity* target) = 0;
+    virtual float GetDamageModForHit(const IVector2& pt) = 0;
 
     auto GetPathFinder() { return &m_path; }
     auto GetDestination() const { return m_headingTo; }

@@ -48,8 +48,10 @@ void CPlayer::OnCreate()
 
   auto Pistol = new CWeaponPistol(this);
   auto SMG = new CWeaponSMG(this);
+  auto ShotGun = new CWeaponShotgun(this);
   m_inventory->AddItem( SMG);
   m_inventory->AddItem( Pistol );
+  m_inventory->AddItem( ShotGun );
   //MOVE THIS
   for(auto& item : m_inventory->contents()){
     if(item == nullptr) continue;
@@ -232,11 +234,43 @@ void CPlayer::CreateMove()
 
 
   static double bob = 0;
+  static auto lastStep = IEngineTime->GetCurLoopTick();
+  auto curTick = IEngineTime->GetCurLoopTick();
   //https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/p_user.c#L74-L141
+
+  auto footsound = [](int i)
+  {
+    switch (i)
+    {
+    case 0:
+      return std::string("fstepc0");
+      break;
+    case 1:
+      return std::string("fstepc1");
+      break;
+    case 2:
+      return std::string("fstepc2");
+      break;
+    case 3:
+      return std::string("fstepc3");
+      break;
+    default:
+      return std::string("fstepc0");
+      break;
+    }
+  };
+  static int step_idx = 0;
+  if(step_idx > 3) step_idx = 0;
   if(velocity.LengthSqr() > 0.0005 ){
     m_isMoving = true;
-    bob = m_camera.m_bobAmt * sin( (double)IEngineTime->GetCurLoopTick() / 1.8f);
+    bob = m_camera.m_bobAmt * sin( (double)curTick / 1.8f);
     
+    looptick_t stepTime = (speedMod > 1.01) ? TICKS_PER_S / 4.4 : TICKS_PER_S / 2.7;
+    if(lastStep + stepTime < curTick){
+      engine->SoundSystem()->PlaySound(footsound(step_idx), 0.4);
+      step_idx++;
+      lastStep = curTick;
+    }
   }
   m_vecPosition.z = bob;
 
@@ -345,7 +379,21 @@ if (!IInputSystem->UseMouseMovement()) //arrow key look controls
       Inventory()->Switch(1);
     }
   }
-
+  if(IInputSystem->IsKeyDown(SDL_SCANCODE_3)){
+    if(Inventory()->SlotFilled(2)){
+      Inventory()->Switch(2);
+    }
+  }
+  if(IInputSystem->IsKeyDown(SDL_SCANCODE_4)){
+    if(Inventory()->SlotFilled(3)){
+      Inventory()->Switch(3);
+    }
+  }
+  if(IInputSystem->IsKeyDown(SDL_SCANCODE_5)){
+    if(Inventory()->SlotFilled(4)){
+      Inventory()->Switch(4);
+    }
+  }
 
 
 

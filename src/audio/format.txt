@@ -17,6 +17,8 @@ sox mp5r.wav -r48000 -e signed-integer -b16  mp5.wav
 
 sox eurobeat.mp3 -r48000 -e signed-integer -b16  eurobeat.wav
 
-sox Fizz.ogg -c2 -r48000 Fizz2.ogg 
+sox sg.mp3 -c2 -r48000 shotgun_shoot.ogg 
 
 soxi for info
+
+sox  -c2 -r48000 Fizz2.ogg 

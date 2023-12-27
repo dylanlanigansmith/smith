@@ -149,9 +149,9 @@ bool CBaseWeapon::Shoot()
                     hit_ent = dynamic_cast<CBaseEnemy *>(ent);
                     IVector2 textpos;
                     if( hit_ent->HitDetect(cam, xhair, &textpos)){ //should return position
-                        dbg("hit");
+                        log("hit {%d %d}", textpos.x, textpos.y);
                         int pos = Util::SemiRandRange(0, 8) * -1;
-                        hit_ent->OnHit(GetDamage(), {pos, pos}); //damage isnt real!!!
+                        hit_ent->OnHit(GetDamage(ent), textpos); //damage isnt real!!!
 
                         return true;
                     }

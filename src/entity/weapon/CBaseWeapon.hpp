@@ -20,7 +20,7 @@
 
 //https://ezgif.com/gif-to-sprite/ //amazing
 struct weapon_data_t{
-    double flRange;
+    double range;
     float flDamage;
     int iDamageMod;
     int iReloadTime;
@@ -28,7 +28,7 @@ struct weapon_data_t{
     uint8_t nAmmoType;
 
     float GetDamage() const {
-        return Util::SemiRandRange(flDamage - iDamageMod / 1.5, flDamage + iDamageMod / 2);
+        return Random::Range<float>(flDamage - iDamageMod / 1.5, flDamage + iDamageMod / 2);
     }
 };
 
@@ -57,7 +57,7 @@ public:
     virtual void SetOwnerEntity(hEntity m_iOwnerID) { this->m_iOwnerID = m_iOwnerID; OnSetOwnerEntity();}
 
 
-    virtual float GetDamage() const { return m_data.GetDamage(); }
+    virtual float GetDamage(CBaseEntity* hit = nullptr) const { return m_data.GetDamage(); }
 
    
     virtual void ApplyRecoil() {}

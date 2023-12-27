@@ -13,6 +13,8 @@ void CSoldier::OnCreate()
 {
     ENT_SETUP();
     
+   m_lastVocal = m_lastFootstep = 0;
+     
     /*
     Needs to be set:
     health/maxhealth
@@ -260,6 +262,45 @@ void CSoldier::CreateBehaviours()
     m_behave.ChangeBehaviour("patrol");
 }
 
+void CSoldier::OnWalkToward(const Vector2 &pos)
+{
+     m_action = Walking; 
+
+     auto curTick = IEngineTime->GetCurLoopTick();
+     auto footsound = [](int i)
+    {
+        switch (i)
+        {
+        case 0:
+        return std::string("fstepc0");
+        break;
+        case 1:
+        return std::string("fstepc1");
+        break;
+        case 2:
+        return std::string("fstepc2");
+        break;
+        case 3:
+        return std::string("fstepc3");
+        break;
+        default:
+        return std::string("fstepc0");
+        break;
+        }
+    };
+  static int step_idx = 0;
+  if(step_idx > 3) step_idx = 0;
+  
+    looptick_t stepTime = (m_move.m_flForwardSpeed >= 0.09) ? TICKS_PER_S / 4.4 : TICKS_PER_S / 2.3;
+    static constexpr double footstepTravel = 4.5;
+    if(m_lastFootstep + stepTime < curTick && (IEntitySystem->GetLocalPlayer()->GetPosition() - GetPosition() ).Length2D() < footstepTravel){
+      engine->SoundSystem()->PlayPositional(footsound(step_idx), pos, 0.03, 0.1);
+      step_idx++;
+      m_lastFootstep = curTick;
+    }
+  
+}
+
 void CSoldier::OnLikelyStuck()
 {
     if(m_path.HasPath())
@@ -281,6 +322,8 @@ void CSoldier::Render(CRenderer *renderer)
 
 void CSoldier::OnHit(int damage, const IVector2 &position)
 {
+    damage *= GetDamageModForHit(position);
+
     m_health -= damage;
     if(m_action == Dying || m_action == Dead)
         return;
@@ -301,6 +344,37 @@ void CSoldier::OnHit(int damage, const IVector2 &position)
 bool CSoldier::HitDetect(CCamera *camera, const IVector2 &point, IVector2 *textpos)
 {
     return (uint32_t)GetPixelAtPoint(camera, point, textpos) != 0u;
+}
+
+float CSoldier::GetDamageModForHit(const IVector2 &pt)
+{
+    IVector2 dim = m_anim.GetCurrentTextureDimensions();
+    /*
+        top 1/4 = headshot
+        1/4-1/2 = body
+        bottom half = legs
+
+    */
+  //0,0 == top left
+
+   // log("dim{%d %d} pt{%d %d} t{%d %d}", dim.x, dim.y, pt.x, pt.y, t.x, t.y);
+    if(pt.y < 0.25 * dim.y){
+       // log("headshot");
+        return 1.45f;
+    } 
+    else if(pt.y < 0.35 * dim.y){
+       // log("upper torso");
+        return 1.0f;
+    } 
+    else if(pt.y < 0.5 * dim.y){
+       // log("torso");
+        return 0.85f;
+    } 
+    else{
+      //  log("legs");
+        return 0.65f;
+    } 
+
 }
 
 bool CSoldier::Shoot(CBaseEntity *target)

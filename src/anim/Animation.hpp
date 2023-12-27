@@ -16,6 +16,8 @@ public:
     CAnimData* AddSequenceByName(const std::string& seq_name);
     void PlaySequenceByName(const std::string& seq_name, bool no_interupt = false);
     inline auto& Drawable() { return *m_surface; }
+
+    virtual IVector2 GetCurrentTextureDimensions();
 protected:
     virtual void OnSequenceStart(const std::string& seq_name);
     virtual void OnSequenceEnd(const std::string& seq_name);

@@ -336,6 +336,9 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
         int index = (tile->m_nDecals - 1) % MAX_DECALS;
         auto pDecals = tile->m_pDecals;
         for (int i = 0; i < index; ++i) {
+            if(!pDecals){
+                Error("we got no decals {%d %d} %d", pos.x, pos.y, i); return;
+            }
             if(pDecals->m_pNextDecal)
                 pDecals = pDecals->m_pNextDecal;
            

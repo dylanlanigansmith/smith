@@ -36,27 +36,30 @@ void CWeaponSMG::OnShoot()
 {
    anim_smg.PlaySequenceByName("shoot0", true);
   
-     engine->SoundSystem()->PlaySound("dev_gunshot0", 1.0); //needs a sound
+     engine->SoundSystem()->PlaySound("dev_gunshot0", 0.9); //needs a sound
 }
 
 void CWeaponSMG::OnReload()
 {
     anim_smg.PlaySequenceByName("reload0");
+    //sound
 }
 
 void CWeaponSMG::ApplyRecoil()
 {
-
     //spread next!! 
     auto player = (CPlayer*)m_pOwner;
     auto cam = player->m_pCamera();
 
-    double newPitch = cam->m_flPitch +  m_recoil.pitch_per_shot *  pow(m_shotsFired, m_recoil.shots_fired_mul);
-    if(newPitch >= CCamera::MaxPitch()) newPitch = CCamera::MaxPitch() - 1.0; ///maybe rand range so it looks better
+    double shotsMod = Random::AddVariation<double>( pow(m_shotsFired, m_recoil.shots_fired_mul), 0.3, 0.8);
+
+    double newPitch = cam->m_flPitch +  m_recoil.pitch_per_shot *  shotsMod ;
+    if(newPitch >= CCamera::MaxPitch()) newPitch = CCamera::MaxPitch() - Random::Range<double>(0.4, 1.5); ///maybe rand range so it looks better
 
     cam->m_flPitch = newPitch;
-
-    cam->Rotate(m_recoil.yaw_per_shot * IInputSystem->GetMouseScale() * pow(m_shotsFired, m_recoil.shots_fired_mul));
+    double newYaw = m_recoil.yaw_per_shot * IInputSystem->GetMouseScale() * shotsMod;
+    if(m_shotsFired > (m_data.iMaxAmmo / 2.5) ) newYaw *= -1.0;
+    cam->Rotate(newYaw);
 }
 
 void CWeaponSMG::OnCreate()
@@ -65,7 +68,7 @@ void CWeaponSMG::OnCreate()
     this->m_nNextShot = 0;
     this->m_nFireRate = 3;
     this->m_data.flDamage = 8.0;
-    this->m_data.iDamageMod = 6;
+    this->m_data.iDamageMod = 5;
     this->m_data.iReloadTime = 80;
     this->m_clip = this->m_data.iMaxAmmo = 60;
     this->m_data.nAmmoType = 1;

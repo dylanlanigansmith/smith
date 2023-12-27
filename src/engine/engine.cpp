@@ -80,8 +80,11 @@ bool CEngine::Start(const char* title)
         }
     }
     
-    //seed the bad rng 
-    srand(  time(nullptr) );
+    //seed the bad rng with the good one
+    //srand(  time(nullptr) );
+    Random::Init();
+    srand(  Random::Range<int>(0, UINT32_MAX) );
+    
 
     
  
@@ -101,14 +104,15 @@ bool CEngine::Start(const char* title)
 
 int CEngine::Run()
 {
-    
+  
     static auto UpdateProfiler = IEngineTime->AddProfiler("Engine::PostRenderUpdate()");
     static auto TotalRenderProfiler = IEngineTime->AddProfiler("Engine::RenderLoop()");
     m_SoundSystem.Init(0);
     shouldStopLoop = SDL_FALSE;
     auto display_mode = &PLATFORM.window().m_displayMode;
     
-   
+    if(PLATFORM.IsLinux()) 
+        SDL_SetWindowIcon(m_SDLWindow, ITextureSystem->ErrorTexture()->m_texture);
     static bool fullscreen = PLATFORM.window().GfxParams().fullscreen;
     while(!shouldStopLoop)
     {

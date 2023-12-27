@@ -2,7 +2,7 @@
 #include <common.hpp>
 #include <stdio.h>
 #include <types/Vector.hpp>
-
+#include "random.hpp"
 namespace Util
 {
     static const std::string stringf(const char *fmt, ...)

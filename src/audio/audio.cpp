@@ -307,6 +307,13 @@ bool CSoundSystem::LoadSoundFiles()
     LoadAudioFile("mp5.wav");
     LoadAudioFile("st-song.wav");
     LoadAudioFile("empty-gun.wav");
+    LoadAudioFile("shotgun_shoot.ogg");
+    LoadAudioFile("shotgun_reload.ogg");
+
+    LoadAudioFile("fstepc0.wav");
+    LoadAudioFile("fstepc1.wav");
+    LoadAudioFile("fstepc2.wav");
+    LoadAudioFile("fstepc3.wav");
    // LogAudioData("van_Wiese_bass_beat");
    // LogAudioData("dev_tests16");
    // LogAudioData("dev_test_scores");
