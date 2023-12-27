@@ -22,15 +22,20 @@ bool CBaseWeapon::Shoot()
         return false;
     }
         
-
+    if(m_nNextShot - m_nFireRate == curTick - m_nFireRate ){
+        m_shotsFired++; //should be a range, works okay though
+        //also should have a tick cooldown to reset
+    }
+    else m_shotsFired = 0;
     m_nNextShot = curTick + m_nFireRate;
     m_clip --;
     
     this->OnShoot();
+    this->ApplyRecoil();
     
-
     auto cam = owner->m_pCamera();
     auto pos = owner->GetPosition();
+    
     static const IVector2 xhair = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
 
     //collision detection REWRITE THIS! holy fuck

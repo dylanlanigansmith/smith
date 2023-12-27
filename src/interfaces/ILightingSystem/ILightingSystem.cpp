@@ -218,10 +218,21 @@ void CLightingSystem::FromJSON(const nlohmann::json &j)
 
 void CLightingSystem::OnPreLevelChange()
 {
-    for(auto& entry : light_list){
-        if(entry.second != nullptr)
-            delete entry.second;
+    for(auto itr = light_list.begin(); itr != light_list.end(); )
+    {
+        if(itr->second != nullptr && !itr->second->IsTemporary()) // Check condition
+        {
+            delete itr->second; // Delete the CLight object
+            itr = light_list.erase(itr); // Erase element and get next iterator
+        }
+        else
+        {
+            ++itr; // Move to next element
+        }
     }
-    light_list.clear();
-    log("cleared light list");
+
+   // light_list.clear(); //this works fine 
+   // light_list.erase(std::remove_if(light_list.begin(), light_list.end(), [](const std::pair<std::string, CLight*>& itr){  return !itr.second->IsTemporary(); }), light_list.end());
+    //^^ error: use of deleted function ‘std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_T1, _T2>&) [with _T1 = const std::__cxx11::basic_string<char>; _T2 = CLight*]’
+    log("cleared light list, %li temporary objects kept", light_list.size());
 }

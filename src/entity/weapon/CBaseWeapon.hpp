@@ -32,6 +32,15 @@ struct weapon_data_t{
     }
 };
 
+
+struct recoil_param_t
+{
+    double pitch_per_shot = 0.0;
+    double yaw_per_shot = 0.0;
+    std::pair<double, double> rand = {0.0, 1.0};
+    double shots_fired_mul = 1.0;
+};
+
 class CBaseWeapon : public CLogger //should include component and logging
 {
 public:
@@ -49,6 +58,9 @@ public:
 
 
     virtual float GetDamage() const { return m_data.GetDamage(); }
+
+   
+    virtual void ApplyRecoil() {}
     auto& GetName() const { return m_szName; }
 
 
@@ -64,10 +76,13 @@ protected:
     uint64_t m_nNextShot = 0;
 
     uint64_t m_nNextReload = 0;
-    uint32_t m_iShotsFired;
+    uint32_t m_shotsFired;
     weapon_data_t m_data;
     int m_clip;
     int m_reserveammo; 
+
+
+    recoil_param_t m_recoil;
     hEntity m_iOwnerID;
     CBaseRenderable* m_pOwner = nullptr;
     

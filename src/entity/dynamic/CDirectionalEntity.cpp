@@ -15,7 +15,7 @@ void CDirectionalEntity::WalkTowards(const Vector2 &pos)
         newPos.x += m_view.m_dir.x * moveSpeed;
     else wasCol = true;
 
-    if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + m_view.m_dir.y * moveSpeed, m_vecPosition.z}) == false)
+    if(ILevelSystem->IsCollision(this, newPos, {newPos.x,  newPos.y + m_view.m_dir.y * moveSpeed, newPos.z}) == false)
         newPos.y += m_view.m_dir.y * moveSpeed;
     else wasCol = true;
     

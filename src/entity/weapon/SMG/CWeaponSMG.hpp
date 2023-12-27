@@ -16,6 +16,8 @@ public:
     virtual void OnUpdate();
     virtual void OnShoot();
     virtual void OnReload();
+
+    virtual void ApplyRecoil();
 protected:
 
 private:

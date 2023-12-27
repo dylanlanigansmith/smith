@@ -34,10 +34,10 @@ float CViewmodel::GetBobX()
      //sin(t) - sin(t/2) - sin(t/4) - sin(t/8)
 }
 
-void CViewmodel::DrawCrosshair(CRenderer *renderer) //use SDL drawing and do this at full res scale !
+void CViewmodel::DrawCrosshair(CRenderer *renderer) 
 {
-    // draw crosshair
-
+    // draw crosshair: needs to be redone on overlay / ui layer
+    //use SDL drawing and do this at full res scale ! so we dont lock an entire texture to send 20 pixels
     static constexpr int crosshair_x = SCREEN_WIDTH / 2;
     static constexpr int crosshair_y = SCREEN_HEIGHT / 2;
     static Color crosshair_color = params.m_crosshairColor;

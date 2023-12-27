@@ -30,6 +30,10 @@ public:
     [[nodiscard]] virtual bool UseMouseMovement() const { return m_bMouseLook; }
     virtual Vector2 GetLastMouseMove();
     const auto AllowPitch() { return m_bPitch; }
+
+    auto GetMouseScale() const { return m_flMouseScale; }
+    auto GetSensitivityX() const { return m_flSensitivity; }
+    auto GetSensitivityY() const { return m_ySensitivity; }
 private:
     virtual void OnMouseMotion(SDL_Event* event);
     virtual void OnKeyDown(SDL_Keycode code);

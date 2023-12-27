@@ -3,9 +3,10 @@
 
 
 - enemy so messed up
-    - AI is broken
-    - base class needed
+    - AI is broken 
+    - base class needed [x]
     - goal: can put 100 on a map and let them fight for an hour
+
 
 -lighting model needs revamp!!!
     - finish dynamic lights 
@@ -54,9 +55,9 @@
 
 - particles
 - half walls
-- dynamic lights
 
 
+- localization
 
 
 - replace weapon art with my own

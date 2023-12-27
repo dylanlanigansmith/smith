@@ -9,6 +9,8 @@ public:
   Vector2 m_vecPlane;
   double m_flPitch;
   double m_bobAmt;
+
+  
   void Rotate(double rotSpeed) // positive CCW/L negative CW/R
   {
     // both camera direction and camera plane must be rotated
@@ -31,6 +33,9 @@ public:
             m_vecDir.x + m_vecPlane.x * c,
             m_vecDir.y + m_vecPlane.y * c};
   }
+
+  static inline double MaxPitch() { return 225.0; }
+
 
   IVector2 WorldToScreen(const IVector2& bounds, Vector2 world, W2S pos = W2S::Top , int vOffset = 0, double vScale = 1.0, double wScale = 1.0)
   {

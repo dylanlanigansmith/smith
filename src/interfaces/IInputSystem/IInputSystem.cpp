@@ -11,7 +11,7 @@ void CInputSystem::OnCreate()
     m_flSensitivity = 5.2; // 2.24 @ 800 seems good
     m_ySensitivity = m_flSensitivity + 1.2;
     m_flMouseScale = 0.0005;
-    m_flMouseAccel = 5.6;
+    m_flMouseAccel = 1.0;
     m_bMouseLook = true;
     m_bGrabCursor = true;
     m_bPitch = true;

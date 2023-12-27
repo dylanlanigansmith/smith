@@ -44,6 +44,21 @@ void CWeaponSMG::OnReload()
     anim_smg.PlaySequenceByName("reload0");
 }
 
+void CWeaponSMG::ApplyRecoil()
+{
+
+    //spread next!! 
+    auto player = (CPlayer*)m_pOwner;
+    auto cam = player->m_pCamera();
+
+    double newPitch = cam->m_flPitch +  m_recoil.pitch_per_shot *  pow(m_shotsFired, m_recoil.shots_fired_mul);
+    if(newPitch >= CCamera::MaxPitch()) newPitch = CCamera::MaxPitch() - 1.0; ///maybe rand range so it looks better
+
+    cam->m_flPitch = newPitch;
+
+    cam->Rotate(m_recoil.yaw_per_shot * IInputSystem->GetMouseScale() * pow(m_shotsFired, m_recoil.shots_fired_mul));
+}
+
 void CWeaponSMG::OnCreate()
 {
     // setup data
@@ -55,6 +70,11 @@ void CWeaponSMG::OnCreate()
     this->m_clip = this->m_data.iMaxAmmo = 60;
     this->m_data.nAmmoType = 1;
     this->m_reserveammo =  this->m_data.iMaxAmmo * 2;
+
+    this->m_recoil.pitch_per_shot = 0.3;
+    this->m_recoil.yaw_per_shot = 0.4;
+    this->m_recoil.rand = {0.1, 1.2};
+    this->m_recoil.shots_fired_mul = 1.2;
 
     anim_smg.AddDefaultSequenceByName("default0", {SCREEN_WIDTH * 0.703125f, SCREEN_HEIGHT *  0.65f}); //640x360 = 450x234
     anim_smg.AddSequenceByName("shoot0");

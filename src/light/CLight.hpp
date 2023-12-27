@@ -15,8 +15,8 @@ struct light_influence
 
 struct light_params
 {
-    float a = 0.4f;
-    float b =  0.095; //1.81f;
+    float a = 0.1267f;
+    float b =  0.0770; //1.81f;
     float minIntensity = 0.01;
     float alphaMod = 1.0f;
     float colorModifier = 1.0f;

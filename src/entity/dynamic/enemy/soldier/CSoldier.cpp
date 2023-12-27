@@ -120,7 +120,7 @@ void CSoldier::CreateBehaviours()
                 }
             }
             auto player = IEntitySystem->GetLocalPlayer();
-            if(isEntityVisible(player, 45)){
+            if(isEntityVisible(player, 55)){
                 auto ent_pos = player->GetPosition();
                 m_view.lookAt(m_vecPosition, ent_pos);
                 m_behave.ChangeBehaviour("reposition");
@@ -140,7 +140,7 @@ void CSoldier::CreateBehaviours()
                 if(m_path.Search(m_vecPosition, target_pos)){
                     m_headingTo = Enemy::CenterPosition( m_path.GetNextPoint(m_vecPosition));
                 }
-                m_repositionrange = Util::SemiRandRange(3.0, 10.0);
+                m_repositionrange = Util::SemiRandRange(4.0, 8.0);
             }
            else {
                // this->m_action = Walking; //this happens automatically 
@@ -158,7 +158,7 @@ void CSoldier::CreateBehaviours()
                 }
             }
 
-            if(!isEntityVisible(target, 45)){
+            if(!isEntityVisible(target, 55)){
                 
                 m_view.lookAt(m_vecPosition, target_pos);
                 if(current > start + TICKS_PER_S)
@@ -177,7 +177,7 @@ void CSoldier::CreateBehaviours()
                 if(m_path.Search(m_vecPosition,Enemy::FindRetreatPoint(m_vecPosition, target_pos))){
                     m_headingTo = Enemy::CenterPosition( m_path.GetNextPoint(m_vecPosition));
                 }
-                m_repositionrange = Util::SemiRandRange(3.0, 10.0);
+                m_repositionrange = Util::SemiRandRange(3.0, 5.0);
             }
            if(m_path.HasPath()) {
                // this->m_action = Walking; //this happens automatically 
@@ -189,7 +189,7 @@ void CSoldier::CreateBehaviours()
                 this->RunTowards(m_headingTo);
             }
 
-            if(isEntityVisible(target, 45)){
+            if(isEntityVisible(target, 55)){
                 
                 m_view.lookAt(m_vecPosition, target_pos);
                 if(current > (start + TICKS_PER_S) )
@@ -210,7 +210,7 @@ void CSoldier::CreateBehaviours()
             
             
             m_path.Reset();
-            if(!isEntityVisible(target, 25)){
+            if(!isEntityVisible(target, 45)){
                 
                // m_view.lookAt(m_vecPosition, target_pos);
                 if(current > start + TICKS_PER_S / 2)
@@ -235,7 +235,12 @@ void CSoldier::CreateBehaviours()
                 this->m_action = Aiming;
             }
             if( current > (start + TICKS_PER_S ) ){
-                if(GetHealth() <= (GetMaxHealth() / 4)){
+                if(Util::SemiRandRange(0,100) > 70){
+                    log("%d lucky", GetID());
+                     m_view.lookAt(m_vecPosition, target_pos);
+                    m_behave.ChangeBehaviour("attacking"); return;
+                }
+                else if(GetHealth() <= (GetMaxHealth() / 4)){
                         m_path.Reset();
                         m_behave.ChangeBehaviour("retreat"); return;
                     }
@@ -286,7 +291,7 @@ void CSoldier::OnHit(int damage, const IVector2 &position)
     }
     else{
          m_path.Reset();
-        if(m_health > (m_maxhealth / 5))
+        if(m_health < (m_maxhealth / 5))
             m_behave.ChangeBehaviour("retreat");
         else
             m_behave.ChangeBehaviour("aiming");

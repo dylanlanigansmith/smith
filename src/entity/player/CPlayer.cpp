@@ -89,7 +89,7 @@ void CPlayer::OnRenderStart()
       m_scamera.m_flPitch += mouseMove.y * 360.f;
 
 
-    const double maxPitch = 225;
+    static const double maxPitch = CCamera::MaxPitch();
     if (m_scamera.m_flPitch > maxPitch)
       m_scamera.m_flPitch = maxPitch;
     if (m_scamera.m_flPitch < -maxPitch)
@@ -171,13 +171,14 @@ void CPlayer::CreateMove()
 
  
 
-  double speedMod = (noclip ) ? 1.5 : 1.0;
+  double speedMod =  1.0;
   WASD_t in_move = IInputSystem->GetInput();
   m_isMoving = false;
+
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LSHIFT))
   {
     // sprint
-    speedMod = m_move.m_flSpeedModifier;
+    speedMod = (noclip ) ? 2.5 : m_move.m_flSpeedModifier;
   }
    double moveSpeed = m_move.m_flForwardSpeed *  speedMod;
   double strafeSpeed = m_move.m_flStrafeSpeed *  speedMod;
@@ -219,9 +220,11 @@ void CPlayer::CreateMove()
     if(ILevelSystem->IsCollision(this, m_vecPosition, {m_vecPosition.x,  m_vecPosition.y + leftY  * strafeSpeed, m_vecPosition.z}) == false || noclip)
         velocity.y += leftY  * strafeSpeed;
   }
-  if(velocity.LengthSqr() > m_move.m_flForwardSpeed*m_move.m_flForwardSpeed){
+
+
+  if(velocity.LengthSqr() > moveSpeed*moveSpeed){
     //clamp
-    velocity = velocity.Normalize() *  m_move.m_flForwardSpeed;
+    velocity = velocity.Normalize() *  moveSpeed;
 
   }
    m_vecPosition.x += velocity.x;
@@ -238,36 +241,7 @@ void CPlayer::CreateMove()
   m_vecPosition.z = bob;
 
  
-  if (!IInputSystem->UseMouseMovement())
-  {
-    bool canPitch = IInputSystem->AllowPitch();
-    if (IInputSystem->IsKeyDown(SDL_SCANCODE_UP) && canPitch)
-    {
-      // look up
-      m_camera.m_flPitch += 400 * pitchSpeed;
-      if (m_camera.m_flPitch > 200)
-        m_camera.m_flPitch = 200;
-    }
-    if (IInputSystem->IsKeyDown(SDL_SCANCODE_DOWN) && canPitch)
-    {
-      // look down
-      m_camera.m_flPitch -= 400 * pitchSpeed;
-      if (m_camera.m_flPitch < -200)
-        m_camera.m_flPitch = -200;
-    }
-    if (IInputSystem->IsKeyDown(SDL_SCANCODE_LEFT))
-      m_camera.Rotate(rotSpeed);
-
-    if (IInputSystem->IsKeyDown(SDL_SCANCODE_RIGHT))
-      m_camera.Rotate(-rotSpeed);
-  }
- //mouse went here
- if(IInputSystem->UseMouseMovement())
-  {
-    m_camera.m_vecDir = m_scamera.m_vecDir;
-    m_camera.m_vecPlane = m_scamera.m_vecPlane;
-    m_camera.m_flPitch =  m_scamera.m_flPitch;
-  }
+  
   bool isCrouching = false;
   static bool downLast = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))
@@ -293,6 +267,37 @@ void CPlayer::CreateMove()
     
   }
 
+if (!IInputSystem->UseMouseMovement()) //arrow key look controls
+  {
+    bool canPitch = IInputSystem->AllowPitch();
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_UP) && canPitch)
+    {
+      // look up
+      m_camera.m_flPitch += 400 * pitchSpeed;
+      if (m_camera.m_flPitch > 200)
+        m_camera.m_flPitch = 200;
+    }
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_DOWN) && canPitch)
+    {
+      // look down
+      m_camera.m_flPitch -= 400 * pitchSpeed;
+      if (m_camera.m_flPitch < -200)
+        m_camera.m_flPitch = -200;
+    }
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_LEFT))
+      m_camera.Rotate(rotSpeed);
+
+    if (IInputSystem->IsKeyDown(SDL_SCANCODE_RIGHT))
+      m_camera.Rotate(-rotSpeed);
+  }
+ //moved here so that 
+ if(IInputSystem->UseMouseMovement())
+  {
+    m_camera.m_vecDir = m_scamera.m_vecDir;
+    m_camera.m_vecPlane = m_scamera.m_vecPlane;
+    m_camera.m_flPitch =  m_scamera.m_flPitch;
+  }
+//move this to viewmodel!!!! 
   static CLightWeapon* flash = nullptr; 
   
   if(flash == nullptr)
@@ -307,16 +312,26 @@ void CPlayer::CreateMove()
     auto viewdir = m_camera.m_vecDir.Normalize() * 0.7;
     flash->SetPosition({m_vecPosition.x + viewdir.x, m_vecPosition.y + viewdir.y, 0.5f});
   }
-    
-    
-
-
-
+     
   if(IInputSystem->IsMouseButtonDown(0) ) //REALLY NEED A MENU OPEN FUNCTION LIKE WTF
   {
-      if(GetActiveWeapon()->Shoot())
+      if(GetActiveWeapon()->Shoot()){
         flash->Flash(4);
+
+        //recoil!! dont love this
+        m_scamera.m_vecDir = m_camera.m_vecDir;
+        m_scamera.m_vecPlane = m_camera.m_vecPlane;
+        m_scamera.m_flPitch =  m_camera.m_flPitch;
+      }
+        
   }
+
+
+
+
+
+
+
   if(IInputSystem->IsKeyDown(SDL_SCANCODE_R)){
     GetActiveWeapon()->Reload();
   }
@@ -331,17 +346,11 @@ void CPlayer::CreateMove()
     }
   }
 
-  /*
-//  if (m_camera.m_flPitch > 0)
-  //    m_camera.m_flPitch = std::max<double>(0, m_camera.m_flPitch - 100 * pitchSpeed);
- // if (m_camera.m_flPitch < 0)
-  //    m_camera.m_flPitch = std::min<double>(0, m_camera.m_flPitch + 100 * pitchSpeed);
-  if (m_vecPosition.z > 0)
-      m_vecPosition.z = std::max<double>(0, m_vecPosition.z - 100 * moveSpeed);
-  if (m_vecPosition.z < 0 && !isCrouching)
-      m_vecPosition.z = std::min<double>(0, m_vecPosition.z + 100 * moveSpeed);
-*/
 
-    if(noclip)
-      m_health = m_maxhealth;
+
+
+    if(noclip){
+       m_health = m_maxhealth;
+    }
+     
 }

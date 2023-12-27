@@ -1,11 +1,5 @@
 #include "ILevelSystem.hpp"
 #include <engine/engine.hpp>
-
-
-
-
-
-
 #include <data/level.hpp>
 #include <util/misc.hpp>
 #include <renderer/render_helpers.hpp>
@@ -18,11 +12,8 @@
 #include <entity/prop/objects/CGreenLight.hpp>
 #include <entity/prop/objects/CPillar.hpp>
 #include <entity/level/CBaseDoorControl.hpp>
-
 #include <entity/particle/CParticleEmitter.hpp>
-
 #include <entity/prop/generic/CLevelProp.hpp>
-
 #include <entity/dynamic/enemy/soldier/CSoldier.hpp>
 
 
@@ -54,10 +45,6 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
     bool changing = (m_Level != nullptr && m_levelState == LevelSystem_Loaded);
     note("%s level %s!", changing ? "changing to" : "loading", map_name.c_str());
     m_levelState = LevelSystem_Init;
-
-    
-
-
 
     if(changing)
     {
@@ -95,7 +82,8 @@ bool CLevelSystem::LoadLevel(const std::string &map_name)
         doorctl2->GetDoor().params.m_direction = door_data::DoorDir_RightToLeft;
 
 
-        for(int i = 0; i < 3; ++i)
+
+        for(int i = 0; i < 15; ++i)
         {
             auto sold = IEntitySystem->AddEntity<CSoldier>();
             auto empty = FindEmptySpace();
