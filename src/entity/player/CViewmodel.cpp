@@ -34,7 +34,7 @@ float CViewmodel::GetBobX()
      //sin(t) - sin(t/2) - sin(t/4) - sin(t/8)
 }
 
-void CViewmodel::DrawCrosshair(CRenderer *renderer)
+void CViewmodel::DrawCrosshair(CRenderer *renderer) //use SDL drawing and do this at full res scale !
 {
     // draw crosshair
 

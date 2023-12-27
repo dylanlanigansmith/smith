@@ -8,9 +8,9 @@ void CInputSystem::OnCreate()
 {
     m_devMenuOpen = false;
     keyboardState = SDL_GetKeyboardState(&keyboardSize);
-    m_flSensitivity = 3.2; // 2.24;
+    m_flSensitivity = 5.2; // 2.24 @ 800 seems good
     m_ySensitivity = m_flSensitivity + 1.2;
-    m_flMouseScale = 0.005;
+    m_flMouseScale = 0.0005;
     m_flMouseAccel = 5.6;
     m_bMouseLook = true;
     m_bGrabCursor = true;
@@ -100,10 +100,12 @@ Vector2 CInputSystem::GetLastMouseMove()
     static auto lastTick = IEngineTime->GetCurRenderTick();
     auto curTick =  IEngineTime->GetCurRenderTick();
     auto updates = std::max( curTick - lastTick, (looptick_t)1);
+ //   updates = 1;
     Vector2 lastMove = m_vecMouseMove / (double)updates;
     m_vecMouseMove = {0.f, 0.f};
-        lastTick = IEngineTime->GetCurRenderTick();
+    lastTick = IEngineTime->GetCurRenderTick();
     return lastMove;
+  
 }
 
 double SensitivityCurve(double delta, double sensitivity, double acceleration)
@@ -120,9 +122,15 @@ double SensitivityCurve(double delta, double sensitivity, double acceleration)
 
 double SensitivityCurve2(double delta, double sensitivity, double acceleration, double scale)
 {
-
+     double sign = (delta >= 0) ? 1.0 : -1.0;
     // Reapply the sign and adjust with sensitivity factor
-    return scale *  (sensitivity  + (abs(delta) * acceleration));
+    return scale *  (sensitivity  + (abs(delta) * acceleration)) * sign;
+}
+double SensitivityCurve3(double delta, double sensitivity, double acceleration, double scale)
+{
+    
+    // Reapply the sign and adjust with sensitivity factor
+    return scale *  (sensitivity  * delta );
 }
 void CInputSystem::OnMouseMotion(SDL_Event *event)
 {
@@ -138,8 +146,8 @@ void CInputSystem::OnMouseMotion(SDL_Event *event)
         // log("%f", event->motion.xrel);
     }
     m_vecMouseMove = {
-        event->motion.xrel * SensitivityCurve2(event->motion.xrel, m_flSensitivity * 10, m_flMouseAccel, m_flMouseScale) * -1.0,
-        event->motion.yrel * SensitivityCurve2(event->motion.yrel, m_ySensitivity * 10, m_flMouseAccel, m_flMouseScale) * -1.0};
+        m_vecMouseMove.x +  SensitivityCurve3(event->motion.xrel, m_flSensitivity * 0.5 , m_flMouseAccel, m_flMouseScale) * -1.0,
+         m_vecMouseMove.y + SensitivityCurve3(event->motion.yrel, m_ySensitivity * 0.5, m_flMouseAccel, m_flMouseScale) * -1.0};
     /*
     //accel
      m_vecMouseMove = {

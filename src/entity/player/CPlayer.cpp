@@ -35,7 +35,10 @@ void CPlayer::OnCreate()
   m_camera.m_vecDir = {-1, 0};
   m_camera.m_vecPlane = {0, 0.66};
   m_camera.m_flPitch = 0.0;
+  
+
   m_camera.m_bobAmt = 6.0;
+  m_scamera = m_camera;
   m_move.m_flForwardSpeed = 0.130;
   m_move.m_flStrafeSpeed = 0.1;
   m_move.m_flSpeedModifier = 1.38;
@@ -75,6 +78,23 @@ void CPlayer::CreateRenderable()
 void CPlayer::OnRenderStart()
 {
   m_camera.m_vecPosition = m_vecPosition;
+  if(IInputSystem->UseMouseMovement())
+  {
+    auto mouseMove = IInputSystem->GetLastMouseMove();
+    //if(mouseMove.x != 0.0 || mouseMove.x != -0.0)
+     // engine->log("Out %f", mouseMove.x);
+    m_scamera.Rotate(mouseMove.x );
+
+    if (IInputSystem->AllowPitch())
+      m_scamera.m_flPitch += mouseMove.y * 360.f;
+
+
+    const double maxPitch = 225;
+    if (m_scamera.m_flPitch > maxPitch)
+      m_scamera.m_flPitch = maxPitch;
+    if (m_scamera.m_flPitch < -maxPitch)
+      m_scamera.m_flPitch = -maxPitch;
+  }
 }
 
 void CPlayer::OnRenderEnd()
@@ -134,7 +154,7 @@ void CPlayer::OnCollisionWith(CBaseEntity *hit)
 
 void CPlayer::OnSetPosition(const Vector2 &old_pos, const Vector2 &new_pos)
 {
-  m_camera.m_vecPosition = new_pos;
+  m_scamera.m_vecPosition = m_camera.m_vecPosition = new_pos;
 }
 
 void CPlayer::CreateMove()
@@ -241,24 +261,13 @@ void CPlayer::CreateMove()
     if (IInputSystem->IsKeyDown(SDL_SCANCODE_RIGHT))
       m_camera.Rotate(-rotSpeed);
   }
-  else
+ //mouse went here
+ if(IInputSystem->UseMouseMovement())
   {
-    auto mouseMove = IInputSystem->GetLastMouseMove();
-    //if(mouseMove.x != 0.0 || mouseMove.x != -0.0)
-     // engine->log("Out %f", mouseMove.x);
-    m_camera.Rotate(mouseMove.x );
-
-    if (IInputSystem->AllowPitch())
-      m_camera.m_flPitch += mouseMove.y * 360.f;
-
-
-    const double maxPitch = 225;
-    if (m_camera.m_flPitch > maxPitch)
-      m_camera.m_flPitch = maxPitch;
-    if (m_camera.m_flPitch < -maxPitch)
-      m_camera.m_flPitch = -maxPitch;
+    m_camera.m_vecDir = m_scamera.m_vecDir;
+    m_camera.m_vecPlane = m_scamera.m_vecPlane;
+    m_camera.m_flPitch =  m_scamera.m_flPitch;
   }
-
   bool isCrouching = false;
   static bool downLast = false;
   if (IInputSystem->IsKeyDown(SDL_SCANCODE_LCTRL))

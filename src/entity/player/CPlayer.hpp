@@ -54,5 +54,7 @@ private:
 private:
     uint8_t m_nActiveWeapon = 0;
     CCamera m_camera;
+
+    CCamera m_scamera;
 };
 
