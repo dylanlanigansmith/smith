@@ -9,6 +9,8 @@
 
 #include <entity/CBaseRenderable.hpp>
 #include <util/misc.hpp>
+
+//why is this here!
 #define SMITH_PLAYER_INV_SLOTS 6
 
 

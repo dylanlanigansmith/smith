@@ -441,7 +441,7 @@ namespace Render
 
         
 
-        if (hasBulletHole && 22 < draw.texture_pos.y && draw.texture_pos.y < 42)
+        if (hasBulletHole ) //&& 22 < draw.texture_pos.y && draw.texture_pos.y < 42
         {
             bool setPixel = false;
             auto pDecals = tile->m_pDecals;

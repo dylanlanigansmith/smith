@@ -27,8 +27,8 @@ public:
     Middle,
     Bottom
   };
-  Vector2 CalcDirVector(int x = SCREEN_WIDTH / 2){ //not right name
-    const double c = 2 * x / (double)SCREEN_WIDTH - 1.0;
+  inline Vector2 CalcDDARayDir(int x = SCREEN_WIDTH / 2) const { //not right name
+    const double c = 2.0 * x / (double)SCREEN_WIDTH - 1.0;
    return {
             m_vecDir.x + m_vecPlane.x * c,
             m_vecDir.y + m_vecPlane.y * c};

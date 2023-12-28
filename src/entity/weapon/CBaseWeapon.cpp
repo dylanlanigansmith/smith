@@ -3,23 +3,24 @@
 #include <entity/dynamic/CBaseEnemy.hpp>
 
 #include <entity/level/CBaseDoorControl.hpp>
+#include "weaponservices.hpp"
 
 
-bool CBaseWeapon::Shoot()
+bool CBaseWeapon::Shoot() //returns true if a shot was fired!
 {
 
     Debug(false);
 
-    static auto owner = static_cast<CPlayer *>(m_pOwner);
+    static auto owner = static_cast<CPlayer *>(m_pOwner); //this will cause a bug 
     auto curTick = IEngineTime->GetCurLoopTick();
 
-    static looptick_t click = 0;
+    static looptick_t click = 0; //bad!
     if (m_nNextShot > curTick || m_clip == 0 || m_nNextReload > curTick){
         if(m_clip == 0 && click < curTick){
             click = curTick + TICKS_PER_S / 2; engine->SoundSystem()->PlaySound("empty-gun", 1.0);
         }
             
-        return false;
+        return false; 
     }
         
     if(m_nNextShot - m_nFireRate == curTick - m_nFireRate ){
@@ -40,124 +41,36 @@ bool CBaseWeapon::Shoot()
 
     //collision detection REWRITE THIS! holy fuck
     
-    auto tile = ILevelSystem->GetTileAt(IVector2::Rounded(pos.x, pos.y)); //this should be a function
-    CBaseEnemy *hit_ent = nullptr;
-    if (!tile->m_occupants.empty()) //player doesnt get tiled
+
+    //check our own tile first 
+    auto our_tile = ILevelSystem->GetTileAt(IVector2::Rounded(pos.x, pos.y)); //do we want rounded??
+    IVector2 textpos;
+    CBaseEnemy *hit_ent = WeaponServices::CheckTileForHit(our_tile, cam, textpos, xhair);
+    if (hit_ent != nullptr) 
     {
-        for (auto &id : tile->m_occupants)
-        {
-            auto ent = IEntitySystem->GetEntity(id);
-            if (ent == nullptr)
-                continue;
-            if (ent->IsLocalPlayer())
-                continue;
-            if ( ent->IsEnemy())
-            {
-                hit_ent = dynamic_cast<CBaseEnemy *>(ent);
-                IVector2 textpos;
-                if( hit_ent->HitDetect(cam, xhair, &textpos)){ //should return position
-                    dbg("hit");
-                    int pos = Util::SemiRandRange(0, 8) * -1;
-                    hit_ent->OnHit(GetDamage(), {pos, pos}); //damage isnt real!!!
-
-                    return true;
-                }
-            }
-
-        }
+        dbg("hit");   
+        hit_ent->OnHit(GetDamage(), textpos); //damage isnt real!!!
+        return true;
     }
-    int screenx = (SCREEN_WIDTH / 2);
-    double camOffset = 2.0 * screenx / (double)SCREEN_WIDTH - 1.0;
-    // dda dda dda
-    Vector2 rayDir = {
-        cam->m_vecDir.x + cam->m_vecPlane.x * camOffset,
-        cam->m_vecDir.y + cam->m_vecPlane.y * camOffset};
 
-    // which box of the map we're in
-    IVector2 mapPos(pos.x, pos.y);
+    hit_trace_data data(owner);
 
-    // length of ray from current position to next x or y-side
-    Vector2 sideDist;
-
-    // length of ray from one x or y-side to next x or y-side
-    Vector2 deltaDist = {
-        (rayDir.x == 0) ? 1e30 : std::abs(1 / rayDir.x),
-        (rayDir.y == 0) ? 1e30 : std::abs(1 / rayDir.y)};
-
-    double perpWallDist;
-
-    // what direction to step in x or y-direction (either +1 or -1)
-    IVector2 step;
-
-    int hit = 0; // was there a wall hit?
-    int side;    // was a NS or a EW wall hit?
-    if (rayDir.x < 0)
-    {
-        step.x = -1;
-        sideDist.x = (pos.x - mapPos.x) * deltaDist.x;
-    }
-    else
-    {
-        step.x = 1;
-        sideDist.x = (mapPos.x + 1.0 - pos.x) * deltaDist.x;
-    }
-    if (rayDir.y < 0)
-    {
-        step.y = -1;
-        sideDist.y = (pos.y - mapPos.y) * (deltaDist.y);
-    }
-    else
-    {
-        step.y = 1;
-        sideDist.y = (mapPos.y + 1.0 - pos.y) * (deltaDist.y);
-    }
     // perform DDA
-    while (hit == 0)
+    while (data.hit == 0)
     {
-        // jump to next map square, either in x-direction, or in y-direction
-        if (sideDist.x < sideDist.y)
+        
+        data.JumpToNextTile();
+     
+        auto tile = ILevelSystem->GetTileAt(data.mapPos);
+        
+        CBaseEnemy *hit_ent = WeaponServices::CheckTileForHit(tile, cam, textpos, xhair);
+        if (hit_ent != nullptr) 
         {
-            sideDist.x += deltaDist.x;
-            mapPos.x += step.x;
-            side = 0;
-        }
-        else
-        {
-            sideDist.y += deltaDist.y;
-            mapPos.y += step.y;
-            side = 1;
-        }
-        /*
+            dbg("hit");
+        
+            hit_ent->OnHit(GetDamage(), textpos); //damage isnt real!!!
 
-        so we really want to check if an entity is in the square along the way
-        if so then we do a more precise cast?
-
-        */
-        auto tile = ILevelSystem->GetTileAt(mapPos);
-        CBaseEnemy *hit_ent = nullptr;
-        if (!tile->m_occupants.empty()) //player doesnt get tiled
-        {
-            for (auto &id : tile->m_occupants)
-            {
-                auto ent = IEntitySystem->GetEntity(id);
-                if (ent == nullptr)
-                    continue;
-                if (ent->IsLocalPlayer())
-                    continue;
-                if ( ent->IsEnemy())
-                {
-                    hit_ent = dynamic_cast<CBaseEnemy *>(ent);
-                    IVector2 textpos;
-                    if( hit_ent->HitDetect(cam, xhair, &textpos)){ //should return position
-                        log("hit {%d %d}", textpos.x, textpos.y);
-                        int pos = Util::SemiRandRange(0, 8) * -1;
-                        hit_ent->OnHit(GetDamage(ent), textpos); //damage isnt real!!!
-
-                        return true;
-                    }
-                }
-
-            }
+            return true;
         }
         if(tile->IsThinWall() && tile->HasState()){
             if(tile->m_pState->m_isDoor && !tile->m_pState->m_doorctl->IsOpen())
@@ -166,48 +79,64 @@ bool CBaseWeapon::Shoot()
                 Vector2 intersection;
                 Ray_t ray = {
                     .origin = pos,
-                    .direction = rayDir.Normalize()
+                    .direction = data.rayDir.Normalize()
                 };
                 if (Util::RayIntersectsLineSegment(ray, wall, intersection))
                 {
                     tile->m_pState->m_doorctl->OnHit(GetDamage());
-                    break;
+                    break; //really can just return true
                 }
             }
         }
 
-        // Check if ray has hit a wall o
+        // Check if ray has hit a wall we can leave a hole in
         if (tile->m_nType == Level::Tile_Wall )
-            hit = 1;
+            data.hit = 1;
     }
     // FOR BULLET HOLES ^
 
-    if (hit)
+    if (data.hit)
     {
-        auto tile = ILevelSystem->GetTileAtFast(mapPos.x, mapPos.y);
-        // engine->dbg("shot %i %i | %i", tile->m_vecPosition.x, tile->m_vecPosition.y, tile->m_nDecals);
-        if (side == 0)
-            perpWallDist = (sideDist.x - deltaDist.x);
-        else
-            perpWallDist = (sideDist.y - deltaDist.y);
-        double wallX; // where exactly the wall was hit
-        if (side == 0)
-            wallX = pos.y + perpWallDist * rayDir.y;
-        else
-            wallX = pos.x + perpWallDist * rayDir.x;
-        wallX -= floor((wallX));
+        double perpWallDist = data.CalcPerpWallDist();
+
+
+        int lineHeight = (SCREEN_HEIGHT / perpWallDist);
+        int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2 + cam->m_flPitch + (pos.z / perpWallDist);
+        if(drawStart < 0) drawStart = 0;
+        int drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2 + cam->m_flPitch + (pos.z / perpWallDist);
+        if(drawEnd >= SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT - 1;
         IVector2 tex;
-        int textW = 64;
+        //tex pos X
+        double wallX; 
+        if (data.side == 0)
+            wallX = pos.y + perpWallDist * data.rayDir.y;
+        else
+            wallX = pos.x + perpWallDist * data.rayDir.x;
+        wallX -= floor((wallX));
+        
+        constexpr int textW = 64, textH = 64; //bad
+
         tex.x = int(wallX * double(textW));
-        if (side == 0 && rayDir.x > 0)
+        if (data.side == 0 && data.rayDir.x > 0)
             tex.x = textW - tex.x - 1;
-        if (side == 1 && rayDir.y < 0)
+        if (data.side == 1 && data.rayDir.y < 0)
             tex.x = textW - tex.x - 1;
 
-        tex.y = 32 + Util::SemiRandRange(0, 24) - 12;
+        double texStep = (double)textH / (double)lineHeight;
+        double textureY = (drawStart - cam->m_flPitch - SCREEN_HEIGHT / 2 + lineHeight / 2 - (pos.z / perpWallDist)) * texStep;
 
-        const uint8_t dir[3] = {(step.x > 0), (step.y > 0), side & 0xFF};
+        int y_off = xhair.y - drawStart;
+        if(y_off <= 0) return true; //32 + Util::SemiRandRange(0, 24) - 12; //old way
+
+        textureY += (double)y_off * texStep;
+        tex.y = (int)textureY & (textH - 1);
+       // tex.y = 32 + Util::SemiRandRange(0, 24) - 12;
+        const uint8_t dir[3] = {(data.step.x > 0), (data.step.y > 0), data.side & 0xFF};
+
+        auto tile = ILevelSystem->GetTileAtFast(data.mapPos.x, data.mapPos.y);
         ILevelSystem->AddBulletHole(tile, tex, dir, 2.f); // 3 works well
+      //  engine->log("{%d %d}  textureY %f textureStep %f y_off %d perp %f lh %d ds %d", tex.x, tex.y, textureY, texStep, y_off, perpWallDist, lineHeight, drawStart);
+        // engine->dbg("shot %i %i | %i", tile->m_vecPosition.x, tile->m_vecPosition.y, tile->m_nDecals);
     }
 
     return true;

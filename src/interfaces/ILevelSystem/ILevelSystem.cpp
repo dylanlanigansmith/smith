@@ -337,7 +337,9 @@ void CLevelSystem::AddBulletHole(tile_t* tile, const IVector2 pos, const uint8_t
         auto pDecals = tile->m_pDecals;
         for (int i = 0; i < index; ++i) {
             if(!pDecals){
-                Error("we got no decals {%d %d} %d", pos.x, pos.y, i); return;
+                Error("we got null decals! wall{%d %d} loop idx %d, tile{%d %d} ndecals %d index %d", 
+                    pos.x, pos.y, i, tile->m_vecPosition.x, tile->m_vecPosition.y, tile->m_nDecals, index); 
+                return;
             }
             if(pDecals->m_pNextDecal)
                 pDecals = pDecals->m_pNextDecal;
